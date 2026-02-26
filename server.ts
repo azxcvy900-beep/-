@@ -21,7 +21,7 @@ db.exec(`
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = Number(process.env.PORT) || 3000;
 
   app.use(express.json());
 
@@ -30,7 +30,7 @@ async function startServer() {
     const totalUsers = db.prepare("SELECT COUNT(*) as count FROM subscriptions").get() as any;
     const activePlans = db.prepare("SELECT plan, COUNT(*) as count FROM subscriptions GROUP BY plan").all();
     const totalGenerations = db.prepare("SELECT SUM(generations_count) as total FROM subscriptions").get() as any;
-    
+
     res.json({
       totalUsers: totalUsers.count,
       activePlans,
