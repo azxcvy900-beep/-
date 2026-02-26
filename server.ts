@@ -18,6 +18,30 @@ if (fs.existsSync(serviceAccountPath)) {
 
 const db = admin.firestore();
 
+// Seed initial data if empty
+async function seedDatabase() {
+  const settingsDoc = await db.collection("system").doc("settings").get();
+  if (!settingsDoc.exists) {
+    await db.collection("system").doc("settings").set({
+      gemini_api_key: process.env.GEMINI_API_KEY || "",
+      maintenance_mode: false
+    });
+  }
+
+  const packagesSnapshot = await db.collection("packages").get();
+  if (packagesSnapshot.empty) {
+    const defaultPackages = [
+      { name: "Free", price: 0, limit: 10, created_at: new Date().toISOString() },
+      { name: "Premium", price: 29, limit: 1000, created_at: new Date().toISOString() }
+    ];
+    for (const pkg of defaultPackages) {
+      await db.collection("packages").add(pkg);
+    }
+  }
+}
+
+seedDatabase().catch(console.error);
+
 async function startServer() {
   const app = express();
   const PORT = Number(process.env.PORT) || 3000;
@@ -41,12 +65,14 @@ async function startServer() {
       });
 
       const activePlansArray = Object.entries(activePlans).map(([plan, count]) => ({ plan, count }));
+      const settingsDoc = await db.collection("system").doc("settings").get();
+      const currentSettings = settingsDoc.exists ? settingsDoc.data() : { gemini_api_key: "" };
 
       res.json({
         totalUsers,
         activePlans: activePlansArray,
         totalGenerations,
-        apiStatus: process.env.GEMINI_API_KEY ? "Connected" : "Disconnected"
+        apiStatus: currentSettings?.gemini_api_key ? "Connected" : "Disconnected"
       });
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch stats" });
@@ -70,6 +96,59 @@ async function startServer() {
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: "Failed to toggle subscription" });
+    }
+  });
+
+  // Settings APIs
+  app.get("/api/admin/settings", async (req, res) => {
+    try {
+      const doc = await db.collection("system").doc("settings").get();
+      res.json(doc.exists ? doc.data() : { gemini_api_key: "" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch settings" });
+    }
+  });
+
+  app.post("/api/admin/settings/update", async (req, res) => {
+    try {
+      const settings = req.body;
+      await db.collection("system").doc("settings").set(settings, { merge: true });
+      // Update environment variable for immediate effect if needed (cautionary)
+      if (settings.gemini_api_key) process.env.GEMINI_API_KEY = settings.gemini_api_key;
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update settings" });
+    }
+  });
+
+  // Packages APIs
+  app.get("/api/admin/packages", async (req, res) => {
+    try {
+      const snapshot = await db.collection("packages").get();
+      const packages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      res.json(packages);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch packages" });
+    }
+  });
+
+  app.post("/api/admin/packages/add", async (req, res) => {
+    try {
+      const pkg = req.body;
+      await db.collection("packages").add({ ...pkg, created_at: new Date().toISOString() });
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to add package" });
+    }
+  });
+
+  app.post("/api/admin/packages/delete", async (req, res) => {
+    try {
+      const { id } = req.body;
+      await db.collection("packages").doc(id).delete();
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete package" });
     }
   });
 

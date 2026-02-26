@@ -3,6 +3,7 @@ import { GoogleGenAI } from "@google/genai";
 export const generateFashionImage = async (
   clothingImageBase64: string,
   config: {
+    apiKey?: string;
     gender: string;
     category: string;
     pose: string;
@@ -11,8 +12,8 @@ export const generateFashionImage = async (
     modelImage?: string;
   }
 ) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-  
+  const ai = new GoogleGenAI({ apiKey: config.apiKey || process.env.GEMINI_API_KEY || "" });
+
   const prompt = `
     Create a professional fashion photograph. 
     The model should be wearing the clothing items provided in the image.
@@ -60,6 +61,6 @@ export const generateFashionImage = async (
       return `data:image/png;base64,${part.inlineData.data}`;
     }
   }
-  
+
   throw new Error("No image generated");
 };
