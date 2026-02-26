@@ -1,23 +1,22 @@
 import express from "express";
 import { createServer as createViteServer } from "vite";
-import Database from "better-sqlite3";
+import admin from "firebase-admin";
 import path from "path";
 import { fileURLToPath } from "url";
+import fs from "fs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const db = new Database("studio.db");
 
-// Initialize Database
-db.exec(`
-  CREATE TABLE IF NOT EXISTS subscriptions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    email TEXT UNIQUE,
-    plan TEXT DEFAULT 'free',
-    status TEXT DEFAULT 'active',
-    generations_count INTEGER DEFAULT 0,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
-`);
+// Initialize Firebase
+const serviceAccountPath = path.join(__dirname, "firebase-key.json");
+if (fs.existsSync(serviceAccountPath)) {
+  const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, "utf-8"));
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+  });
+}
+
+const db = admin.firestore();
 
 async function startServer() {
   const app = express();
@@ -26,28 +25,52 @@ async function startServer() {
   app.use(express.json());
 
   // API Routes
-  app.get("/api/admin/stats", (req, res) => {
-    const totalUsers = db.prepare("SELECT COUNT(*) as count FROM subscriptions").get() as any;
-    const activePlans = db.prepare("SELECT plan, COUNT(*) as count FROM subscriptions GROUP BY plan").all();
-    const totalGenerations = db.prepare("SELECT SUM(generations_count) as total FROM subscriptions").get() as any;
+  app.get("/api/admin/stats", async (req, res) => {
+    try {
+      const subsSnapshot = await db.collection("subscriptions").get();
+      const totalUsers = subsSnapshot.size;
 
-    res.json({
-      totalUsers: totalUsers.count,
-      activePlans,
-      totalGenerations: totalGenerations.total || 0,
-      apiStatus: process.env.GEMINI_API_KEY ? "Connected" : "Disconnected"
-    });
+      const activePlans: { [key: string]: number } = {};
+      let totalGenerations = 0;
+
+      subsSnapshot.forEach(doc => {
+        const data = doc.data();
+        const plan = data.plan || "free";
+        activePlans[plan] = (activePlans[plan] || 0) + 1;
+        totalGenerations += (data.generations_count || 0);
+      });
+
+      const activePlansArray = Object.entries(activePlans).map(([plan, count]) => ({ plan, count }));
+
+      res.json({
+        totalUsers,
+        activePlans: activePlansArray,
+        totalGenerations,
+        apiStatus: process.env.GEMINI_API_KEY ? "Connected" : "Disconnected"
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch stats" });
+    }
   });
 
-  app.get("/api/admin/subscriptions", (req, res) => {
-    const subs = db.prepare("SELECT * FROM subscriptions ORDER BY created_at DESC").all();
-    res.json(subs);
+  app.get("/api/admin/subscriptions", async (req, res) => {
+    try {
+      const snapshot = await db.collection("subscriptions").orderBy("created_at", "desc").get();
+      const subs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      res.json(subs);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch subscriptions" });
+    }
   });
 
-  app.post("/api/admin/subscriptions/toggle", (req, res) => {
-    const { id, status } = req.body;
-    db.prepare("UPDATE subscriptions SET status = ? WHERE id = ?").run(status, id);
-    res.json({ success: true });
+  app.post("/api/admin/subscriptions/toggle", async (req, res) => {
+    try {
+      const { id, status } = req.body;
+      await db.collection("subscriptions").doc(id).update({ status });
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to toggle subscription" });
+    }
   });
 
   // Vite middleware for development
