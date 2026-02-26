@@ -4,16 +4,24 @@
 @theme {
   --font-sans: "IBM Plex Sans Arabic", "Inter", ui-sans-serif, system-ui, sans-serif;
   
-  --color-artlist-bg: #0F0F0F;
-  --color-artlist-sidebar: #161616;
-  --color-artlist-border: #262626;
-  --color-artlist-accent: #FFFFFF;
-  --color-artlist-muted: #888888;
+  /* Yafa Design Premium Palette */
+  --color-yafa-bg: #05070a;
+  --color-yafa-emerald: #064e3b;
+  --color-yafa-emerald-light: #10b981;
+  --color-yafa-gold: #fbbf24;
+  --color-yafa-gold-muted: #b45309;
+  --color-yafa-sidebar: rgba(13, 17, 23, 0.8);
+  --color-yafa-border: rgba(255, 255, 255, 0.08);
+  --color-yafa-accent: #FFFFFF;
+  --color-yafa-muted: #94a3b8;
 }
 
 body {
-  @apply antialiased bg-artlist-bg text-white selection:bg-white/10 overflow-hidden;
+  @apply antialiased bg-yafa-bg text-white selection:bg-yafa-emerald/30 overflow-hidden min-h-screen;
   font-family: var(--font-sans);
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(6, 78, 59, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(251, 191, 36, 0.05) 0px, transparent 50%);
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -31,11 +39,25 @@ body {
 }
 
 .glass-panel {
-  @apply bg-artlist-sidebar border border-artlist-border rounded-xl;
+  @apply bg-yafa-sidebar border border-yafa-border rounded-2xl backdrop-blur-xl shadow-2xl;
 }
 
 .input-field {
-  @apply bg-[#1A1A1A] border border-artlist-border rounded-lg px-4 py-2 text-sm focus:border-white/40 outline-none transition-all;
+  @apply bg-white/5 border border-yafa-border rounded-xl px-4 py-2 text-sm focus:border-yafa-emerald-light/40 focus:ring-1 focus:ring-yafa-emerald-light/20 outline-none transition-all duration-300;
+}
+
+.yafa-gradient-text {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-white via-yafa-gold to-white bg-[length:200%_auto] animate-gradient-x;
+}
+
+@keyframes gradient-x {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-gradient-x {
+  animation: gradient-x 10s ease infinite;
 }
 
 /* RTL Adjustments */
