@@ -3,17 +3,25 @@ import * as admin from 'firebase-admin';
 
 // Initialize Firebase Admin (Using a placeholder for the service account for security.
 // The user will need to set an environment variable or local file in their real deployment).
-try {
-    // We use the GOOGLE_APPLICATION_CREDENTIALS environment variable
-    // or default app initialization if running on GCP/Firebase Functions.
-    if (!admin.apps.length) {
-        admin.initializeApp();
-    }
-} catch (e) {
-    console.log('Firebase admin init error:', e);
-}
+let db: admin.firestore.Firestore;
 
-const db = admin.firestore();
+try {
+    if (!admin.apps.length) {
+        if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+            const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+            admin.initializeApp({
+                credential: admin.credential.cert(serviceAccount)
+            });
+        } else {
+            // Fallback to default if not provided (works locally with GOOGLE_APPLICATION_CREDENTIALS)
+            admin.initializeApp();
+        }
+    }
+    db = admin.firestore();
+} catch (e: any) {
+    console.error('Firebase admin init error:', e.message);
+    // Do not crash the server module, just log the error so we can return a proper JSON response
+}
 
 const app = express();
 app.use(express.json({ limit: '50mb' }));
@@ -57,6 +65,10 @@ app.post("/api/admin/packages/delete", (req, res) => {
 
 // Secure endpoint for image generation
 app.post("/api/generate", async (req, res) => {
+    if (!db) {
+        return res.status(500).json({ error: "Firebase Admin is not initialized properly. Please add FIREBASE_SERVICE_ACCOUNT securely to Vercel Environment Variables." });
+    }
+
     try {
         const { uid, clothingImageBase64, config } = req.body;
 
