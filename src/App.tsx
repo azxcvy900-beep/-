@@ -122,21 +122,28 @@ export default function App() {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
-        // Fetch user profile from Firestore
-        const docRef = doc(db, 'users', currentUser.uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          setUserProfile(docSnap.data());
-        } else {
-          // Create new user profile for the 2 free images trial
-          const newProfile = {
-            email: currentUser.email,
-            plan: 'trial',
-            credits: 2,
-            created_at: new Date().toISOString()
-          };
-          await setDoc(docRef, newProfile);
-          setUserProfile(newProfile);
+        try {
+          // Fetch user profile from Firestore
+          const docRef = doc(db, 'users', currentUser.uid);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            setUserProfile(docSnap.data());
+          } else {
+            // Create new user profile for the 2 free images trial
+            const newProfile = {
+              email: currentUser.email,
+              plan: 'trial',
+              credits: 2,
+              created_at: new Date().toISOString()
+            };
+            await setDoc(docRef, newProfile);
+            setUserProfile(newProfile);
+          }
+        } catch (err: any) {
+          console.error("Firestore Error in Auth Listener:", err);
+          // If Firestore is disabled or rules block it, just don't load a profile,
+          // but DO NOT hang the app
+          setUserProfile({ email: currentUser.email, plan: 'trial', credits: 0, error: 'Database Not Connected' });
         }
       } else {
         setUserProfile(null);
