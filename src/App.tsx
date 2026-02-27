@@ -276,27 +276,26 @@ export default function App() {
 
   if (view === 'landing') {
     return (
-      <div className="h-screen bg-[#030303] text-white font-sans overflow-y-auto custom-scrollbar relative selection:bg-yafa-gold/30 selection:text-white" dir="rtl">
-        {/* Navigation Bar */}
-        <nav className="fixed top-0 w-full z-50 px-8 py-6 flex items-center justify-between bg-gradient-to-b from-black/80 to-transparent backdrop-blur-sm">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center backdrop-blur-md">
-              <Sparkles className="text-yafa-gold w-5 h-5" />
-            </div>
-            <span className="text-xl font-bold tracking-widest uppercase">يافا ديزاين</span>
+      <div className="h-screen bg-[#0a0a0a] text-[#f5f5f0] font-sans overflow-y-auto custom-scrollbar relative selection:bg-white/20 selection:text-white" dir="rtl">
+        {/* Minimalist Ultra-Luxury Navigation */}
+        <nav className="fixed top-0 w-full z-50 px-6 md:px-12 py-8 flex items-center justify-between mix-blend-difference">
+          <div className="flex items-center gap-4">
+            <span className="text-2xl md:text-3xl font-serif tracking-[0.3em] uppercase">يافا</span>
           </div>
-          <button
-            onClick={() => setView('pricing')}
-            className="px-6 py-2.5 bg-yafa-gold/10 text-yafa-gold border border-yafa-gold/20 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-yafa-gold hover:text-black transition-all duration-300"
-          >
-            ترقية الحساب
-          </button>
-          <button
-            onClick={() => user ? setView('studio') : setView('login')}
-            className="px-6 py-2.5 bg-yafa-gold text-black border border-yafa-gold rounded-full text-xs font-bold uppercase tracking-widest hover:bg-white hover:border-white transition-all duration-300"
-          >
-            {user ? 'دخول الاستوديو' : 'تسجيل الدخول'}
-          </button>
+          <div className="flex items-center gap-8">
+            <button
+              onClick={() => setView('pricing')}
+              className="text-xs font-light tracking-[0.2em] uppercase hover:opacity-50 transition-opacity hidden md:block"
+            >
+              الأسعار
+            </button>
+            <button
+              onClick={() => user ? setView('studio') : setView('login')}
+              className="text-xs font-light tracking-[0.2em] uppercase hover:opacity-50 transition-opacity"
+            >
+              {user ? 'دخول الاستوديو' : 'دعوتك الخاصة (VIP)'}
+            </button>
+          </div>
         </nav>
 
         {/* Hero Section */}
@@ -357,71 +356,49 @@ export default function App() {
           </div>
         </section>
 
-        {/* Gallery Section */}
-        <section className="py-24 md:py-32 px-6 relative">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
-              <div>
-                <h2 className="text-3xl md:text-5xl font-black mb-4">معرض الإلهام</h2>
-                <p className="text-white/40 font-light max-w-md text-sm md:text-base leading-relaxed">اكتشف الإمكانيات اللامحدودة. مزيج من الخيال الرقمي والواقعية المفرطة.</p>
-              </div>
-            </div>
+        {/* SECTION 3: The Luxuries (Features Editorial Style) */}
+        <section className="py-32 md:py-48 px-6 relative bg-[#0a0a0a] z-10 border-t border-[#f5f5f0]/5">
+          <div className="max-w-7xl mx-auto text-center mb-32">
+            <h2 className="text-4xl md:text-6xl font-serif text-[#f5f5f0] tracking-wide">الإمـكانيـات</h2>
+            <div className="h-[1px] w-12 bg-[#f5f5f0]/20 mx-auto mt-8" />
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[300px] md:auto-rows-[400px]">
-              {/* Featured Large Image */}
-              <div className="md:col-span-2 md:row-span-2 group relative rounded-[2rem] overflow-hidden bg-white/5 border border-white/10 shadow-2xl origin-center">
-                <img src="/images/1.png" alt="Featured" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
-                <div className="absolute bottom-6 md:bottom-10 left-6 md:left-10 right-6 md:right-10 flex items-end justify-between translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
-                  <div>
-                    <h3 className="text-xl md:text-2xl font-bold mb-2">Editorial Excellence</h3>
-                    <p className="text-yafa-gold text-[10px] md:text-xs tracking-widest uppercase">High Fashion Studio</p>
-                  </div>
-                  <button className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center hover:bg-white hover:text-black transition-colors" aria-label="View Output">
-                    <Plus className="w-4 h-4 md:w-5 md:h-5" />
-                  </button>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-16 md:gap-8 px-4 max-w-7xl mx-auto">
+            {[
+              { title: "العـارضـون", desc: "طاقم افتراضي من العارضين حول العالم، بملامح حصرية وأعمار مختلفة، تحت تصرفك بنقرة واحدة.", img: "/images/2.png" },
+              { title: "الأنـسجــة", desc: "حرير يلمع، وصوف تشعر بدفئه. خوارزمياتنا صُممت لتقرأ لغة القماش وتحافظ على ملمسه الواقعي.", img: "/images/3.png" },
+              { title: "الاسـتوديـو", desc: "إضاءة سينمائية، ظلال درامية، ومواقع تصوير من قمم الجليد إلى قصور باريس.", img: "/images/4.png" }
+            ].map((feature, i) => (
+              <div key={i} className="group cursor-pointer">
+                <div className="aspect-[3/4] overflow-hidden mb-10 relative">
+                  <div className="absolute inset-0 bg-[#0a0a0a]/40 group-hover:bg-transparent transition-colors duration-1000 z-10 mix-blend-multiply" />
+                  <img src={feature.img} alt={feature.title} className="w-full h-full object-cover scale-105 group-hover:scale-100 grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-[1.5s] ease-out" />
                 </div>
+                <h3 className="text-2xl font-serif mb-6 text-[#f5f5f0]/90 group-hover:text-[#f5f5f0] transition-colors">{feature.title}</h3>
+                <p className="text-[#f5f5f0]/40 font-light text-sm leading-loose">{feature.desc}</p>
+                <div className="h-[1px] w-0 bg-[#f5f5f0]/20 mt-8 group-hover:w-full transition-all duration-1000" />
               </div>
-
-              {/* Smaller Images */}
-              {['/images/2.png', '/images/3.png'].map((src, i) => (
-                <div key={i} className="group relative rounded-[2rem] overflow-hidden bg-white/5 border border-white/10 shadow-xl">
-                  <img src={src} alt={`Gallery ${i}`} className="w-full h-full object-cover opacity-70 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
-                  <div className="absolute bottom-6 md:bottom-8 left-6 md:left-8 right-6 md:right-8 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
-                    <h3 className="text-base md:text-lg font-bold mb-1">Concept {i + 1}</h3>
-                    <p className="text-white/50 text-[10px] md:text-xs tracking-wider">AI Generated</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+            ))}
           </div>
         </section>
 
-        {/* Features Section */}
-        <section className="py-16 md:py-24 px-6 border-t border-white/5 bg-gradient-to-b from-transparent to-white/[0.02]">
-          <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-              {[
-                { icon: User, title: 'موديلات بلا حدود', desc: 'اختر عارضي أزياء من مختلف الأعمار بضغطة زر، وبدون تكاليف استقدام العارضين.' },
-                { icon: Camera, title: 'إضاءة استوديو متكاملة', desc: 'تحكم محاذي للواقع في الإضاءة والظلال لإبراز جمال القماش وتفاصيل القطع.' },
-                { icon: Layers, title: 'محاكاة الأنسجة', desc: 'خوارزميات متقدمة للحفاظ على ملمس الحرير، الكتان، والصوف بدقة تفوق الخيال.' }
-              ].map((feature, i) => (
-                <div key={i} className="space-y-4 md:space-y-6 text-center md:text-right flex flex-col items-center md:items-start">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-yafa-gold/20 to-transparent border border-yafa-gold/20 flex items-center justify-center group hover:scale-110 transition-transform">
-                    <feature.icon className="w-8 h-8 text-yafa-gold" />
-                  </div>
-                  <h3 className="text-xl md:text-2xl font-bold">{feature.title}</h3>
-                  <p className="text-sm md:text-base text-white/50 font-light leading-relaxed max-w-sm">{feature.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+        {/* SECTION 4: The VIP Invite */}
+        <section className="py-48 px-6 relative bg-[#0a0a0a] z-10 border-t border-[#f5f5f0]/5 flex flex-col items-center justify-center text-center">
+          <h2 className="text-5xl md:text-7xl font-serif italic text-[#f5f5f0] mb-12">حان دورك لتتصدر الأغلفة.</h2>
+          <p className="text-[#f5f5f0]/50 font-light mb-16 max-w-xl text-lg md:text-xl leading-loose">
+            صنعنا البداية، والآن ننتظر إبداعك. احصل على دعوتك الخاصة لتجربة الاستوديو مجاناً الآن.
+          </p>
+          <button
+            onClick={() => user ? setView('studio') : setView('login')}
+            className="px-16 py-6 border border-[#f5f5f0]/30 text-[#f5f5f0] font-light text-xs tracking-[0.3em] uppercase hover:bg-[#f5f5f0] hover:text-[#0a0a0a] transition-all duration-700 bg-transparent"
+          >
+            {user ? 'متابعة التصميم' : 'طلب بطاقة الدخول (VIP)'}
+          </button>
         </section>
 
-        {/* Footer */}
-        <footer className="py-8 border-t border-white/5 text-center text-white/30 text-[10px] md:text-xs font-bold tracking-widest uppercase">
-          يافا ديزاين © 2026 - جميع الحقوق محفوظة
+        {/* Minimal Footer */}
+        <footer className="py-16 border-t border-[#f5f5f0]/5 text-center text-[#f5f5f0]/20 text-[10px] font-light tracking-[0.4em] uppercase bg-[#0a0a0a]">
+          Yafa Design Studio © 2026
         </footer>
       </div>
     );
