@@ -70,6 +70,7 @@ export default function App() {
   const [isAutoMode, setIsAutoMode] = useState(false);
   const [resultImages, setResultImages] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [adminPasswordError, setAdminPasswordError] = useState<string | null>(null);
 
   // Admin State
   const [adminStats, setAdminStats] = useState<any>(null);
@@ -946,7 +947,18 @@ export default function App() {
                 <Layers className="w-3 h-3 text-yafa-gold" />
                 <span className="text-[9px] font-bold uppercase tracking-wider">Gemini 2.0 Engine</span>
               </div>
-              <button onClick={() => setView('admin')} className="flex items-center gap-2 opacity-40 hover:opacity-100 transition-opacity cursor-pointer">
+              <button
+                onClick={() => {
+                  const pswd = prompt("الرجاء إدخال كلمة المرور للوصول إلى لوحة الإدارة:");
+                  if (pswd === "yafa2026") {
+                    setAdminPasswordError(null);
+                    setView('admin');
+                  } else if (pswd !== null) {
+                    alert("كلمة المرور غير صحيحة.");
+                  }
+                }}
+                className="flex items-center gap-2 opacity-40 hover:opacity-100 transition-opacity cursor-pointer"
+              >
                 <ShieldCheck className="w-3 h-3" />
                 <span className="text-[9px] font-bold uppercase tracking-wider">إدارة النظام</span>
               </button>
