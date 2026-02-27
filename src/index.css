@@ -66,7 +66,8 @@ body {
 }
 
 .yafa-gradient-text {
-  @apply bg-clip-text text-transparent bg-gradient-to-r from-white via-yafa-gold to-white bg-[length:200%_auto] animate-gradient-x;
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-white via-yafa-gold to-white bg-[length:200%_auto];
+  animation: gradient-x 10s ease infinite;
 }
 
 

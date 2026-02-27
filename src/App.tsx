@@ -252,7 +252,7 @@ export default function App() {
           </motion.button>
 
           <div className="mt-16 flex items-center gap-8 opacity-40">
-            <p className="text-[10px] font-bold uppercase tracking-widest">Powered by Gemini 2.5</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest">Powered by Gemini 2.0</p>
             <div className="w-[1px] h-4 bg-yafa-border" />
             <p className="text-[10px] font-bold uppercase tracking-widest">Premium Rendering</p>
           </div>
@@ -273,7 +273,7 @@ export default function App() {
               <ShieldCheck className="w-6 h-6 text-yafa-gold" />
               <div>
                 <h1 className="font-bold text-sm tracking-tight text-white">منصة إدارة يافا</h1>
-                <p className="text-[10px] text-yafa-muted uppercase tracking-widest font-bold">Yafa Admin OS 2.5</p>
+                <p className="text-[10px] text-yafa-muted uppercase tracking-widest font-bold">Yafa Admin OS 2.0</p>
               </div>
             </div>
           </div>
