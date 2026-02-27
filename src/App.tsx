@@ -26,6 +26,9 @@ import { motion, AnimatePresence } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { generateFashionImage } from './services/geminiService';
+import { auth, db } from './lib/firebase';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -58,7 +61,14 @@ const CAMERA_ANGLES = [
 ];
 
 export default function App() {
-  const [view, setView] = useState<'landing' | 'studio' | 'admin' | 'pricing'>('landing');
+  const [view, setView] = useState<'landing' | 'studio' | 'admin' | 'pricing' | 'login'>('landing');
+  const [user, setUser] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [isLoginMode, setIsLoginMode] = useState(true);
+  const [authLoading, setAuthLoading] = useState(true);
+
   const [clothingImages, setClothingImages] = useState<string[]>([]);
   const [modelImage, setModelImage] = useState<string | null>(null);
   const [gender, setGender] = useState<'male' | 'female'>('female');
@@ -107,6 +117,57 @@ export default function App() {
   useEffect(() => {
     if (view === 'admin') fetchAdminData();
   }, [view]);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        // Fetch user profile from Firestore
+        const docRef = doc(db, 'users', currentUser.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setUserProfile(docSnap.data());
+        } else {
+          // Create new user profile for the 2 free images trial
+          const newProfile = {
+            email: currentUser.email,
+            plan: 'trial',
+            credits: 2,
+            created_at: new Date().toISOString()
+          };
+          await setDoc(docRef, newProfile);
+          setUserProfile(newProfile);
+        }
+      } else {
+        setUserProfile(null);
+      }
+      setAuthLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthLoading(true);
+    setError(null);
+    try {
+      if (isLoginMode) {
+        await signInWithEmailAndPassword(auth, authEmail, authPassword);
+      } else {
+        await createUserWithEmailAndPassword(auth, authEmail, authPassword);
+      }
+      setView('studio');
+    } catch (err: any) {
+      setError(err.message || "حدث خطأ في المصادقة");
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    setView('landing');
+  };
 
   const onDropClothing = useCallback((acceptedFiles: File[]) => {
     acceptedFiles.slice(0, 10 - clothingImages.length).forEach(file => {
@@ -163,25 +224,55 @@ export default function App() {
         // Randomize camera angle for variety
         const cameraAngle = CAMERA_ANGLES[Math.floor(Math.random() * CAMERA_ANGLES.length)];
 
-        const result = await generateFashionImage(img, {
-          apiKey: settings.gemini_api_key,
-          gender,
-          category,
-          pose: poseToUse,
-          background: bgToUse,
-          cameraAngle,
-          modelImage: modelImage || undefined
+        // Use the secure backend endpoint instead of the direct client-side mock
+        const response = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            uid: user?.uid,
+            clothingImageBase64: img,
+            config: {
+              apiKey: settings.gemini_api_key,
+              gender,
+              category,
+              pose: poseToUse,
+              background: bgToUse,
+              cameraAngle,
+              modelImage: modelImage || undefined,
+              isFreeTrial: userProfile?.plan === 'trial'
+            }
+          })
         });
-        generated.push(result);
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "خطأ في التوليد");
+        }
+
+        generated.push(data.result);
         setResultImages([...generated]); // Update UI incrementally
+
+        // Update local credit count based on server response
+        if (data.remainingCredits !== undefined && userProfile) {
+          setUserProfile({ ...userProfile, credits: data.remainingCredits });
+        }
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setError("حدث خطأ أثناء التوليد. يرجى المحاولة مرة أخرى.");
+      setError(err.message || "حدث خطأ أثناء التوليد. لم يتم خصم أي رصيد.");
     } finally {
       setIsGenerating(false);
     }
   };
+
+  if (authLoading) {
+    return (
+      <div className="h-screen bg-[#030303] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-yafa-gold animate-spin" />
+      </div>
+    );
+  }
 
   if (view === 'landing') {
     return (
@@ -201,10 +292,10 @@ export default function App() {
             ترقية الحساب
           </button>
           <button
-            onClick={() => setView('studio')}
+            onClick={() => user ? setView('studio') : setView('login')}
             className="px-6 py-2.5 bg-yafa-gold text-black border border-yafa-gold rounded-full text-xs font-bold uppercase tracking-widest hover:bg-white hover:border-white transition-all duration-300"
           >
-            دخول الاستوديو
+            {user ? 'دخول الاستوديو' : 'تسجيل الدخول'}
           </button>
         </nav>
 
@@ -255,10 +346,10 @@ export default function App() {
               transition={{ duration: 1, delay: 0.6, ease: "easeOut" }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => setView('studio')}
+              onClick={() => user ? setView('studio') : setView('login')}
               className="group relative px-8 md:px-12 py-4 md:py-5 bg-white text-black rounded-full font-bold text-sm tracking-wide flex items-center justify-center gap-4 mx-auto overflow-hidden shadow-[0_0_40px_rgba(255,255,255,0.15)] hover:shadow-[0_0_60px_rgba(255,255,255,0.25)] transition-shadow"
             >
-              <span className="relative z-10">ابدأ التصميم الآن</span>
+              <span className="relative z-10">{user ? 'متابعة التصميم' : 'ابدأ تجربتك المجانية'}</span>
               <div className="w-8 h-8 rounded-full bg-black/5 flex items-center justify-center relative z-10 group-hover:bg-black/10 transition-colors">
                 <ArrowRight className="w-4 h-4 text-black group-hover:-translate-x-1 transition-transform" />
               </div>
@@ -611,125 +702,76 @@ export default function App() {
     );
   }
 
-  if (view === 'pricing') {
+  if (view === 'login') {
     return (
-      <div className="min-h-screen bg-[#030303] text-white font-sans overflow-y-auto custom-scrollbar relative" dir="rtl">
-        {/* Navigation Bar */}
-        <nav className="w-full z-50 px-8 py-6 flex items-center justify-between border-b border-white/5 bg-black/50 backdrop-blur-md sticky top-0">
-          <button onClick={() => setView('landing')} className="flex items-center gap-3 group">
-            <div className="w-10 h-10 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center backdrop-blur-md group-hover:scale-105 transition-transform">
-              <Sparkles className="text-yafa-gold w-5 h-5" />
-            </div>
-            <span className="text-xl font-bold tracking-widest uppercase">يافا ديزاين</span>
-          </button>
-          <button
-            onClick={() => setView('studio')}
-            className="px-6 py-2.5 bg-white text-black rounded-full text-xs font-bold uppercase tracking-widest hover:bg-yafa-gold transition-all duration-300"
-          >
-            العودة للاستوديو
-          </button>
-        </nav>
+      <div className="h-screen bg-[#030303] text-white flex items-center justify-center relative p-6" dir="rtl">
+        <div className="absolute inset-0 z-0">
+          <img src="/images/2.png" alt="Background" className="w-full h-full object-cover opacity-20" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#030303] via-[#030303]/80 to-[#030303]/40" />
+        </div>
 
-        <main className="max-w-6xl mx-auto px-6 py-20 relative z-10">
-          <div className="text-center mb-16 space-y-4">
-            <h1 className="text-4xl md:text-6xl font-black">خطط الاشتراك في الاستوديو</h1>
-            <p className="text-white/50 text-lg max-w-2xl mx-auto">ارتقِ بإنتاجيتك ووفر آلاف الدولارات من تكاليف التصوير التقليدي. اختر الباقة التي تناسب تطلعاتك.</p>
+        <div className="w-full max-w-md bg-white/5 border border-white/10 p-8 rounded-3xl backdrop-blur-xl z-10 relative">
+          <button onClick={() => setView('landing')} className="absolute top-6 left-6 text-white/50 hover:text-white transition-colors">
+            <ArrowRight className="w-5 h-5" />
+          </button>
+
+          <div className="text-center mb-10">
+            <div className="w-16 h-16 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <Sparkles className="text-yafa-gold w-8 h-8" />
+            </div>
+            <h2 className="text-2xl font-black mb-2">{isLoginMode ? 'مرحباً بعودتك' : 'ابدأ تجربتك المجانية'}</h2>
+            <p className="text-sm text-white/50">{isLoginMode ? 'سجل دخولك لاستكمال إبداعاتك' : 'احصل على صورتين احترافيتين مجاناً الآن'}</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Starter Plan */}
-            <div className="bg-white/5 border border-white/10 rounded-3xl p-8 flex flex-col hover:border-yafa-emerald/30 transition-all">
-              <div className="mb-8">
-                <span className="text-xs font-bold uppercase tracking-widest text-yafa-emerald mb-2 block">باقة البداية (Starter) 🌱</span>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-black">$9.99</span>
-                  <span className="text-white/40 text-sm">/ شهرياً</span>
-                </div>
-                <p className="text-xs text-white/50 mt-4 leading-relaxed">مثالية للمصممين المبتدئين وأصحاب المشاريع الصغيرة.</p>
+          <form onSubmit={handleAuth} className="space-y-6">
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs font-bold uppercase tracking-widest text-white/50 mb-2 block">البريد الإلكتروني</label>
+                <input
+                  type="email"
+                  required
+                  value={authEmail}
+                  onChange={e => setAuthEmail(e.target.value)}
+                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-yafa-gold focus:ring-1 focus:ring-yafa-gold/20 outline-none transition-all"
+                  dir="ltr"
+                />
               </div>
-              <ul className="space-y-4 mb-8 flex-1">
-                {[
-                  'إنشاء حتى 50 صورة شهرياً',
-                  'جودة صور عالية (HD)',
-                  'توليد الموديلات الأساسية',
-                  'إضاءة استوديو قياسية',
-                  'دعم فني عبر البريد'
-                ].map((feature, i) => (
-                  <li key={i} className="flex items-center gap-3 text-sm">
-                    <Check className="w-4 h-4 text-yafa-emerald" />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              <button className="w-full py-4 bg-white/10 hover:bg-white/20 rounded-2xl font-bold text-sm transition-colors">
-                اشترك الآن
-              </button>
+              <div>
+                <label className="text-xs font-bold uppercase tracking-widest text-white/50 mb-2 block">كلمة المرور</label>
+                <input
+                  type="password"
+                  required
+                  value={authPassword}
+                  onChange={e => setAuthPassword(e.target.value)}
+                  minLength={6}
+                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-yafa-gold focus:ring-1 focus:ring-yafa-gold/20 outline-none transition-all"
+                  dir="ltr"
+                />
+              </div>
             </div>
 
-            {/* Pro Plan */}
-            <div className="bg-gradient-to-b from-yafa-gold/20 to-white/5 border border-yafa-gold/50 rounded-3xl p-8 flex flex-col relative transform md:-translate-y-4 shadow-[0_0_40px_rgba(251,191,36,0.15)]">
-              <div className="absolute top-0 right-1/2 translate-x-1/2 -translate-y-1/2 bg-yafa-gold text-black px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
-                الأكثر طلباً
+            {error && (
+              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-xs text-red-400 text-center">
+                {error}
               </div>
-              <div className="mb-8 mt-2">
-                <span className="text-xs font-bold uppercase tracking-widest text-yafa-gold mb-2 block">الباقة الاحترافية (Pro) ⚡</span>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-5xl font-black">$19.99</span>
-                  <span className="text-white/40 text-sm">/ شهرياً</span>
-                </div>
-                <p className="text-xs text-white/50 mt-4 leading-relaxed">مثالية للمتاجر الإلكترونية النشطة وصناع المحتوى المحترفين.</p>
-              </div>
-              <ul className="space-y-4 mb-8 flex-1">
-                {[
-                  'إنشاء حتى 200 صورة شهرياً',
-                  'جودة صور فائقة (4K Ultra HD)',
-                  'ميزة "توليد الخلفيات الذكي"',
-                  'أولوية وسرعة توليد عالية (Priority)',
-                  'إضاءة احترافية وظلال درامية',
-                  'دعم فني متقدم وسريع'
-                ].map((feature, i) => (
-                  <li key={i} className="flex items-center gap-3 text-sm">
-                    <Check className="w-4 h-4 text-yafa-gold" />
-                    <span className="font-medium">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              <button className="w-full py-4 bg-yafa-gold text-black hover:bg-yellow-400 rounded-2xl font-black text-sm transition-colors shadow-lg">
-                اشترك في الباقة الاحترافية
-              </button>
-            </div>
+            )}
 
-            {/* Business Plan */}
-            <div className="bg-white/5 border border-white/10 rounded-3xl p-8 flex flex-col hover:border-purple-500/30 transition-all">
-              <div className="mb-8">
-                <span className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2 block">باقة الأعمال (Business) 🏢</span>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-black">$49.99</span>
-                  <span className="text-white/40 text-sm">/ شهرياً</span>
-                </div>
-                <p className="text-xs text-white/50 mt-4 leading-relaxed">للماركات الكبيرة، الوكالات، وصناع كتالوجات الأزياء الضخمة.</p>
-              </div>
-              <ul className="space-y-4 mb-8 flex-1">
-                {[
-                  'إنشاء حتى 1,000 صورة شهرياً',
-                  'جودة صور خرافية (4K) + تصدير شفاف',
-                  'محاكاة الأنسجة المعقدة (حرير، صوف)',
-                  'تصميم موديلات حصرية للعلامة',
-                  'حقوق ملكية تجارية كاملة',
-                  'دعم فني فوري (VIP)'
-                ].map((feature, i) => (
-                  <li key={i} className="flex items-center gap-3 text-sm">
-                    <Check className="w-4 h-4 text-purple-400" />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              <button className="w-full py-4 bg-white/10 hover:bg-white/20 rounded-2xl font-bold text-sm transition-colors">
-                تواصل مع المبيعات
-              </button>
-            </div>
+            <button
+              disabled={authLoading}
+              type="submit"
+              className="w-full py-4 bg-yafa-gold text-black hover:bg-yellow-400 rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {authLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (isLoginMode ? 'تسجيل الدخول' : 'إنشاء حساب مجاني')}
+            </button>
+          </form>
+
+          <div className="mt-8 text-center text-sm text-white/50 border-t border-white/10 pt-6">
+            {isLoginMode ? 'لا تملك حساباً؟' : 'لديك حساب بالفعل؟'}{' '}
+            <button onClick={() => { setIsLoginMode(!isLoginMode); setError(null); }} className="text-yafa-gold font-bold hover:underline">
+              {isLoginMode ? 'أنشئ حسابك مجاناً' : 'سجل الدخول'}
+            </button>
           </div>
-        </main>
+        </div>
       </div>
     );
   }
