@@ -43,12 +43,12 @@ const BACKGROUND_CATEGORIES = [
 ];
 
 const POSES = [
-  { id: 'auto', name: 'وضعية تلقائية', prompt: 'An artistic, creative pose inspired by high-end global fashion brand advertisements (like Vogue, Gucci, Prada). The pose should be dynamic and visually striking.', image: '/assets/poses/fashion.png' },
-  { id: 'fashion', name: 'وقفة عرض أزياء', prompt: 'Classic fashion runway pose, standing tall and confident.', image: '/assets/poses/fashion.png' },
-  { id: 'fluid', name: 'حركة انسيابية', prompt: 'Fluid, dynamic movement pose, capturing a sense of motion.', image: '/assets/poses/fluid.png' },
-  { id: 'architectural', name: 'جلسة معمارية', prompt: 'Architectural sitting pose, structured and elegant.', image: '/assets/poses/architectural.png' },
-  { id: 'silhouette', name: 'جانبي (سيلويت)', prompt: 'Side profile silhouette pose, emphasizing the outline and shape.', image: '/assets/poses/silhouette.png' },
-  { id: 'walking', name: 'مشية عفوية', prompt: 'Natural walking pose, candid and effortless.', image: '/assets/poses/walking.png' }
+  { id: 'auto', name: 'مجسم تلقائي ذكي', prompt: 'High-quality realistic clothing display on a professional invisible ghost mannequin, perfectly fitted, 8k resolution, photorealistic.', image: '/assets/poses/fashion.png' },
+  { id: 'mannequin_realistic', name: 'مانيكان واقعي', prompt: 'Clothing displayed on a highly realistic, premium fiberglass fashion mannequin with subtle human-like features, standing straight, professional fashion photography.', image: '/assets/poses/fashion.png' },
+  { id: 'mannequin_abstract', name: 'مانيكان تجريدي (بدون ملامح)', prompt: 'Clothing displayed on an abstract, faceless, elegant matte luxury mannequin, high-end visual merchandising style.', image: '/assets/poses/fluid.png' },
+  { id: 'ghost_mannequin', name: 'مانيكان خفي (ثلاثي الأبعاد)', prompt: 'Clothing displayed using the invisible ghost mannequin technique, giving the garment a hollow 3D shape, perfectly ironed, e-commerce product photography.', image: '/assets/poses/architectural.png' },
+  { id: 'fashion', name: 'عارض أزياء (بشري)', prompt: 'Worn by a professional human fashion model, standing tall and confident, high-end editorial runway look.', image: '/assets/poses/silhouette.png' },
+  { id: 'flatlay', name: 'تصوير مسطح (Flatlay)', prompt: 'Flat lay clothing photography, garments neatly arranged on a clean premium surface, top-down view, precise lighting.', image: '/assets/poses/walking.png' }
 ];
 
 const CAMERA_ANGLES = [
