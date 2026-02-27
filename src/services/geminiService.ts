@@ -1,5 +1,3 @@
-import { GoogleGenAI } from "@google/genai";
-
 export const generateFashionImage = async (
   clothingImageBase64: string,
   config: {
@@ -12,55 +10,20 @@ export const generateFashionImage = async (
     modelImage?: string;
   }
 ) => {
-  const ai = new GoogleGenAI({ apiKey: config.apiKey || process.env.GEMINI_API_KEY || "" });
-
-  const prompt = `
-    Create a professional fashion photograph. 
-    The model should be wearing the clothing items provided in the image.
-    Model Details:
-    - Gender: ${config.gender}
-    - Age Category: ${config.category}
-    - Pose: ${config.pose}
-    
-    Photography:
-    - Camera Angle: ${config.cameraAngle || 'Full body shot'}
-    
-    Environment:
-    - Background: ${config.background}
-    
-    Style: Professional commercial photography, high-end fashion magazine look, sharp focus, studio lighting.
-    Ensure the clothing from the provided image is accurately represented on the model.
-  `;
-
-  const parts = [
-    {
-      inlineData: {
-        data: clothingImageBase64.split(',')[1],
-        mimeType: "image/png",
-      },
-    },
-    { text: prompt },
-  ];
-
-  if (config.modelImage) {
-    parts.push({
-      inlineData: {
-        data: config.modelImage.split(',')[1],
-        mimeType: "image/png",
-      },
-    });
-  }
-
-  const response = await ai.models.generateContent({
-    model: 'gemini-2.0-flash',
-    contents: { parts },
+  // Mock function, no real API call to Gemini
+  // We return a promise that resolves with the mock clothing image
+  // after a short delay to simulate network request.
+  console.log("Mocking fashion generation with config:", {
+    gender: config.gender,
+    category: config.category,
+    pose: config.pose,
+    background: config.background,
+    cameraAngle: config.cameraAngle,
   });
 
-  for (const part of response.candidates[0].content.parts) {
-    if (part.inlineData) {
-      return `data:image/png;base64,${part.inlineData.data}`;
-    }
-  }
-
-  throw new Error("No image generated");
+  return new Promise<string>((resolve) => {
+    setTimeout(() => {
+      resolve(clothingImageBase64); // Return the original clothing image as a mock result
+    }, 2000);
+  });
 };
