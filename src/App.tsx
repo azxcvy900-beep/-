@@ -944,9 +944,9 @@ export default function App() {
               </div>
               <div className="flex items-center gap-2 opacity-50">
                 <Layers className="w-3 h-3 text-yafa-gold" />
-                <span className="text-[9px] font-bold uppercase tracking-wider">Gemini 2.5 Engine</span>
+                <span className="text-[9px] font-bold uppercase tracking-wider">Gemini 2.0 Engine</span>
               </div>
-              <button onClick={() => setView('admin')} className="flex items-center gap-2 opacity-20 hover:opacity-100 transition-opacity cursor-pointer">
+              <button onClick={() => setView('admin')} className="flex items-center gap-2 opacity-40 hover:opacity-100 transition-opacity cursor-pointer">
                 <ShieldCheck className="w-3 h-3" />
                 <span className="text-[9px] font-bold uppercase tracking-wider">إدارة النظام</span>
               </button>
