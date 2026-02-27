@@ -185,79 +185,147 @@ export default function App() {
 
   if (view === 'landing') {
     return (
-      <div className="h-screen bg-yafa-bg text-white font-sans overflow-y-auto custom-scrollbar relative" dir="rtl">
-        {/* Decorative Background Elements */}
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-yafa-emerald/20 blur-[120px] rounded-full pointer-events-none" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-yafa-gold/10 blur-[120px] rounded-full pointer-events-none" />
-
-        <div className="max-w-6xl mx-auto px-6 py-24 flex flex-col items-center relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="text-center mb-20 space-y-6"
+      <div className="h-screen bg-[#030303] text-white font-sans overflow-y-auto custom-scrollbar relative selection:bg-yafa-gold/30 selection:text-white" dir="rtl">
+        {/* Navigation Bar */}
+        <nav className="fixed top-0 w-full z-50 px-8 py-6 flex items-center justify-between bg-gradient-to-b from-black/80 to-transparent backdrop-blur-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center backdrop-blur-md">
+              <Sparkles className="text-yafa-gold w-5 h-5" />
+            </div>
+            <span className="text-xl font-bold tracking-widest uppercase">يافا ديزاين</span>
+          </div>
+          <button
+            onClick={() => setView('studio')}
+            className="px-6 py-2.5 bg-yafa-gold/10 text-yafa-gold border border-yafa-gold/20 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-yafa-gold hover:text-black transition-all duration-300"
           >
-            <div className="flex items-center justify-center gap-3 mb-6">
-              <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.2)]">
-                <Sparkles className="text-yafa-emerald w-6 h-6" />
+            دخول الاستوديو
+          </button>
+        </nav>
+
+        {/* Hero Section */}
+        <section className="relative min-h-screen flex items-center justify-center pt-20 overflow-hidden">
+          {/* Background Image with Heavy Overlay */}
+          <div className="absolute inset-0 z-0">
+            <img src="/images/4.png" alt="Luxury Fashion" className="w-full h-full object-cover opacity-40 scale-105" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#030303] via-[#030303]/80 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#030303] via-transparent to-[#030303]" />
+          </div>
+
+          <div className="relative z-10 text-center max-w-5xl mx-auto px-6 mt-16">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 1.2, ease: "easeOut" }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-md mb-8"
+            >
+              <div className="w-2 h-2 rounded-full bg-yafa-gold animate-pulse" />
+              <span className="text-[10px] font-bold tracking-widest uppercase text-yafa-gold flex-1 text-center">الجيل الجديد من أزياء الذكاء الاصطناعي</span>
+            </motion.div>
+
+            <motion.h1
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
+              className="text-5xl md:text-8xl font-black tracking-tight leading-[1.2] md:leading-[1.1] mb-8"
+            >
+              أناقة لا تعترف <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-yafa-gold via-yellow-200 to-yafa-gold/50 font-serif pr-2 md:pr-4">
+                بالحدود
+              </span>
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, delay: 0.4, ease: "easeOut" }}
+              className="text-base md:text-xl text-white/50 font-light max-w-2xl mx-auto mb-12 leading-relaxed"
+            >
+              ارتقِ بتصاميمك إلى مستوى دور الأزياء العالمية. استوديو متكامل يدمج رؤيتك الفنية مع قوة الذكاء الاصطناعي لإنتاج جلسات تصوير مذهلة.
+            </motion.p>
+
+            <motion.button
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, delay: 0.6, ease: "easeOut" }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setView('studio')}
+              className="group relative px-8 md:px-12 py-4 md:py-5 bg-white text-black rounded-full font-bold text-sm tracking-wide flex items-center justify-center gap-4 mx-auto overflow-hidden shadow-[0_0_40px_rgba(255,255,255,0.15)] hover:shadow-[0_0_60px_rgba(255,255,255,0.25)] transition-shadow"
+            >
+              <span className="relative z-10">ابدأ التصميم الآن</span>
+              <div className="w-8 h-8 rounded-full bg-black/5 flex items-center justify-center relative z-10 group-hover:bg-black/10 transition-colors">
+                <ArrowRight className="w-4 h-4 text-black group-hover:-translate-x-1 transition-transform" />
               </div>
-              <span className="text-2xl font-bold tracking-tighter">يافا ديزاين</span>
+            </motion.button>
+          </div>
+        </section>
+
+        {/* Gallery Section */}
+        <section className="py-24 md:py-32 px-6 relative">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+              <div>
+                <h2 className="text-3xl md:text-5xl font-black mb-4">معرض الإلهام</h2>
+                <p className="text-white/40 font-light max-w-md text-sm md:text-base leading-relaxed">اكتشف الإمكانيات اللامحدودة. مزيج من الخيال الرقمي والواقعية المفرطة.</p>
+              </div>
             </div>
 
-            <h1 className="text-6xl md:text-7xl font-bold tracking-tight leading-tight">
-              اجعل أزياءك <span className="yafa-gradient-text italic">تنبض بالحياة</span>
-            </h1>
-            <p className="text-xl text-yafa-muted max-w-2xl mx-auto font-light leading-relaxed">
-              استورد، صمم، وشاهد قطعك الفنية على أرقى عارضي الأزياء في العالم الافتراضي. استوديو متكامل يعمل بالذكاء الاصطناعي حصرياً من يافا ديزاين.
-            </p>
-          </motion.div>
-
-          {/* Featured Images Grid with Premium Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-24 w-full">
-            {[
-              '/images/1.png',
-              '/images/2.png',
-              '/images/3.png',
-              '/images/4.png'
-            ].map((src, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, scale: 0.9, y: 40 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ delay: i * 0.15, duration: 0.6 }}
-                className="group aspect-[3/4] rounded-3xl overflow-hidden border border-yafa-border bg-yafa-sidebar relative shadow-xl hover:shadow-yafa-emerald/10 transition-all"
-              >
-                <div className="absolute inset-0 bg-gradient-to-t from-yafa-bg/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10" />
-                <img
-                  src={src}
-                  alt={`Yafa Fashion ${i}`}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
-                  referrerPolicy="no-referrer"
-                />
-                <div className="absolute bottom-4 left-4 right-4 z-20 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-yafa-gold">AI Generation</p>
-                  <p className="text-xs font-medium">Concept Studio</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[300px] md:auto-rows-[400px]">
+              {/* Featured Large Image */}
+              <div className="md:col-span-2 md:row-span-2 group relative rounded-[2rem] overflow-hidden bg-white/5 border border-white/10 shadow-2xl origin-center">
+                <img src="/images/1.png" alt="Featured" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
+                <div className="absolute bottom-6 md:bottom-10 left-6 md:left-10 right-6 md:right-10 flex items-end justify-between translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
+                  <div>
+                    <h3 className="text-xl md:text-2xl font-bold mb-2">Editorial Excellence</h3>
+                    <p className="text-yafa-gold text-[10px] md:text-xs tracking-widest uppercase">High Fashion Studio</p>
+                  </div>
+                  <button className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center hover:bg-white hover:text-black transition-colors" aria-label="View Output">
+                    <Plus className="w-4 h-4 md:w-5 md:h-5" />
+                  </button>
                 </div>
-              </motion.div>
-            ))}
-          </div>
+              </div>
 
-          <motion.button
-            whileHover={{ scale: 1.05, boxShadow: "0 0 40px rgba(255,255,255,0.15)" }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setView('studio')}
-            className="group relative px-14 py-6 bg-white text-black rounded-2xl font-bold text-xl flex items-center gap-4 hover:bg-gray-100 transition-all"
-          >
-            ادخل الاستوديو الاحترافي
-            <ArrowRight className="w-6 h-6 group-hover:translate-x-[-4px] transition-transform" />
-          </motion.button>
-
-          <div className="mt-16 flex items-center gap-8 opacity-40">
-            <p className="text-[10px] font-bold uppercase tracking-widest">Powered by Gemini 2.0</p>
-            <div className="w-[1px] h-4 bg-yafa-border" />
-            <p className="text-[10px] font-bold uppercase tracking-widest">Premium Rendering</p>
+              {/* Smaller Images */}
+              {['/images/2.png', '/images/3.png'].map((src, i) => (
+                <div key={i} className="group relative rounded-[2rem] overflow-hidden bg-white/5 border border-white/10 shadow-xl">
+                  <img src={src} alt={`Gallery ${i}`} className="w-full h-full object-cover opacity-70 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
+                  <div className="absolute bottom-6 md:bottom-8 left-6 md:left-8 right-6 md:right-8 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
+                    <h3 className="text-base md:text-lg font-bold mb-1">Concept {i + 1}</h3>
+                    <p className="text-white/50 text-[10px] md:text-xs tracking-wider">AI Generated</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        </section>
+
+        {/* Features Section */}
+        <section className="py-16 md:py-24 px-6 border-t border-white/5 bg-gradient-to-b from-transparent to-white/[0.02]">
+          <div className="max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+              {[
+                { icon: User, title: 'موديلات بلا حدود', desc: 'اختر عارضي أزياء من مختلف الأعمار بضغطة زر، وبدون تكاليف استقدام العارضين.' },
+                { icon: Camera, title: 'إضاءة استوديو متكاملة', desc: 'تحكم محاذي للواقع في الإضاءة والظلال لإبراز جمال القماش وتفاصيل القطع.' },
+                { icon: Layers, title: 'محاكاة الأنسجة', desc: 'خوارزميات متقدمة للحفاظ على ملمس الحرير، الكتان، والصوف بدقة تفوق الخيال.' }
+              ].map((feature, i) => (
+                <div key={i} className="space-y-4 md:space-y-6 text-center md:text-right flex flex-col items-center md:items-start">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-yafa-gold/20 to-transparent border border-yafa-gold/20 flex items-center justify-center group hover:scale-110 transition-transform">
+                    <feature.icon className="w-8 h-8 text-yafa-gold" />
+                  </div>
+                  <h3 className="text-xl md:text-2xl font-bold">{feature.title}</h3>
+                  <p className="text-sm md:text-base text-white/50 font-light leading-relaxed max-w-sm">{feature.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Footer */}
+        <footer className="py-8 border-t border-white/5 text-center text-white/30 text-[10px] md:text-xs font-bold tracking-widest uppercase">
+          يافا ديزاين © 2026 - جميع الحقوق محفوظة
+        </footer>
       </div>
     );
   }
