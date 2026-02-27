@@ -214,10 +214,10 @@ export default function App() {
           {/* Featured Images Grid with Premium Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-24 w-full">
             {[
-              'https://picsum.photos/seed/yafa1/800/1200',
-              'https://picsum.photos/seed/yafa2/800/1200',
-              'https://picsum.photos/seed/yafa3/800/1200',
-              'https://picsum.photos/seed/yafa4/800/1200'
+              '/images/1.png',
+              '/images/2.png',
+              '/images/3.png',
+              '/images/4.png'
             ].map((src, i) => (
               <motion.div
                 key={i}
