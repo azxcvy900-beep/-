@@ -58,7 +58,7 @@ const CAMERA_ANGLES = [
 ];
 
 export default function App() {
-  const [view, setView] = useState<'landing' | 'studio' | 'admin'>('landing');
+  const [view, setView] = useState<'landing' | 'studio' | 'admin' | 'pricing'>('landing');
   const [clothingImages, setClothingImages] = useState<string[]>([]);
   const [modelImage, setModelImage] = useState<string | null>(null);
   const [gender, setGender] = useState<'male' | 'female'>('female');
@@ -195,8 +195,14 @@ export default function App() {
             <span className="text-xl font-bold tracking-widest uppercase">يافا ديزاين</span>
           </div>
           <button
-            onClick={() => setView('studio')}
+            onClick={() => setView('pricing')}
             className="px-6 py-2.5 bg-yafa-gold/10 text-yafa-gold border border-yafa-gold/20 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-yafa-gold hover:text-black transition-all duration-300"
+          >
+            ترقية الحساب
+          </button>
+          <button
+            onClick={() => setView('studio')}
+            className="px-6 py-2.5 bg-yafa-gold text-black border border-yafa-gold rounded-full text-xs font-bold uppercase tracking-widest hover:bg-white hover:border-white transition-all duration-300"
           >
             دخول الاستوديو
           </button>
@@ -605,6 +611,129 @@ export default function App() {
     );
   }
 
+  if (view === 'pricing') {
+    return (
+      <div className="min-h-screen bg-[#030303] text-white font-sans overflow-y-auto custom-scrollbar relative" dir="rtl">
+        {/* Navigation Bar */}
+        <nav className="w-full z-50 px-8 py-6 flex items-center justify-between border-b border-white/5 bg-black/50 backdrop-blur-md sticky top-0">
+          <button onClick={() => setView('landing')} className="flex items-center gap-3 group">
+            <div className="w-10 h-10 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center backdrop-blur-md group-hover:scale-105 transition-transform">
+              <Sparkles className="text-yafa-gold w-5 h-5" />
+            </div>
+            <span className="text-xl font-bold tracking-widest uppercase">يافا ديزاين</span>
+          </button>
+          <button
+            onClick={() => setView('studio')}
+            className="px-6 py-2.5 bg-white text-black rounded-full text-xs font-bold uppercase tracking-widest hover:bg-yafa-gold transition-all duration-300"
+          >
+            العودة للاستوديو
+          </button>
+        </nav>
+
+        <main className="max-w-6xl mx-auto px-6 py-20 relative z-10">
+          <div className="text-center mb-16 space-y-4">
+            <h1 className="text-4xl md:text-6xl font-black">خطط الاشتراك في الاستوديو</h1>
+            <p className="text-white/50 text-lg max-w-2xl mx-auto">ارتقِ بإنتاجيتك ووفر آلاف الدولارات من تكاليف التصوير التقليدي. اختر الباقة التي تناسب تطلعاتك.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Starter Plan */}
+            <div className="bg-white/5 border border-white/10 rounded-3xl p-8 flex flex-col hover:border-yafa-emerald/30 transition-all">
+              <div className="mb-8">
+                <span className="text-xs font-bold uppercase tracking-widest text-yafa-emerald mb-2 block">باقة البداية (Starter) 🌱</span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-black">$9.99</span>
+                  <span className="text-white/40 text-sm">/ شهرياً</span>
+                </div>
+                <p className="text-xs text-white/50 mt-4 leading-relaxed">مثالية للمصممين المبتدئين وأصحاب المشاريع الصغيرة.</p>
+              </div>
+              <ul className="space-y-4 mb-8 flex-1">
+                {[
+                  'إنشاء حتى 50 صورة شهرياً',
+                  'جودة صور عالية (HD)',
+                  'توليد الموديلات الأساسية',
+                  'إضاءة استوديو قياسية',
+                  'دعم فني عبر البريد'
+                ].map((feature, i) => (
+                  <li key={i} className="flex items-center gap-3 text-sm">
+                    <Check className="w-4 h-4 text-yafa-emerald" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+              <button className="w-full py-4 bg-white/10 hover:bg-white/20 rounded-2xl font-bold text-sm transition-colors">
+                اشترك الآن
+              </button>
+            </div>
+
+            {/* Pro Plan */}
+            <div className="bg-gradient-to-b from-yafa-gold/20 to-white/5 border border-yafa-gold/50 rounded-3xl p-8 flex flex-col relative transform md:-translate-y-4 shadow-[0_0_40px_rgba(251,191,36,0.15)]">
+              <div className="absolute top-0 right-1/2 translate-x-1/2 -translate-y-1/2 bg-yafa-gold text-black px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
+                الأكثر طلباً
+              </div>
+              <div className="mb-8 mt-2">
+                <span className="text-xs font-bold uppercase tracking-widest text-yafa-gold mb-2 block">الباقة الاحترافية (Pro) ⚡</span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-5xl font-black">$19.99</span>
+                  <span className="text-white/40 text-sm">/ شهرياً</span>
+                </div>
+                <p className="text-xs text-white/50 mt-4 leading-relaxed">مثالية للمتاجر الإلكترونية النشطة وصناع المحتوى المحترفين.</p>
+              </div>
+              <ul className="space-y-4 mb-8 flex-1">
+                {[
+                  'إنشاء حتى 200 صورة شهرياً',
+                  'جودة صور فائقة (4K Ultra HD)',
+                  'ميزة "توليد الخلفيات الذكي"',
+                  'أولوية وسرعة توليد عالية (Priority)',
+                  'إضاءة احترافية وظلال درامية',
+                  'دعم فني متقدم وسريع'
+                ].map((feature, i) => (
+                  <li key={i} className="flex items-center gap-3 text-sm">
+                    <Check className="w-4 h-4 text-yafa-gold" />
+                    <span className="font-medium">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+              <button className="w-full py-4 bg-yafa-gold text-black hover:bg-yellow-400 rounded-2xl font-black text-sm transition-colors shadow-lg">
+                اشترك في الباقة الاحترافية
+              </button>
+            </div>
+
+            {/* Business Plan */}
+            <div className="bg-white/5 border border-white/10 rounded-3xl p-8 flex flex-col hover:border-purple-500/30 transition-all">
+              <div className="mb-8">
+                <span className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2 block">باقة الأعمال (Business) 🏢</span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-black">$49.99</span>
+                  <span className="text-white/40 text-sm">/ شهرياً</span>
+                </div>
+                <p className="text-xs text-white/50 mt-4 leading-relaxed">للماركات الكبيرة، الوكالات، وصناع كتالوجات الأزياء الضخمة.</p>
+              </div>
+              <ul className="space-y-4 mb-8 flex-1">
+                {[
+                  'إنشاء حتى 1,000 صورة شهرياً',
+                  'جودة صور خرافية (4K) + تصدير شفاف',
+                  'محاكاة الأنسجة المعقدة (حرير، صوف)',
+                  'تصميم موديلات حصرية للعلامة',
+                  'حقوق ملكية تجارية كاملة',
+                  'دعم فني فوري (VIP)'
+                ].map((feature, i) => (
+                  <li key={i} className="flex items-center gap-3 text-sm">
+                    <Check className="w-4 h-4 text-purple-400" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+              <button className="w-full py-4 bg-white/10 hover:bg-white/20 rounded-2xl font-bold text-sm transition-colors">
+                تواصل مع المبيعات
+              </button>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="h-screen bg-yafa-bg text-white font-sans flex flex-col overflow-hidden relative" dir="rtl">
       {/* Subtle Background Glows */}
@@ -630,7 +759,10 @@ export default function App() {
             <Info className="w-4 h-4" />
             مركز المساعدة
           </button>
-          <button className="bg-gradient-to-r from-yafa-gold to-yellow-500 text-black px-6 py-2 rounded-xl text-sm font-bold hover:shadow-[0_0_20px_rgba(251,191,36,0.2)] transition-all">
+          <button
+            onClick={() => setView('pricing')}
+            className="bg-gradient-to-r from-yafa-gold to-yellow-500 text-black px-6 py-2 rounded-xl text-sm font-bold hover:shadow-[0_0_20px_rgba(251,191,36,0.2)] transition-all"
+          >
             ترقية الحساب
           </button>
         </div>
