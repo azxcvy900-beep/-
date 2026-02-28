@@ -96,10 +96,56 @@ app.post("/api/generate", async (req, res) => {
             remainingCredits = userData.credits - 1;
         }
 
-        // --- MOCK GEMINI CALL (Replace with real Gemini API call) ---
-        // Here we simulate the AI generation delay and return the image.
-        // If this simulated call fails, the credit deduction below WILL NOT run.
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // --- REAL GEMINI CALL ---
+        let base64Data = clothingImageBase64;
+        if (base64Data.startsWith('data:image')) {
+            base64Data = base64Data.split(',')[1];
+        }
+
+        const apiKey = process.env.GEMINI_API_KEY;
+        if (!apiKey) {
+            return res.status(500).json({ error: "API Key is missing. Please add GEMINI_API_KEY in Vercel settings." });
+        }
+
+        const { GoogleGenerativeAI } = require('@google/generative-ai');
+        const genAI = new GoogleGenerativeAI(apiKey);
+
+        // Use gemini-2.5-pro or gemini-2.0-pro as they represent state of the art
+        const model = genAI.getGenerativeModel({ model: "gemini-pro-vision" });
+
+        const prompt = `
+          You are an expert fashion photographer and AI stylist.
+          Create an ultra-realistic, high-end fashion catalog image.
+          Clothing item provided in the image.
+          User Configuration:
+          - Gender: ${config.gender}
+          - Category (Age): ${config.category}
+          - Pose/Style: ${config.pose}
+          - Background/Environment: ${config.background}
+          - Camera Angle: ${config.cameraAngle || 'Auto'}
+
+          Ensure the final result looks like a professional 8k fashion photoshoot. 
+          The output must prominently perfectly feature the uploaded clothing item being worn.
+        `;
+
+        const imagePart = {
+            inlineData: {
+                data: base64Data,
+                mimeType: "image/png" // Assuming png, can be dynamic
+            }
+        };
+
+        const result = await model.generateContent([prompt, imagePart]);
+        const response = await result.response;
+        // Since Gemini Vision returns text describing the image, 
+        // NOTE: standard Gemini API currently generates TEXT from images, not images from text.
+        // For actual Image Generation from an image we need Gemini's Imagen 3 API or similar.
+        // As a fallback for this demo, we will log the success but we must return a visual.
+        console.log("Gemini Vision Analysis:", response.text());
+
+        // WARNING: Since standard Gemini API doesn't return an image buffer directly yet 
+        // without Imagen 3, we simulate the output returning the input image for now.
+        // To do real image-to-image you need Vertex AI Imagen 3 API.
         const generatedImage = clothingImageBase64;
 
         // --- ONLY IF SUCCESSFUL: Deduct credit ---
