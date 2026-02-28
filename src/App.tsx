@@ -251,10 +251,15 @@ export default function App() {
           })
         });
 
-        const data = await response.json();
+        let data;
+        let isJson = response.headers.get('content-type')?.includes('application/json');
+
+        if (isJson) {
+          data = await response.json();
+        }
 
         if (!response.ok) {
-          throw new Error(data.error || "خطأ في التوليد");
+          throw new Error(data?.error || "حدث خطأ غير متوقع في الخادم (Server Error). يرجى المحاولة لاحقاً.");
         }
 
         generated.push(data.result);
@@ -266,8 +271,8 @@ export default function App() {
         }
       }
     } catch (err: any) {
-      console.error(err);
-      setError(err.message || "حدث خطأ أثناء التوليد. لم يتم خصم أي رصيد.");
+      console.error("Frontend Generation Error:", err);
+      setError(err.message || "حدث خطأ أثناء التوليد. يُرجى التحقق من اتصالك والمحاولة مرة أخرى.");
     } finally {
       setIsGenerating(false);
     }
