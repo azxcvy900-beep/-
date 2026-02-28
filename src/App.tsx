@@ -61,13 +61,13 @@ const CAMERA_ANGLES = [
 ];
 
 export default function App() {
-  const [view, setView] = useState<'landing' | 'studio' | 'admin' | 'pricing' | 'login' | 'terms' | 'privacy'>('landing');
+  const [view, setView] = useState<'landing' | 'studio' | 'admin' | 'pricing' | 'login' | 'terms' | 'privacy' | 'refund'>('landing');
 
   // Handle URL deep linking for Paddle verification
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const viewParam = params.get('view') as any;
-    if (viewParam && ['landing', 'studio', 'admin', 'pricing', 'login', 'terms', 'privacy'].includes(viewParam)) {
+    if (viewParam && ['landing', 'studio', 'admin', 'pricing', 'login', 'terms', 'privacy', 'refund'].includes(viewParam)) {
       setView(viewParam);
     }
   }, []);
@@ -814,8 +814,11 @@ export default function App() {
     );
   }
 
-  if (view === 'terms' || view === 'privacy') {
+  if (view === 'terms' || view === 'privacy' || view === 'refund') {
     const isTerms = view === 'terms';
+    const isPrivacy = view === 'privacy';
+    const isRefund = view === 'refund';
+
     return (
       <div className="min-h-screen bg-[#030303] text-white font-sans flex flex-col relative selection:bg-yafa-gold/30 selection:text-white" dir="rtl">
         <header className="h-20 border-b border-white/5 flex items-center justify-between px-8 relative z-10 bg-black/50 backdrop-blur-xl">
@@ -832,7 +835,9 @@ export default function App() {
         </header>
 
         <main className="flex-1 relative z-10 p-10 py-24 max-w-4xl mx-auto w-full">
-          <h1 className="text-4xl font-black mb-12 text-yafa-gold">{isTerms ? 'الشروط والأحكام' : 'سياسة الخصوصية'}</h1>
+          <h1 className="text-4xl font-black mb-12 text-yafa-gold">
+            {isTerms ? 'الشروط والأحكام' : isPrivacy ? 'سياسة الخصوصية' : 'سياسة الاسترداد'}
+          </h1>
           <div className="space-y-8 text-[#f5f5f0]/70 leading-relaxed text-sm">
             {isTerms ? (
               <>
@@ -846,14 +851,14 @@ export default function App() {
                 </section>
                 <section>
                   <h2 className="text-white font-bold mb-3 text-lg">3. الاشتراكات والاسترداد</h2>
-                  <p>الاشتراكات في باقات VIP غير قابلة للاسترداد بمجرد استخدام الرصيد لتوليد الصور. يتم تجديد الاشتراك تلقائياً ما لم يتم إلغاؤه من قبل المستخدم.</p>
+                  <p>الاشتراكات في باقات VIP تخضع لسياسة الاسترداد الخاصة بنا الموضحة في صفحة سياسة الاسترداد. يتم تجديد الاشتراك تلقائياً ما لم يتم إلغاؤه من قبل المستخدم.</p>
                 </section>
                 <section>
                   <h2 className="text-white font-bold mb-3 text-lg">4. حقوق الملكية</h2>
                   <p>الصور المولدة عبر الباقات المدفوعة هي ملك للمستخدم للاستخدام التجاري. الصور في الباقة المجانية تظل ملكاً لموقع يافا ديزاين ولا يجوز استخدامها تجارياً.</p>
                 </section>
               </>
-            ) : (
+            ) : isPrivacy ? (
               <>
                 <section>
                   <h2 className="text-white font-bold mb-3 text-lg">1. جمع البيانات</h2>
@@ -870,6 +875,21 @@ export default function App() {
                 <section>
                   <h2 className="text-white font-bold mb-3 text-lg">4. التعديل على البيانات</h2>
                   <p>يحق لك طلب حذف حسابك وبياناتك بالكامل في أي وقت من خلال التواصل مع الدعم الفني.</p>
+                </section>
+              </>
+            ) : (
+              <>
+                <section>
+                  <h2 className="text-white font-bold mb-3 text-lg">1. نطاق الاسترداد</h2>
+                  <p>نظراً للطبيعة الرقمية للخدمة والذكاء الاصطناعي، يتم تقديم المبالغ المستردة فقط في حالة وجود عطل فني مثبت يمنع المستخدم من الحصول على الخدمة بشكل كامل لمدة تزيد عن 48 ساعة.</p>
+                </section>
+                <section>
+                  <h2 className="text-white font-bold mb-3 text-lg">2. حالات لا ينطبق فيها الاسترداد</h2>
+                  <p>لا يحق للمستخدم طلب استرداد مالي بعد البدء في استخدام رصيد "توليد الصور" المخصص للباقة، أو في حالة عدم الرضا الشخصي عن "النتيجة الفنية" للذكاء الاصطناعي طالما أن المحرك يعمل بشكل سليم.</p>
+                </section>
+                <section>
+                  <h2 className="text-white font-bold mb-3 text-lg">3. معالجة طلبات الاسترداد</h2>
+                  <p>يجب تقديم طلب الاسترداد خلال 7 أيام من تاريخ العملية الشرائية، وذلك عبر التواصل مع الدعم الفني وتوضيح الأسباب الفنية.</p>
                 </section>
               </>
             )}
@@ -1386,8 +1406,10 @@ export default function App() {
               </button>
             </div>
             <div className="flex items-center gap-4 ml-auto px-4 border-l border-white/5 h-full opacity-30 hover:opacity-100 transition-opacity">
+              <button onClick={() => setView('pricing')} className="text-[9px] font-bold uppercase tracking-widest hover:text-yafa-gold">Pricing</button>
               <button onClick={() => setView('terms')} className="text-[9px] font-bold uppercase tracking-widest hover:text-yafa-gold">Terms of Service</button>
               <button onClick={() => setView('privacy')} className="text-[9px] font-bold uppercase tracking-widest hover:text-yafa-gold">Privacy Policy</button>
+              <button onClick={() => setView('refund')} className="text-[9px] font-bold uppercase tracking-widest hover:text-yafa-gold">Refund Policy</button>
             </div>
             <p className="text-[9px] font-bold uppercase tracking-widest opacity-30">© 2026 YAFA DESIGN STUDIO</p>
           </footer>
