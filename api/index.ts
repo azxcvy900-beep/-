@@ -103,7 +103,8 @@ app.post("/api/generate", async (req, res) => {
 
         // --- HUGGING FACE IMAGE GENERATION ---
         const hfTokenRaw = process.env.HF_TOKEN || "";
-        const hfToken = hfTokenRaw.trim();
+        // Aggressive cleaning: remove all whitespace, newlines, tabs
+        const hfToken = hfTokenRaw.replace(/[\r\n\t\s]/g, "").trim();
 
         if (!hfToken) {
             console.error("DEBUG - HF_TOKEN is completely missing in process.env");
@@ -114,7 +115,8 @@ app.post("/api/generate", async (req, res) => {
         console.log(`DEBUG - Token Info: LengthRaw=${hfTokenRaw.length}, LengthTrimmed=${hfToken.length}, Prefix=${hfToken.substring(0, 5)}...`);
 
         // Switching back to the flag-ship model
-        const modelId = "black-forest-labs/FLUX.1-schnell";
+        // Using a highly stable free model
+        const modelId = "stabilityai/stable-diffusion-2-1";
         const hfPrompt = `Professional high-end fashion photography, ${config.gender} ${config.category} wearing the provided clothing item, ${config.pose}, ${config.background}, ${config.cameraAngle || 'eye level'}, 8k resolution, photorealistic, cinematic lighting, sharp focus, fashion magazine editorial style.`;
 
         console.log(`DEBUG - Calling HF API (New Router): https://router.huggingface.co/hf-inference/models/${modelId}`);
@@ -125,8 +127,7 @@ app.post("/api/generate", async (req, res) => {
                 headers: {
                     "Authorization": `Bearer ${hfToken}`,
                     "Content-Type": "application/json",
-                    "x-wait-for-model": "true",
-                    "x-use-cache": "false"
+                    "x-wait-for-model": "true"
                 },
                 method: "POST",
                 body: JSON.stringify({
@@ -142,6 +143,12 @@ app.post("/api/generate", async (req, res) => {
         if (!hfResponse.ok || (contentType && contentType.includes("application/json"))) {
             const errorText = await hfResponse.text();
             console.error("DEBUG - HF Error Body:", errorText);
+
+            if (hfResponse.status === 401) {
+                return res.status(401).json({
+                    error: "خطأ في الرمز (401): الرمز غير صحيح. يرجى حذف الرمز من Vercel وكتابته يدوياً أو لصقه بعناية بدون أي مسافات."
+                });
+            }
 
             if (hfResponse.status === 410) {
                 return res.status(410).json({
