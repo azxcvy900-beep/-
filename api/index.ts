@@ -110,8 +110,8 @@ app.post("/api/generate", async (req, res) => {
         const { GoogleGenerativeAI } = require('@google/generative-ai');
         const genAI = new GoogleGenerativeAI(apiKey);
 
-        // Use gemini-2.5-pro or gemini-2.0-pro as they represent state of the art
-        const model = genAI.getGenerativeModel({ model: "gemini-pro-vision" });
+        // Switching to 'gemini-1.5-flash' as it's faster and more reliable than 'gemini-pro-vision'
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
         const prompt = `
           You are an expert fashion photographer and AI stylist.
@@ -159,9 +159,18 @@ app.post("/api/generate", async (req, res) => {
 
         res.json({ result: generatedImage, remainingCredits });
     } catch (error: any) {
-        console.error("Generation error:", error);
-        // Important: Notice we do NOT deduct credits in this Catch block.
-        res.status(500).json({ error: "فشل التوليد. لم يتم خصم الرصيد." });
+        console.error("DEBUG - Generation error details:", {
+            message: error.message,
+            stack: error.stack,
+            code: error.code,
+            status: error.status
+        });
+        // Return a more descriptive error message to help the user debug
+        const errorMessage = error.message?.includes('API key')
+            ? "خطأ في مفتاح الـ API. يرجى التأكد من صحته في Vercel."
+            : `فشل التوليد: ${error.message || 'خطأ غير معروف'}`;
+
+        res.status(500).json({ error: errorMessage });
     }
 });
 
