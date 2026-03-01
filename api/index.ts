@@ -108,39 +108,55 @@ app.post("/api/generate", async (req, res) => {
             return res.status(500).json({ error: "HF_TOKEN is missing. Please add it in Vercel settings (Hugging Face Access Token)." });
         }
 
-        // Using a definitively stable free model to bypass 410 errors
-        const modelId = "runwayml/stable-diffusion-v1-5";
+        // Switching back to the flag-ship model now that permissions are (hopefully) correct
+        const modelId = "black-forest-labs/FLUX.1-schnell";
 
         const hfPrompt = `Professional high-end fashion photography, ${config.gender} ${config.category} wearing the provided clothing item, ${config.pose}, ${config.background}, ${config.cameraAngle || 'eye level'}, 8k resolution, photorealistic, cinematic lighting, sharp focus, fashion magazine editorial style.`;
 
-        console.log("Calling Hugging Face with prompt:", hfPrompt);
+        console.log(`DEBUG - Calling HF API: https://api-inference.huggingface.co/models/${modelId}`);
 
         const hfResponse = await fetch(
             `https://api-inference.huggingface.co/models/${modelId}`,
             {
                 headers: {
-                    Authorization: `Bearer ${hfToken}`,
+                    "Authorization": `Bearer ${hfToken.trim()}`,
                     "Content-Type": "application/json",
-                    "x-wait-for-model": "true"
+                    "x-wait-for-model": "true",
+                    "x-use-cache": "false"
                 },
                 method: "POST",
                 body: JSON.stringify({
                     inputs: hfPrompt,
-                    options: { wait_for_model: true }
+                    parameters: {
+                        wait_for_model: true
+                    }
                 }),
             }
         );
 
         const contentType = hfResponse.headers.get("content-type");
+        console.log(`DEBUG - HF Status: ${hfResponse.status}, Content-Type: ${contentType}`);
 
         if (!hfResponse.ok || (contentType && contentType.includes("application/json"))) {
             const errorText = await hfResponse.text();
-            console.error("HF Error/Loading Response:", errorText);
+            console.error("DEBUG - HF Error Body:", errorText);
 
             if (errorText.includes("estimated_time") || errorText.includes("loading")) {
-                throw new Error("المحرك قيد التشغيل حالياً، يرجى الانتظار 30 ثانية والمحاولة مرة أخرى.");
+                const errorData = JSON.parse(errorText);
+                return res.status(503).json({
+                    error: "الموديل يفتح الآن.. يرجى الانتظار دقيقة والمحاولة ثانية.",
+                    estimated_time: errorData.estimated_time
+                });
             }
-            throw new Error(`مشكلة في محرك الذكاء الاصطناعي: ${hfResponse.status}.`);
+
+            // If it's still 410, it's definitely something about the API access
+            if (hfResponse.status === 410) {
+                return res.status(410).json({
+                    error: "خطأ 410: المحرك غير متاح حالياً لهذه النسخة. يرجى التأكد من أن الرمز في Vercel هو الرمز الصحيح وبدون مسافات."
+                });
+            }
+
+            throw new Error(`مشكلة في محرك الذكاء الاصطناعي: ${hfResponse.status}. ${errorText.substring(0, 100)}`);
         }
 
         const buffer = await hfResponse.arrayBuffer();
