@@ -1,6 +1,6 @@
 import express from "express";
 import * as admin from 'firebase-admin';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import fetch from 'node-fetch';
 
 // Initialize Firebase Admin (Using a placeholder for the service account for security.
 // The user will need to set an environment variable or local file in their real deployment).
@@ -103,51 +103,38 @@ app.post("/api/generate", async (req, res) => {
             base64Data = base64Data.split(',')[1];
         }
 
-        const apiKey = process.env.GEMINI_API_KEY;
-        if (!apiKey) {
-            return res.status(500).json({ error: "API Key is missing. Please add GEMINI_API_KEY in Vercel settings." });
+        // --- HUGGING FACE IMAGE GENERATION ---
+        const hfToken = process.env.HF_TOKEN;
+        if (!hfToken) {
+            return res.status(500).json({ error: "HF_TOKEN is missing. Please add it in Vercel settings (Hugging Face Access Token)." });
         }
 
-        const genAI = new GoogleGenerativeAI(apiKey);
+        // Using FLUX.1-schnell which is excellent for high-quality fast generation
+        const modelId = "black-forest-labs/FLUX.1-schnell";
 
-        // Trying a more standard model name. If this fails with 404, it means Gemini 1.5 
-        // is not yet active/available for this specific key or region.
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const hfPrompt = `Professional high-end fashion photography, ${config.gender} ${config.category} wearing the provided clothing item, ${config.pose}, ${config.background}, ${config.cameraAngle || 'eye level'}, 8k resolution, photorealistic, cinematic lighting, sharp focus, fashion magazine editorial style.`;
 
-        const prompt = `
-          You are an expert fashion photographer and AI stylist.
-          Create an ultra-realistic, high-end fashion catalog image.
-          Clothing item provided in the image.
-          User Configuration:
-          - Gender: ${config.gender}
-          - Category (Age): ${config.category}
-          - Pose/Style: ${config.pose}
-          - Background/Environment: ${config.background}
-          - Camera Angle: ${config.cameraAngle || 'Auto'}
+        console.log("Calling Hugging Face with prompt:", hfPrompt);
 
-          Ensure the final result looks like a professional 8k fashion photoshoot. 
-          The output must prominently perfectly feature the uploaded clothing item being worn.
-        `;
-
-        const imagePart = {
-            inlineData: {
-                data: base64Data,
-                mimeType: "image/png" // Assuming png, can be dynamic
+        const hfResponse = await fetch(
+            `https://api-inference.huggingface.co/models/${modelId}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${hfToken}`,
+                    "Content-Type": "application/json",
+                },
+                method: "POST",
+                body: JSON.stringify({ inputs: hfPrompt }),
             }
-        };
+        );
 
-        const result = await model.generateContent([prompt, imagePart]);
-        const response = await result.response;
-        // Since Gemini Vision returns text describing the image, 
-        // NOTE: standard Gemini API currently generates TEXT from images, not images from text.
-        // For actual Image Generation from an image we need Gemini's Imagen 3 API or similar.
-        // As a fallback for this demo, we will log the success but we must return a visual.
-        console.log("Gemini Vision Analysis:", response.text());
+        if (!hfResponse.ok) {
+            const errorData = await hfResponse.text();
+            throw new Error(`Hugging Face API error: ${hfResponse.status} ${errorData}`);
+        }
 
-        // WARNING: Since standard Gemini API doesn't return an image buffer directly yet 
-        // without Imagen 3, we simulate the output returning the input image for now.
-        // To do real image-to-image you need Vertex AI Imagen 3 API.
-        const generatedImage = clothingImageBase64;
+        const buffer = await hfResponse.arrayBuffer();
+        const generatedImageBase64 = `data:image/webp;base64,${Buffer.from(buffer).toString('base64')}`;
 
         // --- ONLY IF SUCCESSFUL: Deduct credit ---
         if (isDbConnected && db) {
@@ -158,7 +145,7 @@ app.post("/api/generate", async (req, res) => {
             });
         }
 
-        res.json({ result: generatedImage, remainingCredits });
+        res.json({ result: generatedImageBase64, remainingCredits });
     } catch (error: any) {
         console.error("DEBUG - Generation error details:", {
             message: error.message,
@@ -171,9 +158,9 @@ app.post("/api/generate", async (req, res) => {
         let errorMessage = error.message || 'خطأ غير معروف';
 
         if (error.message?.includes('404')) {
-            errorMessage = "محرك Gemini 1.5 غير متوفر حالياً لهذا المفتاح. أنصح بشدة بالانتقال لربط محرك Replicate الاحترافي (Flux/Stable Diffusion) لتوليد صور حقيقية.";
-        } else if (error.message?.includes('API key')) {
-            errorMessage = "خطأ في مفتاح الـ API. يرجى التأكد من صحته في Vercel.";
+            errorMessage = "الطراز المطلوب غير متوفر حالياً. جرب لاحقاً أو تأكد من إعدادات HF_TOKEN.";
+        } else if (error.message?.includes('Authorization') || error.message?.includes('401')) {
+            errorMessage = "خطأ في رمز HF_TOKEN. يرجى التأكد من صحته في Vercel (Hugging Face Access Token).";
         }
 
         res.status(500).json({ error: `فشل التوليد: ${errorMessage}` });
