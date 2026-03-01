@@ -33,7 +33,7 @@
 }
 
 body {
-  @apply antialiased bg-yafa-bg text-white selection:bg-yafa-emerald/30 overflow-hidden min-h-screen;
+  @apply antialiased bg-yafa-bg text-white selection:bg-yafa-emerald/30 min-h-screen;
   font-family: var(--font-sans);
   background-image:
     radial-gradient(at 0% 0%, rgba(6, 78, 59, 0.15) 0px, transparent 50%),
