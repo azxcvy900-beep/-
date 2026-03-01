@@ -108,8 +108,8 @@ app.post("/api/generate", async (req, res) => {
             return res.status(500).json({ error: "HF_TOKEN is missing. Please add it in Vercel settings (Hugging Face Access Token)." });
         }
 
-        // Using FLUX.1-schnell which is excellent for high-quality fast generation
-        const modelId = "black-forest-labs/FLUX.1-schnell";
+        // Using Stable Diffusion XL which is highly stable on the free API
+        const modelId = "stabilityai/stable-diffusion-xl-base-1.0";
 
         const hfPrompt = `Professional high-end fashion photography, ${config.gender} ${config.category} wearing the provided clothing item, ${config.pose}, ${config.background}, ${config.cameraAngle || 'eye level'}, 8k resolution, photorealistic, cinematic lighting, sharp focus, fashion magazine editorial style.`;
 
