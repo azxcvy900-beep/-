@@ -79,8 +79,7 @@ app.post("/api/generate", async (req, res) => {
             return res.status(401).json({ error: "Unauthorized" });
         }
 
-        let remainingCredits = 2; // Default mock fallback if DB is not connected
-
+        let remainingCredits = 0;
         if (isDbConnected && db) {
             const userRef = db.collection('users').doc(uid);
             const userDoc = await userRef.get();
@@ -144,6 +143,8 @@ app.post("/api/generate", async (req, res) => {
                 totalGenerations: admin.firestore.FieldValue.increment(1)
             });
         }
+
+        console.log("Success! Generated image length:", generatedImageBase64.length);
 
         res.json({ result: generatedImageBase64, remainingCredits });
     } catch (error: any) {
