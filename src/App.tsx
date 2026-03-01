@@ -216,6 +216,7 @@ export default function App() {
   } as any);
 
   const handleGenerate = async () => {
+    console.log("DEBUG - handleGenerate started", { clothingCount: clothingImages.length, user: user?.uid });
     if (clothingImages.length === 0) return;
     setIsGenerating(true);
     setError(null);
@@ -283,8 +284,11 @@ export default function App() {
       }
     } catch (err: any) {
       console.error("Frontend Generation Error:", err);
-      setError(err.message || "حدث خطأ أثناء التوليد. يُرجى التحقق من اتصالك والمحاولة مرة أخرى.");
+      // Fallback: If it's a 500 error, sometimes it's because Hugging Face is loading
+      const msg = err.message || "حدث خطأ";
+      setError(msg.includes("500") ? "المحرك يجهز نفسه.. يرجى المحاولة ثانية بعد ثقائق." : msg);
     } finally {
+      console.log("DEBUG - handleGenerate finished");
       setIsGenerating(false);
     }
   };
