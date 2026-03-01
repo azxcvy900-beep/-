@@ -1,6 +1,5 @@
 import express from "express";
 import * as admin from 'firebase-admin';
-import fetch from 'node-fetch';
 
 // Initialize Firebase Admin (Using a placeholder for the service account for security.
 // The user will need to set an environment variable or local file in their real deployment).
@@ -103,14 +102,19 @@ app.post("/api/generate", async (req, res) => {
         }
 
         // --- HUGGING FACE IMAGE GENERATION ---
-        const hfToken = process.env.HF_TOKEN;
+        const hfTokenRaw = process.env.HF_TOKEN || "";
+        const hfToken = hfTokenRaw.trim();
+
         if (!hfToken) {
+            console.error("DEBUG - HF_TOKEN is completely missing in process.env");
             return res.status(500).json({ error: "HF_TOKEN is missing. Please add it in Vercel settings (Hugging Face Access Token)." });
         }
 
-        // Switching back to the flag-ship model now that permissions are (hopefully) correct
-        const modelId = "black-forest-labs/FLUX.1-schnell";
+        // Detailed token debugging (SAFE MASKING)
+        console.log(`DEBUG - Token Info: LengthRaw=${hfTokenRaw.length}, LengthTrimmed=${hfToken.length}, Prefix=${hfToken.substring(0, 5)}...`);
 
+        // Switching back to the flag-ship model
+        const modelId = "black-forest-labs/FLUX.1-schnell";
         const hfPrompt = `Professional high-end fashion photography, ${config.gender} ${config.category} wearing the provided clothing item, ${config.pose}, ${config.background}, ${config.cameraAngle || 'eye level'}, 8k resolution, photorealistic, cinematic lighting, sharp focus, fashion magazine editorial style.`;
 
         console.log(`DEBUG - Calling HF API: https://api-inference.huggingface.co/models/${modelId}`);
@@ -119,7 +123,7 @@ app.post("/api/generate", async (req, res) => {
             `https://api-inference.huggingface.co/models/${modelId}`,
             {
                 headers: {
-                    "Authorization": `Bearer ${hfToken.trim()}`,
+                    "Authorization": `Bearer ${hfToken}`,
                     "Content-Type": "application/json",
                     "x-wait-for-model": "true",
                     "x-use-cache": "false"
@@ -127,9 +131,7 @@ app.post("/api/generate", async (req, res) => {
                 method: "POST",
                 body: JSON.stringify({
                     inputs: hfPrompt,
-                    parameters: {
-                        wait_for_model: true
-                    }
+                    parameters: { wait_for_model: true }
                 }),
             }
         );
@@ -141,6 +143,12 @@ app.post("/api/generate", async (req, res) => {
             const errorText = await hfResponse.text();
             console.error("DEBUG - HF Error Body:", errorText);
 
+            if (hfResponse.status === 410) {
+                return res.status(410).json({
+                    error: "خطأ 410: المحرك غير متاح حالياً. يرجى حذف الرمز من Vercel وإضافته مجدداً بالضغط على (Enter) ثم مسح كل شيء ولصقه في السطر الأول تماماً."
+                });
+            }
+
             if (errorText.includes("estimated_time") || errorText.includes("loading")) {
                 const errorData = JSON.parse(errorText);
                 return res.status(503).json({
@@ -149,14 +157,7 @@ app.post("/api/generate", async (req, res) => {
                 });
             }
 
-            // If it's still 410, it's definitely something about the API access
-            if (hfResponse.status === 410) {
-                return res.status(410).json({
-                    error: "خطأ 410: المحرك غير متاح حالياً لهذه النسخة. يرجى التأكد من أن الرمز في Vercel هو الرمز الصحيح وبدون مسافات."
-                });
-            }
-
-            throw new Error(`مشكلة في محرك الذكاء الاصطناعي: ${hfResponse.status}. ${errorText.substring(0, 100)}`);
+            throw new Error(`مشكلة في محرك الذكاء الاصطناعي: ${hfResponse.status}.`);
         }
 
         const buffer = await hfResponse.arrayBuffer();
