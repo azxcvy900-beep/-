@@ -96,7 +96,7 @@ app.post("/api/generate", async (req, res) => {
             remainingCredits = userData.credits - 1;
         }
 
-        // --- REAL GEMINI CALL ---
+        // --- PREPARE INPUT ---
         let base64Data = clothingImageBase64;
         if (base64Data.startsWith('data:image')) {
             base64Data = base64Data.split(',')[1];
@@ -121,19 +121,32 @@ app.post("/api/generate", async (req, res) => {
                 headers: {
                     Authorization: `Bearer ${hfToken}`,
                     "Content-Type": "application/json",
+                    "x-wait-for-model": "true"
                 },
                 method: "POST",
-                body: JSON.stringify({ inputs: hfPrompt }),
+                body: JSON.stringify({
+                    inputs: hfPrompt,
+                    options: { wait_for_model: true }
+                }),
             }
         );
 
-        if (!hfResponse.ok) {
-            const errorData = await hfResponse.text();
-            throw new Error(`Hugging Face API error: ${hfResponse.status} ${errorData}`);
+        const contentType = hfResponse.headers.get("content-type");
+
+        if (!hfResponse.ok || (contentType && contentType.includes("application/json"))) {
+            const errorText = await hfResponse.text();
+            console.error("HF Error/Loading Response:", errorText);
+
+            if (errorText.includes("estimated_time") || errorText.includes("loading")) {
+                throw new Error("المحرك قيد التشغيل حالياً، يرجى الانتظار 30 ثانية والمحاولة مرة أخرى.");
+            }
+            throw new Error(`مشكلة في محرك الذكاء الاصطناعي: ${hfResponse.status}.`);
         }
 
         const buffer = await hfResponse.arrayBuffer();
-        const generatedImageBase64 = `data:image/webp;base64,${Buffer.from(buffer).toString('base64')}`;
+
+        // Hugging Face FLUX model primarily returns PNG
+        const generatedImageBase64 = `data:image/png;base64,${Buffer.from(buffer).toString('base64')}`;
 
         // --- ONLY IF SUCCESSFUL: Deduct credit ---
         if (isDbConnected && db) {
@@ -144,7 +157,7 @@ app.post("/api/generate", async (req, res) => {
             });
         }
 
-        console.log("Success! Generated image length:", generatedImageBase64.length);
+        console.log("Success! Generated image length:", generatedImageBase64.length, "Mime: image/png");
 
         res.json({ result: generatedImageBase64, remainingCredits });
     } catch (error: any) {
