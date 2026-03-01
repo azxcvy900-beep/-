@@ -117,10 +117,10 @@ app.post("/api/generate", async (req, res) => {
         const modelId = "black-forest-labs/FLUX.1-schnell";
         const hfPrompt = `Professional high-end fashion photography, ${config.gender} ${config.category} wearing the provided clothing item, ${config.pose}, ${config.background}, ${config.cameraAngle || 'eye level'}, 8k resolution, photorealistic, cinematic lighting, sharp focus, fashion magazine editorial style.`;
 
-        console.log(`DEBUG - Calling HF API: https://api-inference.huggingface.co/models/${modelId}`);
+        console.log(`DEBUG - Calling HF API (New Router): https://router.huggingface.co/hf-inference/models/${modelId}`);
 
         const hfResponse = await fetch(
-            `https://api-inference.huggingface.co/models/${modelId}`,
+            `https://router.huggingface.co/hf-inference/models/${modelId}`,
             {
                 headers: {
                     "Authorization": `Bearer ${hfToken}`,
