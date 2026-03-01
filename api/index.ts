@@ -1,5 +1,6 @@
 import express from "express";
 import * as admin from 'firebase-admin';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Initialize Firebase Admin (Using a placeholder for the service account for security.
 // The user will need to set an environment variable or local file in their real deployment).
@@ -107,7 +108,6 @@ app.post("/api/generate", async (req, res) => {
             return res.status(500).json({ error: "API Key is missing. Please add GEMINI_API_KEY in Vercel settings." });
         }
 
-        const { GoogleGenerativeAI } = require('@google/generative-ai');
         const genAI = new GoogleGenerativeAI(apiKey);
 
         // Switching to 'gemini-1.5-flash' as it's faster and more reliable than 'gemini-pro-vision'
