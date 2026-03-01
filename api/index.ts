@@ -110,7 +110,8 @@ app.post("/api/generate", async (req, res) => {
 
         const genAI = new GoogleGenerativeAI(apiKey);
 
-        // Switching to 'gemini-1.5-flash' as it's faster and more reliable than 'gemini-pro-vision'
+        // Trying a more standard model name. If this fails with 404, it means Gemini 1.5 
+        // is not yet active/available for this specific key or region.
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
         const prompt = `
@@ -165,12 +166,17 @@ app.post("/api/generate", async (req, res) => {
             code: error.code,
             status: error.status
         });
-        // Return a more descriptive error message to help the user debug
-        const errorMessage = error.message?.includes('API key')
-            ? "خطأ في مفتاح الـ API. يرجى التأكد من صحته في Vercel."
-            : `فشل التوليد: ${error.message || 'خطأ غير معروف'}`;
 
-        res.status(500).json({ error: errorMessage });
+        // Final fallback logic: If Gemini fails, we guide the user to the "real" solution
+        let errorMessage = error.message || 'خطأ غير معروف';
+
+        if (error.message?.includes('404')) {
+            errorMessage = "محرك Gemini 1.5 غير متوفر حالياً لهذا المفتاح. أنصح بشدة بالانتقال لربط محرك Replicate الاحترافي (Flux/Stable Diffusion) لتوليد صور حقيقية.";
+        } else if (error.message?.includes('API key')) {
+            errorMessage = "خطأ في مفتاح الـ API. يرجى التأكد من صحته في Vercel.";
+        }
+
+        res.status(500).json({ error: `فشل التوليد: ${errorMessage}` });
     }
 });
 
