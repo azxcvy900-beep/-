@@ -155,7 +155,7 @@ app.post("/api/generate", async (req, res) => {
             }
         );
 
-        const replicateData = await replicateResponse.json();
+        let replicateData = await replicateResponse.json();
         console.log(`DEBUG - Replicate Status: ${replicateResponse.status}`);
 
         if (!replicateResponse.ok || replicateData.error) {
@@ -170,9 +170,25 @@ app.post("/api/generate", async (req, res) => {
             throw new Error(`مشكلة في محرك Replicate: ${replicateData.error || replicateResponse.statusText}.`);
         }
 
+        // Add polling mechanism in case Replicate returns early with "starting" or "processing" status
+        while (replicateData.status === "starting" || replicateData.status === "processing") {
+            console.log(`DEBUG - Polling Replicate... Status is ${replicateData.status}`);
+            await new Promise(resolve => setTimeout(resolve, 2500)); // Wait 2.5 seconds
+            if (!replicateData.urls || !replicateData.urls.get) {
+                console.log("DEBUG - No polling URL provided by Replicate.");
+                break;
+            }
+            const pollResponse = await fetch(replicateData.urls.get, {
+                headers: {
+                    "Authorization": `Bearer ${replicateToken}`,
+                }
+            });
+            replicateData = await pollResponse.json();
+        }
+
         // Replicate returns an array of image URLs in `output`
         if (!replicateData.output || !Array.isArray(replicateData.output) || replicateData.output.length === 0) {
-            console.error("DEBUG - Replicate Output Empty:", replicateData);
+            console.error("DEBUG - Replicate Output Empty or Failed. Final Status:", replicateData.status, "Error:", replicateData.error);
             throw new Error(replicateData.error || "المحتوى غير لائق أو النظام لم يتمكن من التوليد.");
         }
 
