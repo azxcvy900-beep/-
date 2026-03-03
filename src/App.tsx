@@ -1090,7 +1090,7 @@ export default function App() {
             </div>
 
             {/* Model Settings */}
-            <div className="space-y-5 bg-white/5 p-4 rounded-2xl border border-yafa-border">
+            <div className="space-y-5 bg-white/5 p-4 rounded-2xl border border-yafa-border relative">
               <label className="text-[11px] font-bold text-yafa-gold uppercase tracking-widest flex items-center gap-2">
                 <Settings2 className="w-3 h-3" />
                 تخصيص العارض
@@ -1102,7 +1102,8 @@ export default function App() {
                   <select
                     value={gender}
                     onChange={(e) => setGender(e.target.value as any)}
-                    className="w-full bg-yafa-bg border border-yafa-border rounded-xl px-3 py-2 text-xs outline-none focus:border-yafa-emerald-light/50 transition-colors"
+                    disabled={modelImage !== null}
+                    className="w-full bg-yafa-bg border border-yafa-border rounded-xl px-3 py-2 text-xs outline-none focus:border-yafa-emerald-light/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <option value="female">أنثى</option>
                     <option value="male">ذكر</option>
@@ -1113,7 +1114,8 @@ export default function App() {
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value as any)}
-                    className="w-full bg-yafa-bg border border-yafa-border rounded-xl px-3 py-2 text-xs outline-none focus:border-yafa-emerald-light/50 transition-colors"
+                    disabled={modelImage !== null}
+                    className="w-full bg-yafa-bg border border-yafa-border rounded-xl px-3 py-2 text-xs outline-none focus:border-yafa-emerald-light/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <option value="adults">كبار</option>
                     <option value="youth">شباب</option>
@@ -1121,6 +1123,14 @@ export default function App() {
                   </select>
                 </div>
               </div>
+
+              {modelImage && (
+                <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px] rounded-2xl flex items-center justify-center p-4">
+                  <p className="text-[11px] font-bold text-yafa-gold text-center bg-black/80 px-4 py-2 rounded-xl border border-yafa-gold/30">
+                    تم قفل الخيارات لأنك قمت برفع مودل مخصص.
+                  </p>
+                </div>
+              )}
             </div>
             {/* Smart Auto Mode Toggle */}
             <button

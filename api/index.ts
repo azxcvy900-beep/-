@@ -95,12 +95,6 @@ app.post("/api/generate", async (req, res) => {
             remainingCredits = userData.credits - 1;
         }
 
-        // --- PREPARE INPUT ---
-        let base64Data = clothingImageBase64;
-        if (base64Data.startsWith('data:image')) {
-            base64Data = base64Data.split(',')[1];
-        }
-
         // --- REPLICATE IMAGE GENERATION ---
         const replicateToken = process.env.REPLICATE_API_TOKEN || "";
 
@@ -109,12 +103,30 @@ app.post("/api/generate", async (req, res) => {
             return res.status(500).json({ error: "Replicate token is missing. Please add REPLICATE_API_TOKEN in Vercel settings." });
         }
 
-        const hfPrompt = `Professional high-end fashion photography, ${config.gender} ${config.category} model realistically wearing the exact clothing shown in the input image, ${config.pose}, ${config.background}, ${config.cameraAngle || 'eye level'}, 8k resolution, photorealistic, cinematic lighting, sharp focus, fashion magazine editorial style.`;
-
-        console.log(`DEBUG - Calling Replicate API for SDXL Image-to-Image`);
+        console.log(`DEBUG - Calling Replicate API for IDM-VTON (Virtual Try-On)`);
 
         // Add the base prefix if missing because Replicate expects full data URI
-        const finalImageUri = base64Data.startsWith('data:') ? base64Data : `data:image/jpeg;base64,${base64Data}`;
+        const garmImageUri = clothingImageBase64.startsWith('data:')
+            ? clothingImageBase64
+            : `data:image/jpeg;base64,${clothingImageBase64}`;
+
+        // Define default models based on gender and category if the user didn't upload one
+        let humanImageUri = config.modelImage;
+        if (humanImageUri && !humanImageUri.startsWith('data:')) {
+            humanImageUri = `data:image/jpeg;base64,${humanImageUri}`;
+        }
+
+        if (!humanImageUri) {
+            // Default models mapped from realistic unsplash/stock images or base64. 
+            // We use direct replicate file URLs or public URLs for safety.
+            if (config.gender === 'أطفال') {
+                humanImageUri = "https://images.unsplash.com/photo-1514090458221-65bb69cf63e6?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"; // Boy
+            } else if (config.gender === 'ذكر') {
+                humanImageUri = "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"; // Adult Male
+            } else {
+                humanImageUri = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"; // Adult Female
+            }
+        }
 
         const replicateResponse = await fetch(
             `https://api.replicate.com/v1/predictions`,
@@ -126,14 +138,18 @@ app.post("/api/generate", async (req, res) => {
                     "Prefer": "wait"
                 },
                 body: JSON.stringify({
-                    version: "39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b",
+                    version: "c871bb9b046607b680449ecbae55fd8c6d945e0a1948644bf2361b3d021d3ff4", // IDM-VTON latest version
                     input: {
-                        prompt: hfPrompt,
-                        image: finalImageUri,
-                        prompt_strength: 0.8, // 0.8 transforms the flatlay into a model wearing it while keeping colors/style
-                        num_outputs: 1,
-                        output_format: "png",
-                        output_quality: 100,
+                        crop: false,
+                        seed: Math.floor(Math.random() * 2147483647),
+                        steps: 30,
+                        category: config.category === 'سفلي' ? "lower_body" : config.category === 'فساتين' ? "dresses" : "upper_body",
+                        force_dc: false,
+                        garm_img: garmImageUri,
+                        human_img: humanImageUri,
+                        mask_only: false,
+                        garment_des: `High-quality ${config.category} clothing item`,
+                        disable_safety_checker: true
                     }
                 }),
             }
@@ -190,7 +206,9 @@ app.post("/api/generate", async (req, res) => {
         // Final fallback logic
         let errorMessage = error.message || 'خطأ غير معروف';
 
-        if (errorMessage.includes('401') || errorMessage.includes('Payment')) {
+        if (errorMessage.includes('NSFW content')) {
+            errorMessage = "عذراً، نظام الحماية التلقائي في محرك الذكاء الاصطناعي حجب التوليد. يرجى تجربة صورة أخرى للملابس أو العارض لا تتضمن كشف زائد للبشرة.";
+        } else if (errorMessage.includes('401') || errorMessage.includes('Payment')) {
             errorMessage = "المفتاح غير مفعل. تحتاج لإضافة بطاقة بنكية في حساب Replicate ليعمل بصورة صحيحة.";
         }
 
