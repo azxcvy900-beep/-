@@ -109,12 +109,15 @@ app.post("/api/generate", async (req, res) => {
             return res.status(500).json({ error: "Replicate token is missing. Please add REPLICATE_API_TOKEN in Vercel settings." });
         }
 
-        const hfPrompt = `Professional high-end fashion photography, ${config.gender} ${config.category} wearing clothing, ${config.pose}, ${config.background}, ${config.cameraAngle || 'eye level'}, 8k resolution, photorealistic, cinematic lighting, sharp focus, fashion magazine editorial style.`;
+        const hfPrompt = `Professional high-end fashion photography, ${config.gender} ${config.category} model realistically wearing the exact clothing shown in the input image, ${config.pose}, ${config.background}, ${config.cameraAngle || 'eye level'}, 8k resolution, photorealistic, cinematic lighting, sharp focus, fashion magazine editorial style.`;
 
-        console.log(`DEBUG - Calling Replicate API for FLUX`);
+        console.log(`DEBUG - Calling Replicate API for SDXL Image-to-Image`);
+
+        // Add the base prefix if missing because Replicate expects full data URI
+        const finalImageUri = base64Data.startsWith('data:') ? base64Data : `data:image/jpeg;base64,${base64Data}`;
 
         const replicateResponse = await fetch(
-            `https://api.replicate.com/v1/models/black-forest-labs/flux-schnell/predictions`,
+            `https://api.replicate.com/v1/models/stability-ai/sdxl/predictions`,
             {
                 method: "POST",
                 headers: {
@@ -125,12 +128,11 @@ app.post("/api/generate", async (req, res) => {
                 body: JSON.stringify({
                     input: {
                         prompt: hfPrompt,
-                        go_fast: true,
-                        megapixels: "1",
+                        image: finalImageUri,
+                        prompt_strength: 0.8, // 0.8 transforms the flatlay into a model wearing it while keeping colors/style
                         num_outputs: 1,
                         output_format: "png",
                         output_quality: 100,
-                        aspect_ratio: "3:4"
                     }
                 }),
             }
