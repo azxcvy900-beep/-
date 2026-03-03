@@ -101,75 +101,62 @@ app.post("/api/generate", async (req, res) => {
             base64Data = base64Data.split(',')[1];
         }
 
-        // --- HUGGING FACE IMAGE GENERATION ---
-        const hfTokenRaw = process.env.HF_TOKEN || "";
-        // Aggressive cleaning: remove all whitespace, newlines, tabs
-        const hfToken = hfTokenRaw.replace(/[\r\n\t\s]/g, "").trim();
+        // --- REPLICATE IMAGE GENERATION ---
+        const replicateToken = process.env.REPLICATE_API_TOKEN || "";
 
-        if (!hfToken) {
-            console.error("DEBUG - HF_TOKEN is completely missing in process.env");
-            return res.status(500).json({ error: "HF_TOKEN is missing. Please add it in Vercel settings (Hugging Face Access Token)." });
+        if (!replicateToken) {
+            console.error("DEBUG - REPLICATE_API_TOKEN is missing in process.env");
+            return res.status(500).json({ error: "Replicate token is missing. Please add REPLICATE_API_TOKEN in Vercel settings." });
         }
 
-        // Detailed token debugging (SAFE MASKING)
-        console.log(`DEBUG - Token Info: LengthRaw=${hfTokenRaw.length}, LengthTrimmed=${hfToken.length}, Prefix=${hfToken.substring(0, 5)}...`);
+        const hfPrompt = `Professional high-end fashion photography, ${config.gender} ${config.category} wearing clothing, ${config.pose}, ${config.background}, ${config.cameraAngle || 'eye level'}, 8k resolution, photorealistic, cinematic lighting, sharp focus, fashion magazine editorial style.`;
 
-        // Switching back to the flag-ship model
-        // Using a highly stable free model
-        const modelId = "stabilityai/stable-diffusion-2-1";
-        const hfPrompt = `Professional high-end fashion photography, ${config.gender} ${config.category} wearing the provided clothing item, ${config.pose}, ${config.background}, ${config.cameraAngle || 'eye level'}, 8k resolution, photorealistic, cinematic lighting, sharp focus, fashion magazine editorial style.`;
+        console.log(`DEBUG - Calling Replicate API for FLUX`);
 
-        console.log(`DEBUG - Calling HF API (New Router): https://router.huggingface.co/hf-inference/models/${modelId}`);
-
-        const hfResponse = await fetch(
-            `https://router.huggingface.co/hf-inference/models/${modelId}`,
+        const replicateResponse = await fetch(
+            `https://api.replicate.com/v1/models/black-forest-labs/flux-schnell/predictions`,
             {
-                headers: {
-                    "Authorization": `Bearer ${hfToken}`,
-                    "Content-Type": "application/json",
-                    "x-wait-for-model": "true"
-                },
                 method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${replicateToken}`,
+                    "Content-Type": "application/json",
+                    "Prefer": "wait"
+                },
                 body: JSON.stringify({
-                    inputs: hfPrompt,
-                    parameters: { wait_for_model: true }
+                    input: {
+                        prompt: hfPrompt,
+                        go_fast: true,
+                        megapixels: "1",
+                        num_outputs: 1,
+                        output_format: "png",
+                        output_quality: 100,
+                        aspect_ratio: "3:4"
+                    }
                 }),
             }
         );
 
-        const contentType = hfResponse.headers.get("content-type");
-        console.log(`DEBUG - HF Status: ${hfResponse.status}, Content-Type: ${contentType}`);
+        const replicateData = await replicateResponse.json();
+        console.log(`DEBUG - Replicate Status: ${replicateResponse.status}`);
 
-        if (!hfResponse.ok || (contentType && contentType.includes("application/json"))) {
-            const errorText = await hfResponse.text();
-            console.error("DEBUG - HF Error Body:", errorText);
+        if (!replicateResponse.ok || replicateData.error) {
+            console.error("DEBUG - Replicate Error:", replicateData.error || replicateData);
 
-            if (hfResponse.status === 401) {
+            if (replicateResponse.status === 401) {
                 return res.status(401).json({
-                    error: "خطأ في الرمز (401): الرمز غير صحيح. يرجى حذف الرمز من Vercel وكتابته يدوياً أو لصقه بعناية بدون أي مسافات."
+                    error: "خطأ في مفتاح Replicate. يرجى التأكد من إضافة بطاقة بنكية لحسابك أو صحة الرمز في Vercel."
                 });
             }
 
-            if (hfResponse.status === 410) {
-                return res.status(410).json({
-                    error: "خطأ 410: المحرك غير متاح حالياً. يرجى حذف الرمز من Vercel وإضافته مجدداً بالضغط على (Enter) ثم مسح كل شيء ولصقه في السطر الأول تماماً."
-                });
-            }
-
-            if (errorText.includes("estimated_time") || errorText.includes("loading")) {
-                const errorData = JSON.parse(errorText);
-                return res.status(503).json({
-                    error: "الموديل يفتح الآن.. يرجى الانتظار دقيقة والمحاولة ثانية.",
-                    estimated_time: errorData.estimated_time
-                });
-            }
-
-            throw new Error(`مشكلة في محرك الذكاء الاصطناعي: ${hfResponse.status}.`);
+            throw new Error(`مشكلة في محرك Replicate: ${replicateData.error || replicateResponse.statusText}.`);
         }
 
-        const buffer = await hfResponse.arrayBuffer();
+        // Replicate returns an array of image URLs in `output`
+        const imageUrl = replicateData.output[0];
 
-        // Hugging Face FLUX model primarily returns PNG
+        // Fetch the generated image url and convert it to Base64 to retain the format the frontend expects
+        const imageResponse = await fetch(imageUrl);
+        const buffer = await imageResponse.arrayBuffer();
         const generatedImageBase64 = `data:image/png;base64,${Buffer.from(buffer).toString('base64')}`;
 
         // --- ONLY IF SUCCESSFUL: Deduct credit ---
@@ -181,7 +168,7 @@ app.post("/api/generate", async (req, res) => {
             });
         }
 
-        console.log("Success! Generated image length:", generatedImageBase64.length, "Mime: image/png");
+        console.log("Success! Generated image via Replicate.");
 
         res.json({ result: generatedImageBase64, remainingCredits });
     } catch (error: any) {
@@ -192,13 +179,11 @@ app.post("/api/generate", async (req, res) => {
             status: error.status
         });
 
-        // Final fallback logic: If Gemini fails, we guide the user to the "real" solution
+        // Final fallback logic
         let errorMessage = error.message || 'خطأ غير معروف';
 
-        if (error.message?.includes('404')) {
-            errorMessage = "الطراز المطلوب غير متوفر حالياً. جرب لاحقاً أو تأكد من إعدادات HF_TOKEN.";
-        } else if (error.message?.includes('Authorization') || error.message?.includes('401')) {
-            errorMessage = "خطأ في رمز HF_TOKEN. يرجى التأكد من صحته في Vercel (Hugging Face Access Token).";
+        if (errorMessage.includes('401') || errorMessage.includes('Payment')) {
+            errorMessage = "المفتاح غير مفعل. تحتاج لإضافة بطاقة بنكية في حساب Replicate ليعمل بصورة صحيحة.";
         }
 
         res.status(500).json({ error: `فشل التوليد: ${errorMessage}` });
