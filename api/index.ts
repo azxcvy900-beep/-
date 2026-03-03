@@ -152,6 +152,11 @@ app.post("/api/generate", async (req, res) => {
         }
 
         // Replicate returns an array of image URLs in `output`
+        if (!replicateData.output || !Array.isArray(replicateData.output) || replicateData.output.length === 0) {
+            console.error("DEBUG - Replicate Output Empty:", replicateData);
+            throw new Error(replicateData.error || "المحتوى غير لائق أو النظام لم يتمكن من التوليد.");
+        }
+
         const imageUrl = replicateData.output[0];
 
         // Fetch the generated image url and convert it to Base64 to retain the format the frontend expects
