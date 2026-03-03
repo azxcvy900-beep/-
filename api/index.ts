@@ -117,7 +117,7 @@ app.post("/api/generate", async (req, res) => {
         const finalImageUri = base64Data.startsWith('data:') ? base64Data : `data:image/jpeg;base64,${base64Data}`;
 
         const replicateResponse = await fetch(
-            `https://api.replicate.com/v1/models/stability-ai/sdxl/predictions`,
+            `https://api.replicate.com/v1/predictions`,
             {
                 method: "POST",
                 headers: {
@@ -126,6 +126,7 @@ app.post("/api/generate", async (req, res) => {
                     "Prefer": "wait"
                 },
                 body: JSON.stringify({
+                    version: "39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b",
                     input: {
                         prompt: hfPrompt,
                         image: finalImageUri,
