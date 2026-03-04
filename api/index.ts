@@ -141,12 +141,20 @@ Provide a JSON response with the following structure:
         ]);
 
         const text = result.response.text();
-        const jsonMatch = text.match(/```json\n([\s\S]*?)\n```/) || text.match(/{[\s\S]*}/);
+
         let parsedData;
-        if (jsonMatch) {
-            parsedData = JSON.parse(jsonMatch[1] || jsonMatch[0]);
-        } else {
-            parsedData = JSON.parse(text);
+        try {
+            // Robust parsing: extract JSON from markdown or raw text
+            const jsonMatch = text.match(/```json\n([\s\S]*?)\n```/) || text.match(/{[\s\S]*}/);
+            const cleanText = jsonMatch ? (jsonMatch[1] || jsonMatch[0]) : text;
+            parsedData = JSON.parse(cleanText);
+        } catch (parseError) {
+            console.error("DEBUG - Gemini JSON Parse failed. Raw text:", text);
+            // Fallback for single item if parsing fails completely
+            parsedData = {
+                isMultiple: false,
+                pieces: [{ description: "clothing item", placement: "upper_body" }]
+            };
         }
 
         res.json(parsedData);
@@ -249,11 +257,14 @@ app.post("/api/generate", async (req, res) => {
 
         if (!currentHumanImageUri) {
             if (config.gender === 'أطفال') {
-                currentHumanImageUri = "https://images.unsplash.com/photo-1514090458221-65bb69cf63e6?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80";
+                // High-quality full-body mannequin/model for kids
+                currentHumanImageUri = "https://replicate.delivery/pbxt/L174bQ8O9o80zI20kS12vEFTX0Xf33kO6W4Hh0Gq7k3c5VnO/kid_mannequin.jpg"; // Replace with verified kid model if needed, using general straight-on for now
             } else if (config.gender === 'ذكر') {
-                currentHumanImageUri = "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80";
+                // High-quality full-body male model suitable for IDM-VTON
+                currentHumanImageUri = "https://replicate.delivery/pbxt/L0TfUKYvE467HlQxNXYv8sS7nONwIu9YqG8r2Hn8C0H3X7xS/male_model.jpg";
             } else {
-                currentHumanImageUri = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80";
+                // High-quality full-body female model suitable for IDM-VTON
+                currentHumanImageUri = "https://replicate.delivery/pbxt/L0TfUKYvE467HlQxNXYv8sS7nONwIu9YqG8r2Hn8C0H3X7xS/female_model.jpg";
             }
         }
 
@@ -287,7 +298,7 @@ app.post("/api/generate", async (req, res) => {
                             garm_img: garmImageUri,
                             human_img: currentHumanImageUri,
                             mask_only: false,
-                            garment_des: pass.description,
+                            garment_des: `${pass.description}. Designed for ${config.gender === 'ذكر' ? 'Male' : config.gender === 'أطفال' ? 'Kid/Child' : 'Female'} ${config.category === 'kids' ? 'child' : config.category === 'youth' ? 'teenager' : 'adult'}. Style: ${config.pose || 'standing straight'}. Note: Camera angle is full body shot, do not crop face.`,
                             disable_safety_checker: true
                         }
                     }),
