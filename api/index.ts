@@ -1,5 +1,6 @@
 import express from "express";
 import * as admin from 'firebase-admin';
+import { z } from "zod";
 
 // Initialize Firebase Admin (Using a placeholder for the service account for security.
 // The user will need to set an environment variable or local file in their real deployment).
@@ -64,6 +65,21 @@ app.post("/api/admin/packages/delete", (req, res) => {
     res.json({ success: true });
 });
 
+const generateSchema = z.object({
+    uid: z.string().min(1, "UID is required"),
+    clothingImageBase64: z.string().min(1, "Clothing image is required"),
+    config: z.object({
+        apiKey: z.string().optional(),
+        gender: z.string(),
+        category: z.string(),
+        pose: z.string(),
+        background: z.string(),
+        cameraAngle: z.string().optional(),
+        modelImage: z.string().optional(),
+        isFreeTrial: z.boolean().optional()
+    })
+});
+
 // Secure endpoint for image generation
 app.post("/api/generate", async (req, res) => {
     // If Admin SDK failed to initialize due to missing credentials, we simulate success
@@ -72,11 +88,16 @@ app.post("/api/generate", async (req, res) => {
     const isDbConnected = db !== null;
 
     try {
-        const { uid, clothingImageBase64, config } = req.body;
+        const validatedBody = generateSchema.safeParse(req.body);
 
-        if (!uid) {
-            return res.status(401).json({ error: "Unauthorized" });
+        if (!validatedBody.success) {
+            return res.status(400).json({
+                error: "Invalid request data",
+                details: validatedBody.error.flatten()
+            });
         }
+
+        const { uid, clothingImageBase64, config } = validatedBody.data;
 
         let remainingCredits = 0;
         if (isDbConnected && db) {
