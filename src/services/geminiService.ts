@@ -14,16 +14,27 @@ export const generateFashionImage = async (
   let finalPose = config.pose;
   let finalBackground = config.background;
 
-  // Supercharge the prompt if the user is on a free trial to guarantee an amazing result
+  // Base photography instructions for Extreme Realism (SLC Formula)
+  const photographySpecs = "Shot on medium format camera, Hasselblad H6D-100c, 100-megapixel, 85mm lens, f/1.8 aperture for shallow depth of field, sharp focus, 8k resolution, ultra-detailed skin texture, visible fabric weave and materials, HDR, raw photo style.";
+
+  const negativePrompt = "Do NOT include: watermarks, text, cartoon style, illustration, 3D render, blurriness, distortion, artificial smooth skin, low resolution, multiple angles.";
+
+  // Supercharge the prompt if the user is on a free trial (or premium) to guarantee an amazing result
   if (config.isFreeTrial) {
-    finalPose += ", Captured by a professional fashion product photographer, perfectly fitted on a premium mannequin or invisible dummy, 8k resolution, ultra-detailed, cinematic studio lighting, photorealistic.";
-    finalBackground += ", soft elegant shadows, high-end e-commerce product background, seamless backdrop.";
+    finalPose += `, Styled similarly to a Vogue magazine editorial. Professional fashion product photographer, flawless fit on a premium luxury mannequin or high-end model. Cinematic dramatic studio lighting, perfect color grading.`;
+    finalBackground += `, soft elegant shadows, high-end luxury e-commerce product backdrop, seamless and atmospheric.`;
   } else {
-    // Standard baseline for all generations to ensure clean product display
-    finalPose += ", clean professional clothing display, mannequin or invisible dummy technique, high-quality fashion rendering.";
+    // Standard baseline for all generations to ensure clean, highly realistic product display
+    finalPose += `, clean professional premium clothing display, high-quality photorealistic rendering, fashion industry standard.`;
   }
 
-  const prompt = `A professional fashion e-commerce photo of a ${config.category} for a ${config.gender}. The model should be styled using ${finalPose}. Background: ${finalBackground}. Camera angle: ${config.cameraAngle || 'front'}. Maximize realism and luxury fashion aesthetics.`;
+  const prompt = `Create a hyper-realistic, professional fashion e-commerce photo of a ${config.category} designed for a ${config.gender}. 
+    Style/Pose: ${finalPose}. 
+    Background: ${finalBackground}. 
+    Camera angle: ${config.cameraAngle || 'front facing'}. 
+    Photography Details: ${photographySpecs}.
+    Constraints: ${negativePrompt}.
+    CRITICAL: Maximize photorealism, luxurious aesthetics, and preserve the exact shape, pattern, and color of the provided clothing item reference perfectly.`;
 
   console.log("Generating with Nano Banana Pro (Gemini 3 Pro Image) config:", { prompt });
 
