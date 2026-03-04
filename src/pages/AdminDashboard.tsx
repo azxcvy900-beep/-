@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, ShieldCheck, Activity, Users, Layers, Settings2, Sparkles, Plus, Trash2, Loader2 } from 'lucide-react';
-import { cn } from '@/utils/cn';
+import { cn } from '../utils/cn';
 import { AdminStats, Subscription, Package } from '../types';
 
 interface Props {

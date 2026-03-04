@@ -1,6 +1,7 @@
 import express from "express";
 import * as admin from 'firebase-admin';
 import { z } from "zod";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // Initialize Firebase Admin (Using a placeholder for the service account for security.
 // The user will need to set an environment variable or local file in their real deployment).
@@ -72,12 +73,84 @@ const generateSchema = z.object({
         apiKey: z.string().optional(),
         gender: z.string(),
         category: z.string(),
+        garmentCategory: z.string().optional(),
         pose: z.string(),
         background: z.string(),
         cameraAngle: z.string().optional(),
         modelImage: z.string().optional(),
         isFreeTrial: z.boolean().optional()
     })
+});
+
+const analyzeSchema = z.object({
+    clothingImageBase64: z.string().min(1, "Clothing image is required"),
+    apiKey: z.string().optional()
+});
+
+app.post("/api/analyze-clothing", async (req, res) => {
+    try {
+        const validatedBody = analyzeSchema.safeParse(req.body);
+        if (!validatedBody.success) {
+            return res.status(400).json({ error: "Invalid request data" });
+        }
+
+        const { clothingImageBase64, apiKey } = validatedBody.data;
+        const geminiKey = apiKey || process.env.GEMINI_API_KEY;
+
+        if (!geminiKey) {
+            return res.status(500).json({ error: "Gemini API key is missing. Add it in settings." });
+        }
+
+        let mimeType = "image/jpeg";
+        let base64Data = clothingImageBase64;
+
+        if (clothingImageBase64.startsWith("data:")) {
+            const matches = clothingImageBase64.match(/^data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+);base64,(.+)$/);
+            if (matches && matches.length === 3) {
+                mimeType = matches[1];
+                base64Data = matches[2];
+            }
+        }
+
+        const genAI = new GoogleGenerativeAI(geminiKey);
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+        const prompt = `Analyze this image containing clothing.
+Provide a JSON response with the following structure:
+{
+  "isMultiple": boolean, // true if there are multiple DIFFERENT clothing pieces (e.g. a shirt AND pants, or a suit). false if it's just one piece (like a single shirt, a single dress, a single pair of pants).
+  "pieces": [ // Array of detected pieces
+    {
+      "description": string, // Short description of the piece
+      "placement": "upper_body" | "lower_body" | "dresses" // Determine the category where this piece is worn.
+    }
+  ]
+}`;
+
+        const result = await model.generateContent([
+            prompt,
+            {
+                inlineData: {
+                    data: base64Data,
+                    mimeType
+                }
+            }
+        ]);
+
+        const text = result.response.text();
+        const jsonMatch = text.match(/```json\n([\s\S]*?)\n```/) || text.match(/{[\s\S]*}/);
+        let parsedData;
+        if (jsonMatch) {
+            parsedData = JSON.parse(jsonMatch[1] || jsonMatch[0]);
+        } else {
+            parsedData = JSON.parse(text);
+        }
+
+        res.json(parsedData);
+    } catch (error: any) {
+        console.error("Analysis Error:", error);
+        res.status(500).json({ error: "Failed to analyze clothing." });
+    }
 });
 
 // Secure endpoint for image generation
@@ -164,7 +237,7 @@ app.post("/api/generate", async (req, res) => {
                         crop: false,
                         seed: Math.floor(Math.random() * 2147483647),
                         steps: 30,
-                        category: config.category === 'سفلي' ? "lower_body" : config.category === 'فساتين' ? "dresses" : "upper_body",
+                        category: config.garmentCategory || "upper_body",
                         force_dc: false,
                         garm_img: garmImageUri,
                         human_img: humanImageUri,

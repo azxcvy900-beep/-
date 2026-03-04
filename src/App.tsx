@@ -38,6 +38,11 @@ import { cn } from './utils/cn';
 import type { User as FirebaseUser } from 'firebase/auth';
 import type { UserProfile, AdminStats, Subscription, Package } from './types';
 
+interface GarmentAnalysis {
+  isMultiple: boolean;
+  pieces: { description: string, placement: "upper_body" | "lower_body" | "dresses" }[];
+}
+
 const BACKGROUND_CATEGORIES = [
   { id: 'auto', name: 'تلقائي', options: ['عشوائي ذكي'] },
   { id: 'luxury', name: 'فخامة', options: ['بنتهاوس فاخر', 'قاعة رخامية', 'طائرة خاصة'] },
@@ -134,6 +139,9 @@ export default function App() {
   const [resultImages, setResultImages] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [adminPasswordError, setAdminPasswordError] = useState<string | null>(null);
+
+  const [clothingAnalysis, setClothingAnalysis] = useState<Record<string, GarmentAnalysis>>({});
+  const [analyzingImages, setAnalyzingImages] = useState<Record<string, boolean>>({});
 
   // Admin State
   const [adminStats, setAdminStats] = useState<AdminStats | null>(null);
@@ -245,8 +253,28 @@ export default function App() {
 
     if (newImages.length > 0) {
       setClothingImages(prev => [...prev, ...newImages].slice(0, 10));
+
+      // Trigger analysis for each new image
+      newImages.forEach(async (img) => {
+        setAnalyzingImages(prev => ({ ...prev, [img]: true }));
+        try {
+          const res = await fetch('/api/analyze-clothing', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ clothingImageBase64: img, apiKey: settings.gemini_api_key })
+          });
+          const data = await res.json();
+          if (res.ok) {
+            setClothingAnalysis(prev => ({ ...prev, [img]: data }));
+          }
+        } catch (err) {
+          console.error("Failed to analyze image", err);
+        } finally {
+          setAnalyzingImages(prev => ({ ...prev, [img]: false }));
+        }
+      });
     }
-  }, [clothingImages]);
+  }, [clothingImages, settings.gemini_api_key]);
 
   const onDropModel = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
@@ -316,6 +344,7 @@ export default function App() {
               background: bgToUse,
               cameraAngle,
               modelImage: modelImage || undefined,
+              garmentCategory: clothingAnalysis[img]?.pieces?.[0]?.placement,
               isFreeTrial: userProfile?.plan === 'trial'
             }
           })
@@ -470,6 +499,48 @@ export default function App() {
               </div>
               {!modelImage && (
                 <p className="text-[9px] text-[#666] text-center italic">سيتم توليد المودل تلقائياً في حال عدم الرفع</p>
+              )}
+
+              {/* Analysis Summary */}
+              {clothingImages.length > 0 && (
+                <div className="space-y-2 max-h-32 overflow-y-auto custom-scrollbar">
+                  {clothingImages.map((img, i) => {
+                    const isAnalyzing = analyzingImages[img];
+                    const analysis = clothingAnalysis[img];
+                    return (
+                      <div key={i} className="flex gap-2 p-2 bg-black/20 rounded-xl border border-[#333] items-center">
+                        <img src={img} className="w-8 h-8 object-cover rounded-lg" />
+                        <div className="flex-1 min-w-0">
+                          {isAnalyzing ? (
+                            <div className="flex items-center gap-1.5 text-[10px] text-[#888]">
+                              <Loader2 className="w-3 h-3 animate-spin text-yafa-gold" />
+                              <span>يتم تحليل القطعة بالذكاء الاصطناعي...</span>
+                            </div>
+                          ) : analysis ? (
+                            <div className="space-y-1">
+                              {analysis.isMultiple ? (
+                                <p className="text-[9px] text-yellow-500 font-bold flex items-center gap-1">
+                                  ⚠️ يحتوي الطقم على أكثر من قطعة، قد تقل دقة التوليد.
+                                </p>
+                              ) : null}
+                              {analysis.pieces.map((p, idx) => (
+                                <p key={idx} className="text-[10.5px] text-white truncate flex items-center gap-1.5">
+                                  <span className="text-yafa-gold/80">
+                                    {p.placement === 'upper_body' ? '👕 علوي' : p.placement === 'lower_body' ? '👖 سفلي' : '👗 فستان'}
+                                  </span>
+                                  <span className="text-white/60 mx-1">|</span>
+                                  <span className="truncate">{p.description}</span>
+                                </p>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-[10px] text-red-400">فشل في التحليل، سيتم الاعتماد على الذكاء التلقائي.</p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               )}
             </div>
 
