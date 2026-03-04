@@ -59,6 +59,45 @@ const CAMERA_ANGLES = [
   'Dynamic low angle shot',
   'High angle shot, looking down'
 ];
+const compressImage = (file: File, maxWidth = 1024, maxHeight = 1024, quality = 0.8): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+        if (height > maxHeight) {
+          width = Math.round((width * maxHeight) / height);
+          height = maxHeight;
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(event.target?.result as string); // fallback to original if canvas fails
+          return;
+        }
+
+        ctx.drawImage(img, 0, 0, width, height);
+        // Use JPEG for better compression of photos
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = (error) => reject(error);
+    };
+    reader.onerror = (error) => reject(error);
+  });
+};
 
 export default function App() {
   const [view, setView] = useState<'landing' | 'studio' | 'admin' | 'pricing' | 'login' | 'terms' | 'privacy' | 'refund'>('landing');
@@ -187,19 +226,34 @@ export default function App() {
     setView('landing');
   };
 
-  const onDropClothing = useCallback((acceptedFiles: File[]) => {
-    acceptedFiles.slice(0, 10 - clothingImages.length).forEach(file => {
-      const reader = new FileReader();
-      reader.onload = () => setClothingImages(prev => [...prev, reader.result as string].slice(0, 10));
-      reader.readAsDataURL(file);
-    });
+  const onDropClothing = useCallback(async (acceptedFiles: File[]) => {
+    const filesToProcess = acceptedFiles.slice(0, 10 - clothingImages.length);
+    const newImages: string[] = [];
+
+    for (const file of filesToProcess) {
+      try {
+        const compressedBase64 = await compressImage(file, 1024, 1024, 0.8);
+        newImages.push(compressedBase64);
+      } catch (err) {
+        console.error("Failed to compress clothing image", err);
+      }
+    }
+
+    if (newImages.length > 0) {
+      setClothingImages(prev => [...prev, ...newImages].slice(0, 10));
+    }
   }, [clothingImages]);
 
-  const onDropModel = useCallback((acceptedFiles: File[]) => {
+  const onDropModel = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
-    const reader = new FileReader();
-    reader.onload = () => setModelImage(reader.result as string);
-    reader.readAsDataURL(file);
+    if (!file) return;
+
+    try {
+      const compressedBase64 = await compressImage(file, 1024, 1024, 0.8);
+      setModelImage(compressedBase64);
+    } catch (err) {
+      console.error("Failed to compress model image", err);
+    }
   }, []);
 
   const { getRootProps: getClothingProps, getInputProps: getClothingInput } = useDropzone({
