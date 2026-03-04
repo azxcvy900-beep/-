@@ -297,30 +297,50 @@ export default function App() {
         // Randomize camera angle for variety
         const cameraAngle = CAMERA_ANGLES[Math.floor(Math.random() * CAMERA_ANGLES.length)];
 
-        // Use the mocked Gemini service directly
-        const mockedImage = await generateFashionImage(img, {
-          apiKey: settings.gemini_api_key,
-          gender,
-          category,
-          pose: poseToUse,
-          background: bgToUse,
-          cameraAngle,
-          modelImage: modelImage || undefined,
-          isFreeTrial: userProfile?.plan === 'trial'
+        // Use the secure backend endpoint to perform real generation
+        const response = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            uid: user?.uid,
+            clothingImageBase64: img,
+            config: {
+              apiKey: settings.gemini_api_key,
+              gender,
+              category,
+              pose: poseToUse,
+              background: bgToUse,
+              cameraAngle,
+              modelImage: modelImage || undefined,
+              isFreeTrial: userProfile?.plan === 'trial'
+            }
+          })
         });
 
-        generated.push(mockedImage);
+        let data;
+        let isJson = response.headers.get('content-type')?.includes('application/json');
+
+        if (isJson) {
+          data = await response.json();
+        }
+
+        if (!response.ok) {
+          throw new Error(data?.error || "حدث خطأ غير متوقع في الخادم (Server Error). يرجى المحاولة لاحقاً.");
+        }
+
+        generated.push(data.result);
         setResultImages([...generated]); // Update UI incrementally
 
-        // Mock credit deduction
-        if (userProfile && userProfile.credits > 0) {
-          setUserProfile({ ...userProfile, credits: userProfile.credits - 1 });
+        // Update local credit count based on server response
+        if (data.remainingCredits !== undefined && userProfile) {
+          setUserProfile({ ...userProfile, credits: data.remainingCredits });
         }
       }
     } catch (err: any) {
       console.error("Frontend Generation Error:", err);
+      // Fallback: If it's a 500 error, sometimes it's because Hugging Face is loading
       const msg = err.message || "حدث خطأ";
-      setError(msg);
+      setError(msg.includes("500") ? "المحرك يجهز نفسه.. يرجى المحاولة ثانية بعد ثقائق." : msg);
     } finally {
       console.log("DEBUG - handleGenerate finished");
       setIsGenerating(false);

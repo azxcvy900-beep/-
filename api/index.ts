@@ -186,13 +186,13 @@ app.post("/api/generate", async (req, res) => {
             replicateData = await pollResponse.json();
         }
 
-        // Replicate returns an array of image URLs in `output`
-        if (!replicateData.output || !Array.isArray(replicateData.output) || replicateData.output.length === 0) {
+        // Replicate returns the image URL in `output` (can be a string or array)
+        if (!replicateData.output) {
             console.error("DEBUG - Replicate Output Empty or Failed. Final Status:", replicateData.status, "Error:", replicateData.error);
             throw new Error(replicateData.error || "المحتوى غير لائق أو النظام لم يتمكن من التوليد.");
         }
 
-        const imageUrl = replicateData.output[0];
+        const imageUrl = Array.isArray(replicateData.output) ? replicateData.output[0] : replicateData.output;
 
         // Fetch the generated image url and convert it to Base64 to retain the format the frontend expects
         const imageResponse = await fetch(imageUrl);
