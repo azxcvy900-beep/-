@@ -73,6 +73,7 @@ const generateSchema = z.object({
         description: z.string(),
         placement: z.string()
     })).min(1, "At least one item is required"),
+    variations: z.number().min(1).max(4).default(1),
     config: z.object({
         apiKey: z.string().optional(),
         gender: z.string(),
@@ -164,6 +165,81 @@ Provide a JSON response with the following structure:
     }
 });
 
+// Helper function to process a single sequence of generations (passes)
+async function processVariationSequence(passes: any[], config: any, initialHumanImageUri: string, replicateToken: string) {
+    let currentHumanImageUri = initialHumanImageUri;
+    let finalImageUrl = "";
+
+    for (let i = 0; i < passes.length; i++) {
+        const pass = passes[i];
+        const garmImageUri = pass.garm_img.startsWith('data:')
+            ? pass.garm_img
+            : `data:image/jpeg;base64,${pass.garm_img}`;
+
+        console.log(`DEBUG - Executing Pass ${i + 1}/${passes.length} (${pass.category}) for a variation`);
+
+        const seed = Math.floor(Math.random() * 2147483647); // Ensure different seeds for variations
+        const replicateResponse = await fetch(
+            `https://api.replicate.com/v1/predictions`,
+            {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${replicateToken}`,
+                    "Content-Type": "application/json",
+                    "Prefer": "wait"
+                },
+                body: JSON.stringify({
+                    version: "c871bb9b046607b680449ecbae55fd8c6d945e0a1948644bf2361b3d021d3ff4", // IDM-VTON
+                    input: {
+                        crop: false,
+                        seed: seed,
+                        steps: 30,
+                        category: pass.category,
+                        force_dc: false,
+                        garm_img: garmImageUri,
+                        human_img: currentHumanImageUri,
+                        mask_only: false,
+                        garment_des: `${pass.description}. Designed for ${config.gender === 'ذكر' ? 'Male' : config.gender === 'أطفال' ? 'Kid/Child' : 'Female'} ${config.category === 'kids' ? 'child' : config.category === 'youth' ? 'teenager' : 'adult'}. Style: ${config.pose || 'standing straight'}. Note: Camera angle is full body shot, do not crop face.`,
+                        disable_safety_checker: true
+                    }
+                }),
+            }
+        );
+
+        let replicateData = await replicateResponse.json();
+
+        if (!replicateResponse.ok || replicateData.error) {
+            console.error("DEBUG - Replicate Error:", replicateData.error || replicateData);
+            if (replicateResponse.status === 401) {
+                throw new Error("UNAUTHORIZED"); // Handled in catch
+            }
+            throw new Error(`مشكلة في محرك Replicate: ${replicateData.error || replicateResponse.statusText}.`);
+        }
+
+        // Poll if necessary
+        while (replicateData.status === "starting" || replicateData.status === "processing") {
+            await new Promise(resolve => setTimeout(resolve, 2500));
+            if (!replicateData.urls || !replicateData.urls.get) break;
+            const pollResponse = await fetch(replicateData.urls.get, {
+                headers: { "Authorization": `Bearer ${replicateToken}` }
+            });
+            replicateData = await pollResponse.json();
+        }
+
+        if (!replicateData.output) {
+            throw new Error(replicateData.error || "المحتوى غير لائق أو النظام لم يتمكن من التوليد.");
+        }
+
+        finalImageUrl = Array.isArray(replicateData.output) ? replicateData.output[0] : replicateData.output;
+        currentHumanImageUri = finalImageUrl; // Feed output into next pass
+    }
+
+    // Convert final image to Base64
+    const imageResponse = await fetch(finalImageUrl);
+    const buffer = await imageResponse.arrayBuffer();
+    return `data:image/png;base64,${Buffer.from(buffer).toString('base64')}`;
+}
+
 // Secure endpoint for image generation
 app.post("/api/generate", async (req, res) => {
     // If Admin SDK failed to initialize due to missing credentials, we simulate success
@@ -172,6 +248,9 @@ app.post("/api/generate", async (req, res) => {
     const isDbConnected = db !== null;
 
     try {
+        // We supply 1 as a default if variations isn't passed in the req body
+        if (!req.body.variations) req.body.variations = 1;
+
         const validatedBody = generateSchema.safeParse(req.body);
 
         if (!validatedBody.success) {
@@ -181,7 +260,7 @@ app.post("/api/generate", async (req, res) => {
             });
         }
 
-        const { uid, items, config } = validatedBody.data;
+        const { uid, items, config, variations } = validatedBody.data;
 
         // --- Determine sequential passes ---
         const passes: { category: string, garm_img: string, description: string }[] = [];
@@ -220,7 +299,8 @@ app.post("/api/generate", async (req, res) => {
             return res.status(400).json({ error: "No primary clothing items (upper, lower, or dress) found to generate." });
         }
 
-        const requiredCredits = passes.length;
+        // Calculate credits based on number of passes AND number of variations requested
+        const requiredCredits = passes.length * variations;
 
         let remainingCredits = 0;
         if (isDbConnected && db) {
@@ -233,7 +313,7 @@ app.post("/api/generate", async (req, res) => {
 
             const userData = userDoc.data();
             if (!userData || userData.credits < requiredCredits) {
-                return res.status(403).json({ error: `رصيدك غير كافٍ. لإتمام هذا الطقم تحتاج إلى ${requiredCredits} نقاط.` });
+                return res.status(403).json({ error: `رصيدك غير كافٍ. تحتاج إلى ${requiredCredits} نقاط لتوليد ${variations} صور لمعالجة القطع.` });
             }
 
             remainingCredits = userData.credits - requiredCredits;
@@ -247,109 +327,31 @@ app.post("/api/generate", async (req, res) => {
             return res.status(500).json({ error: "Replicate token is missing. Please add REPLICATE_API_TOKEN in Vercel settings." });
         }
 
-        console.log(`DEBUG - Calling Replicate API sequentially for ${passes.length} passes`);
-
         // Define default models based on gender and category if the user didn't upload one
-        let currentHumanImageUri = config.modelImage;
-        if (currentHumanImageUri && !currentHumanImageUri.startsWith('data:') && !currentHumanImageUri.startsWith('http')) {
-            currentHumanImageUri = `data:image/jpeg;base64,${currentHumanImageUri}`;
+        let initialHumanImageUri = config.modelImage;
+        if (initialHumanImageUri && !initialHumanImageUri.startsWith('data:') && !initialHumanImageUri.startsWith('http')) {
+            initialHumanImageUri = `data:image/jpeg;base64,${initialHumanImageUri}`;
         }
 
-        if (!currentHumanImageUri) {
+        if (!initialHumanImageUri) {
             if (config.gender === 'أطفال') {
-                // High-quality full-body mannequin/model for kids
-                currentHumanImageUri = "https://replicate.delivery/pbxt/L174bQ8O9o80zI20kS12vEFTX0Xf33kO6W4Hh0Gq7k3c5VnO/kid_mannequin.jpg"; // Replace with verified kid model if needed, using general straight-on for now
+                initialHumanImageUri = "https://replicate.delivery/pbxt/L174bQ8O9o80zI20kS12vEFTX0Xf33kO6W4Hh0Gq7k3c5VnO/kid_mannequin.jpg";
             } else if (config.gender === 'ذكر') {
-                // High-quality full-body male model suitable for IDM-VTON
-                currentHumanImageUri = "https://replicate.delivery/pbxt/L0TfUKYvE467HlQxNXYv8sS7nONwIu9YqG8r2Hn8C0H3X7xS/male_model.jpg";
+                initialHumanImageUri = "https://replicate.delivery/pbxt/L0TfUKYvE467HlQxNXYv8sS7nONwIu9YqG8r2Hn8C0H3X7xS/male_model.jpg";
             } else {
-                // High-quality full-body female model suitable for IDM-VTON
-                currentHumanImageUri = "https://replicate.delivery/pbxt/L0TfUKYvE467HlQxNXYv8sS7nONwIu9YqG8r2Hn8C0H3X7xS/female_model.jpg";
+                initialHumanImageUri = "https://replicate.delivery/pbxt/L0TfUKYvE467HlQxNXYv8sS7nONwIu9YqG8r2Hn8C0H3X7xS/female_model.jpg";
             }
         }
 
-        let finalImageUrl = "";
+        console.log(`DEBUG - Generating ${variations} variations in parallel. Total initial passes required per variation: ${passes.length}`);
 
-        for (let i = 0; i < passes.length; i++) {
-            const pass = passes[i];
-            const garmImageUri = pass.garm_img.startsWith('data:')
-                ? pass.garm_img
-                : `data:image/jpeg;base64,${pass.garm_img}`;
-
-            console.log(`DEBUG - Executing Pass ${i + 1}/${passes.length} (${pass.category})`);
-
-            const replicateResponse = await fetch(
-                `https://api.replicate.com/v1/predictions`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${replicateToken}`,
-                        "Content-Type": "application/json",
-                        "Prefer": "wait"
-                    },
-                    body: JSON.stringify({
-                        version: "c871bb9b046607b680449ecbae55fd8c6d945e0a1948644bf2361b3d021d3ff4", // IDM-VTON
-                        input: {
-                            crop: false,
-                            seed: Math.floor(Math.random() * 2147483647),
-                            steps: 30,
-                            category: pass.category,
-                            force_dc: false,
-                            garm_img: garmImageUri,
-                            human_img: currentHumanImageUri,
-                            mask_only: false,
-                            garment_des: `${pass.description}. Designed for ${config.gender === 'ذكر' ? 'Male' : config.gender === 'أطفال' ? 'Kid/Child' : 'Female'} ${config.category === 'kids' ? 'child' : config.category === 'youth' ? 'teenager' : 'adult'}. Style: ${config.pose || 'standing straight'}. Note: Camera angle is full body shot, do not crop face.`,
-                            disable_safety_checker: true
-                        }
-                    }),
-                }
-            );
-
-            let replicateData = await replicateResponse.json();
-            console.log(`DEBUG - Replicate Status: ${replicateResponse.status}`);
-
-            if (!replicateResponse.ok || replicateData.error) {
-                console.error("DEBUG - Replicate Error:", replicateData.error || replicateData);
-
-                if (replicateResponse.status === 401) {
-                    return res.status(401).json({
-                        error: "خطأ في مفتاح Replicate. يرجى التأكد من إضافة بطاقة بنكية لحسابك أو صحة الرمز في Vercel."
-                    });
-                }
-
-                throw new Error(`مشكلة في محرك Replicate: ${replicateData.error || replicateResponse.statusText}.`);
-            }
-
-            // Add polling mechanism in case Replicate returns early with "starting" or "processing" status
-            while (replicateData.status === "starting" || replicateData.status === "processing") {
-                console.log(`DEBUG - Polling Replicate... Status is ${replicateData.status}`);
-                await new Promise(resolve => setTimeout(resolve, 2500)); // Wait 2.5 seconds
-                if (!replicateData.urls || !replicateData.urls.get) {
-                    console.log("DEBUG - No polling URL provided by Replicate.");
-                    break;
-                }
-                const pollResponse = await fetch(replicateData.urls.get, {
-                    headers: {
-                        "Authorization": `Bearer ${replicateToken}`,
-                    }
-                });
-                replicateData = await pollResponse.json();
-            }
-
-            // Replicate returns the image URL in `output` (can be a string or array)
-            if (!replicateData.output) {
-                console.error("DEBUG - Replicate Output Empty or Failed. Final Status:", replicateData.status, "Error:", replicateData.error);
-                throw new Error(replicateData.error || "المحتوى غير لائق أو النظام لم يتمكن من التوليد.");
-            }
-
-            finalImageUrl = Array.isArray(replicateData.output) ? replicateData.output[0] : replicateData.output;
-            currentHumanImageUri = finalImageUrl; // Feed the output into the next pass
+        // Execute variation sequences in parallel
+        const variationPromises = [];
+        for (let v = 0; v < variations; v++) {
+            variationPromises.push(processVariationSequence(passes, config, initialHumanImageUri, replicateToken));
         }
 
-        // Fetch the GENERATED final image url and convert it to Base64 to retain the format the frontend expects
-        const imageResponse = await fetch(finalImageUrl);
-        const buffer = await imageResponse.arrayBuffer();
-        const generatedImageBase64 = `data:image/png;base64,${Buffer.from(buffer).toString('base64')}`;
+        const results = await Promise.all(variationPromises);
 
         // --- ONLY IF ALL PASSES SUCCESSFUL: Deduct credits ---
         if (isDbConnected && db) {
@@ -360,9 +362,9 @@ app.post("/api/generate", async (req, res) => {
             });
         }
 
-        console.log("Success! Generated image via Replicate.");
+        console.log(`Success! Generated ${results.length} images via Replicate.`);
+        res.json({ results, remainingCredits });
 
-        res.json({ result: generatedImageBase64, remainingCredits });
     } catch (error: any) {
         console.error("DEBUG - Generation error details:", {
             message: error.message,
@@ -371,13 +373,12 @@ app.post("/api/generate", async (req, res) => {
             status: error.status
         });
 
-        // Final fallback logic
         let errorMessage = error.message || 'خطأ غير معروف';
 
-        if (errorMessage.includes('NSFW content')) {
-            errorMessage = "عذراً، نظام الحماية التلقائي في محرك الذكاء الاصطناعي حجب التوليد. يرجى تجربة صورة أخرى للملابس أو العارض لا تتضمن كشف زائد للبشرة.";
-        } else if (errorMessage.includes('401') || errorMessage.includes('Payment')) {
+        if (errorMessage === "UNAUTHORIZED" || errorMessage.includes('401') || errorMessage.includes('Payment')) {
             errorMessage = "المفتاح غير مفعل. تحتاج لإضافة بطاقة بنكية في حساب Replicate ليعمل بصورة صحيحة.";
+        } else if (errorMessage.includes('NSFW content')) {
+            errorMessage = "عذراً، نظام الحماية التلقائي حجب التوليد. يرجى تجربة صورة أخرى لا تتضمن محتوى غير لائق.";
         }
 
         res.status(500).json({ error: `فشل التوليد: ${errorMessage}` });

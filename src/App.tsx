@@ -37,6 +37,7 @@ import AuthPage from './pages/AuthPage';
 import { cn } from './utils/cn';
 import type { User as FirebaseUser } from 'firebase/auth';
 import type { UserProfile, AdminStats, Subscription, Package } from './types';
+import { removeBackground } from '@imgly/background-removal';
 
 interface GarmentAnalysis {
   isMultiple: boolean;
@@ -75,10 +76,19 @@ export const PREDEFINED_ACCESSORIES = [
   { id: 'bag', name: 'حقيبة يد', placement: 'bags', icon: '👜' },
   { id: 'shoes', name: 'حذاء جلدي', placement: 'shoes', icon: '👞' },
 ];
-const compressImage = (file: File, maxWidth = 1024, maxHeight = 1024, quality = 0.8): Promise<string> => {
+
+const GENERATION_MESSAGES = [
+  "نحلل تفاصيل الملمس والألوان...",
+  "يتم الآن ضبط الإضاءة الاحترافية...",
+  "نُلبس القطعة للعارض بدقة مطابقة للواقع...",
+  "نضع اللمسات السحرية والظلال النهائية...",
+  "استعد، سحرك الخاص قيد التجهيز..."
+];
+
+const compressImage = (file: File | Blob, maxWidth = 1024, maxHeight = 1024, quality = 0.8): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(file as Blob);
     reader.onload = (event) => {
       const img = new Image();
       img.src = event.target?.result as string;
@@ -150,6 +160,24 @@ export default function App() {
   const [clothingAnalysis, setClothingAnalysis] = useState<Record<string, GarmentAnalysis>>({});
   const [analyzingImages, setAnalyzingImages] = useState<Record<string, boolean>>({});
   const [selectedAccessories, setSelectedAccessories] = useState<string[]>([]);
+
+  // New Features State
+  const [variationsCount, setVariationsCount] = useState<number>(1);
+  const [generationStep, setGenerationStep] = useState(0);
+  const [autoRemoveBg, setAutoRemoveBg] = useState(true);
+  const [removingBgFor, setRemovingBgFor] = useState<string | null>(null);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isGenerating) {
+      interval = setInterval(() => {
+        setGenerationStep((prev) => (prev + 1) % GENERATION_MESSAGES.length);
+      }, 4000);
+    } else {
+      setGenerationStep(0);
+    }
+    return () => clearInterval(interval);
+  }, [isGenerating]);
 
   const toggleAccessory = (id: string) => {
     setSelectedAccessories(prev =>
@@ -258,10 +286,26 @@ export default function App() {
 
     for (const file of filesToProcess) {
       try {
-        const compressedBase64 = await compressImage(file, 1024, 1024, 0.8);
-        newImages.push(compressedBase64);
+        let finalImageBase64 = "";
+
+        if (autoRemoveBg) {
+          setRemovingBgFor(file.name);
+          try {
+            const blob = await removeBackground(file);
+            finalImageBase64 = await compressImage(blob, 1024, 1024, 0.9); // Use higher quality for cutouts
+          } catch (bgErr) {
+            console.error("Background removal failed, falling back to original:", bgErr);
+            finalImageBase64 = await compressImage(file, 1024, 1024, 0.8);
+          } finally {
+            setRemovingBgFor(null);
+          }
+        } else {
+          finalImageBase64 = await compressImage(file, 1024, 1024, 0.8);
+        }
+
+        newImages.push(finalImageBase64);
       } catch (err) {
-        console.error("Failed to compress clothing image", err);
+        console.error("Failed to process clothing image", err);
       }
     }
 
@@ -376,6 +420,7 @@ export default function App() {
         body: JSON.stringify({
           uid: user?.uid,
           items: itemsToGenerate,
+          variations: variationsCount,
           config: {
             apiKey: settings.gemini_api_key,
             gender,
@@ -400,7 +445,11 @@ export default function App() {
         throw new Error(data?.error || "حدث خطأ غير متوقع في الخادم (Server Error). يرجى المحاولة لاحقاً.");
       }
 
-      setResultImages([data.result]);
+      if (data.results && Array.isArray(data.results)) {
+        setResultImages(data.results);
+      } else if (data.result) {
+        setResultImages([data.result]);
+      }
 
       // Update local credit count based on server response
       if (data.remainingCredits !== undefined && userProfile) {
@@ -469,7 +518,31 @@ export default function App() {
           <div className="flex-1 overflow-y-auto custom-scrollbar p-5 space-y-6">
             {/* Split Upload Area */}
             <div className="space-y-3">
-              <label className="text-[11px] font-bold text-[#888888] uppercase tracking-wider">رفع الصور (حتى 10 قطع)</label>
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] font-bold text-[#888888] uppercase tracking-wider">رفع الصور (حتى 10 قطع)</label>
+                <div className="flex items-center gap-1.5 group relative">
+                  <button
+                    onClick={() => setAutoRemoveBg(!autoRemoveBg)}
+                    className={cn("w-6 h-3 rounded-full relative transition-colors", autoRemoveBg ? "bg-yafa-gold" : "bg-white/10")}
+                  >
+                    <motion.div animate={{ x: autoRemoveBg ? -12 : 0 }} className="absolute right-0.5 top-0.5 w-2 h-2 rounded-full bg-black" />
+                  </button>
+                  <span className="text-[9px] text-[#888]">تفريغ الخلفية</span>
+
+                  {/* Tooltip */}
+                  <div className="absolute top-full left-0 mt-1 w-48 p-2 bg-black border border-[#333] rounded-lg text-[9px] text-[#ccc] opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 shadow-xl">
+                    ينصح وبشدة بتفعيل هذا الخيار لإزالة خلفية الملابس قبل المعالجة للحصول على دقة دمج مثالية.
+                  </div>
+                </div>
+              </div>
+
+              {removingBgFor && (
+                <div className="text-[10px] text-yafa-gold bg-yafa-gold/10 border border-yafa-gold/20 p-2 rounded-lg flex items-center gap-2 animate-pulse">
+                  <div className="w-3 h-3 border border-t-transparent border-yafa-gold rounded-full animate-spin" />
+                  يتم تفريغ خلفية الصورة بدقة عالية احترافية...
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-3">
                 {/* Clothing Upload */}
                 <div className="space-y-2">
@@ -620,6 +693,40 @@ export default function App() {
                     تم قفل الخيارات لأنك قمت برفع مودل مخصص.
                   </p>
                 </div>
+              )}
+            </div>
+
+            {/* Variations Selector */}
+            <div className="space-y-4 bg-white/5 p-4 rounded-2xl border border-yafa-border">
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] font-bold text-[#888888] uppercase tracking-widest flex items-center gap-2">
+                  <Layers className="w-3 h-3" />
+                  عدد اللقطات (Variations)
+                </label>
+                <span className="text-[10px] bg-yafa-gold/10 text-yafa-gold px-2 py-0.5 rounded border border-yafa-gold/20">
+                  -{variationsCount * (clothingImages.length || 1)} رصيد
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {[1, 2, 3].map(num => (
+                  <button
+                    key={num}
+                    onClick={() => setVariationsCount(num)}
+                    className={cn(
+                      "py-2 rounded-lg text-xs font-bold transition-all border",
+                      variationsCount === num
+                        ? "bg-white text-black border-white"
+                        : "bg-[#1A1A1A] text-[#888] border-[#333] hover:border-[#555]"
+                    )}
+                  >
+                    {num} {num === 1 ? 'صورة' : 'صور'}
+                  </button>
+                ))}
+              </div>
+              {variationsCount > 1 && (
+                <p className="text-[9px] text-[#888] mt-2 leading-relaxed">
+                  💡 سيحدث الذكاء الاصطناعي {variationsCount} وضعيات أو تفاصيل مختلفة بضغطة واحدة، مما يساعدك العثور على النتيجة الأفضل. سيتم استهلاك رصيد لكل صورة.
+                </p>
               )}
             </div>
 
@@ -785,19 +892,37 @@ export default function App() {
             <button
               onClick={handleGenerate}
               disabled={isGenerating || clothingImages.length === 0}
-              className="w-full bg-white text-black py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-3 hover:bg-yafa-emerald-light hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-[0_4px_20px_rgba(255,255,255,0.1)] active:scale-95"
-            >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  جاري تصميم سحرك الخاص...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-5 h-5" />
-                  توليد الجلسة الاحترافية
-                </>
+              className={cn(
+                "w-full py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-3 transition-all shadow-[0_4px_20px_rgba(255,255,255,0.1)]",
+                isGenerating
+                  ? "bg-yafa-gold/80 text-black cursor-not-allowed"
+                  : "bg-white text-black hover:bg-yafa-emerald-light hover:text-white active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
               )}
+            >
+              <AnimatePresence mode="wait">
+                {isGenerating ? (
+                  <motion.div
+                    key="generating"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="flex items-center justify-center gap-3 w-full"
+                  >
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span>{GENERATION_MESSAGES[generationStep]}</span>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="idle"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="flex items-center justify-center gap-3"
+                  >
+                    <Sparkles className="w-5 h-5" />
+                    {variationsCount > 1 ? `توليد ${variationsCount} لقطات سحرية` : "توليد الجلسة الاحترافية"}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </button>
           </div>
         </aside>
@@ -846,17 +971,38 @@ export default function App() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="h-full flex flex-col items-center justify-center gap-4"
+                  className="h-full flex flex-col items-center justify-center gap-6"
                 >
-                  <div className="w-12 h-12 border-2 border-white/10 border-t-white rounded-full animate-spin" />
-                  <p className="text-xs font-medium text-[#888888]">جاري معالجة الصور...</p>
+                  <div className="relative">
+                    <div className="w-20 h-20 border-4 border-[#222] border-t-yafa-gold rounded-full animate-spin" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Sparkles className="w-6 h-6 text-yafa-gold animate-pulse" />
+                    </div>
+                  </div>
+                  <motion.p
+                    key={generationStep}
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-sm font-medium text-white/80"
+                  >
+                    {GENERATION_MESSAGES[generationStep]}
+                  </motion.p>
+
+                  {variationsCount > 1 && (
+                    <p className="text-[10px] text-[#666]">جاري تحضير {variationsCount} نتائج بالتوازي، قد يستغرق الأمر ثوانٍ إضافية...</p>
+                  )}
                 </motion.div>
               ) : resultImages.length > 0 ? (
                 <motion.div
                   key="results"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto"
+                  className={cn(
+                    "grid gap-6 mx-auto",
+                    resultImages.length === 1 ? "grid-cols-1 max-w-sm" :
+                      resultImages.length === 2 ? "grid-cols-2 max-w-4xl" :
+                        "grid-cols-1 md:grid-cols-3 max-w-6xl"
+                  )}
                 >
                   {resultImages.map((img, i) => (
                     <motion.div
@@ -864,28 +1010,30 @@ export default function App() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.1 }}
-                      className="relative group aspect-[3/4] bg-[#161616] rounded-2xl overflow-hidden border border-[#262626]"
+                      className="relative flex justify-center w-full"
                     >
-                      <img src={img} alt={`Result ${i}`} className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                        <button
-                          onClick={() => {
-                            const link = document.createElement('a');
-                            link.href = img;
-                            link.download = `fashion-ai-${i}.png`;
-                            link.click();
-                          }}
-                          className="p-3 bg-white text-black rounded-full hover:scale-110 transition-transform"
-                        >
-                          <Download className="w-5 h-5" />
-                        </button>
+                      <div className="relative group aspect-[3/4] bg-[#161616] rounded-2xl overflow-hidden border border-[#262626] hover:border-yafa-gold/50 hover:shadow-[0_0_30px_rgba(251,191,36,0.15)] transition-all max-w-[400px] w-full">
+                        <img src={img} alt={`Result ${i}`} className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                          <button
+                            onClick={() => {
+                              const link = document.createElement('a');
+                              link.href = img;
+                              link.download = `fashion-ai-${i}.png`;
+                              link.click();
+                            }}
+                            className="p-3 bg-white text-black rounded-full hover:scale-110 transition-transform"
+                          >
+                            <Download className="w-5 h-5" />
+                          </button>
+                        </div>
                       </div>
                     </motion.div>
                   ))}
                   {isGenerating && (
-                    <div className="aspect-[3/4] bg-[#161616] rounded-2xl border border-[#262626] border-dashed flex flex-col items-center justify-center gap-3">
+                    <div className="aspect-[3/4] bg-[#161616] rounded-2xl border border-[#262626] border-dashed flex flex-col items-center justify-center gap-3 max-w-[400px] mx-auto w-full">
                       <Loader2 className="w-8 h-8 animate-spin text-[#333]" />
-                      <p className="text-[10px] text-[#666]">جاري توليد البقية...</p>
+                      <p className="text-[10px] text-[#666]">جاري توليد الصورة المتبقية...</p>
                     </div>
                   )}
                 </motion.div>
