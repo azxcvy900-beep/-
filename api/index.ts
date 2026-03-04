@@ -68,12 +68,15 @@ app.post("/api/admin/packages/delete", (req, res) => {
 
 const generateSchema = z.object({
     uid: z.string().min(1, "UID is required"),
-    clothingImageBase64: z.string().min(1, "Clothing image is required"),
+    items: z.array(z.object({
+        base64: z.string().optional(),
+        description: z.string(),
+        placement: z.string()
+    })).min(1, "At least one item is required"),
     config: z.object({
         apiKey: z.string().optional(),
         gender: z.string(),
         category: z.string(),
-        garmentCategory: z.string().optional(),
         pose: z.string(),
         background: z.string(),
         cameraAngle: z.string().optional(),
@@ -115,14 +118,14 @@ app.post("/api/analyze-clothing", async (req, res) => {
         const genAI = new GoogleGenerativeAI(geminiKey);
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-        const prompt = `Analyze this image containing clothing.
+        const prompt = `Analyze this image containing clothing or accessories.
 Provide a JSON response with the following structure:
 {
-  "isMultiple": boolean, // true if there are multiple DIFFERENT clothing pieces (e.g. a shirt AND pants, or a suit). false if it's just one piece (like a single shirt, a single dress, a single pair of pants).
+  "isMultiple": boolean, // true if there are multiple DIFFERENT clothing pieces (e.g. a shirt AND pants, or a suit). false if it's just one piece.
   "pieces": [ // Array of detected pieces
     {
       "description": string, // Short description of the piece
-      "placement": "upper_body" | "lower_body" | "dresses" // Determine the category where this piece is worn.
+      "placement": "upper_body" | "lower_body" | "dresses" | "shoes" | "bags" | "headwear" | "eyewear" | "jewelry" // Determine the category where this piece is worn.
     }
   ]
 }`;
@@ -170,7 +173,46 @@ app.post("/api/generate", async (req, res) => {
             });
         }
 
-        const { uid, clothingImageBase64, config } = validatedBody.data;
+        const { uid, items, config } = validatedBody.data;
+
+        // --- Determine sequential passes ---
+        const passes: { category: string, garm_img: string, description: string }[] = [];
+        const upperItem = items.find(i => i.placement === 'upper_body' && i.base64);
+        const lowerItem = items.find(i => i.placement === 'lower_body' && i.base64);
+        const dressItem = items.find(i => i.placement === 'dresses' && i.base64);
+
+        if (dressItem) {
+            const accs = items.filter(i => i.placement !== 'dresses').map(i => i.description);
+            passes.push({
+                category: 'dresses',
+                garm_img: dressItem.base64!,
+                description: `High-quality dresses item. ${accs.length ? 'Model wearing: ' + accs.join(', ') : ''}`
+            });
+        } else {
+            const upperAccs = items.filter(i => ['eyewear', 'headwear', 'jewelry'].includes(i.placement)).map(i => i.description);
+            const lowerAccs = items.filter(i => ['shoes', 'bags'].includes(i.placement)).map(i => i.description);
+
+            if (upperItem) {
+                passes.push({
+                    category: 'upper_body',
+                    garm_img: upperItem.base64!,
+                    description: `High-quality upper_body item. ${upperAccs.length ? 'Model wearing: ' + upperAccs.join(', ') : ''}`
+                });
+            }
+            if (lowerItem) {
+                passes.push({
+                    category: 'lower_body',
+                    garm_img: lowerItem.base64!,
+                    description: `High-quality lower_body item. ${lowerAccs.length ? 'Model wearing: ' + lowerAccs.join(', ') : ''}`
+                });
+            }
+        }
+
+        if (passes.length === 0) {
+            return res.status(400).json({ error: "No primary clothing items (upper, lower, or dress) found to generate." });
+        }
+
+        const requiredCredits = passes.length;
 
         let remainingCredits = 0;
         if (isDbConnected && db) {
@@ -182,11 +224,11 @@ app.post("/api/generate", async (req, res) => {
             }
 
             const userData = userDoc.data();
-            if (!userData || userData.credits <= 0) {
-                return res.status(403).json({ error: "رصيدك غير كافٍ. يرجى ترقية الباقة." });
+            if (!userData || userData.credits < requiredCredits) {
+                return res.status(403).json({ error: `رصيدك غير كافٍ. لإتمام هذا الطقم تحتاج إلى ${requiredCredits} نقاط.` });
             }
 
-            remainingCredits = userData.credits - 1;
+            remainingCredits = userData.credits - requiredCredits;
         }
 
         // --- REPLICATE IMAGE GENERATION ---
@@ -197,108 +239,113 @@ app.post("/api/generate", async (req, res) => {
             return res.status(500).json({ error: "Replicate token is missing. Please add REPLICATE_API_TOKEN in Vercel settings." });
         }
 
-        console.log(`DEBUG - Calling Replicate API for IDM-VTON (Virtual Try-On)`);
-
-        // Add the base prefix if missing because Replicate expects full data URI
-        const garmImageUri = clothingImageBase64.startsWith('data:')
-            ? clothingImageBase64
-            : `data:image/jpeg;base64,${clothingImageBase64}`;
+        console.log(`DEBUG - Calling Replicate API sequentially for ${passes.length} passes`);
 
         // Define default models based on gender and category if the user didn't upload one
-        let humanImageUri = config.modelImage;
-        if (humanImageUri && !humanImageUri.startsWith('data:')) {
-            humanImageUri = `data:image/jpeg;base64,${humanImageUri}`;
+        let currentHumanImageUri = config.modelImage;
+        if (currentHumanImageUri && !currentHumanImageUri.startsWith('data:') && !currentHumanImageUri.startsWith('http')) {
+            currentHumanImageUri = `data:image/jpeg;base64,${currentHumanImageUri}`;
         }
 
-        if (!humanImageUri) {
-            // Default models mapped from realistic unsplash/stock images or base64. 
-            // We use direct replicate file URLs or public URLs for safety.
+        if (!currentHumanImageUri) {
             if (config.gender === 'أطفال') {
-                humanImageUri = "https://images.unsplash.com/photo-1514090458221-65bb69cf63e6?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"; // Boy
+                currentHumanImageUri = "https://images.unsplash.com/photo-1514090458221-65bb69cf63e6?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80";
             } else if (config.gender === 'ذكر') {
-                humanImageUri = "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"; // Adult Male
+                currentHumanImageUri = "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80";
             } else {
-                humanImageUri = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"; // Adult Female
+                currentHumanImageUri = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80";
             }
         }
 
-        const replicateResponse = await fetch(
-            `https://api.replicate.com/v1/predictions`,
-            {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${replicateToken}`,
-                    "Content-Type": "application/json",
-                    "Prefer": "wait"
-                },
-                body: JSON.stringify({
-                    version: "c871bb9b046607b680449ecbae55fd8c6d945e0a1948644bf2361b3d021d3ff4", // IDM-VTON latest version
-                    input: {
-                        crop: false,
-                        seed: Math.floor(Math.random() * 2147483647),
-                        steps: 30,
-                        category: config.garmentCategory || "upper_body",
-                        force_dc: false,
-                        garm_img: garmImageUri,
-                        human_img: humanImageUri,
-                        mask_only: false,
-                        garment_des: `High-quality ${config.category} clothing item`,
-                        disable_safety_checker: true
-                    }
-                }),
-            }
-        );
+        let finalImageUrl = "";
 
-        let replicateData = await replicateResponse.json();
-        console.log(`DEBUG - Replicate Status: ${replicateResponse.status}`);
+        for (let i = 0; i < passes.length; i++) {
+            const pass = passes[i];
+            const garmImageUri = pass.garm_img.startsWith('data:')
+                ? pass.garm_img
+                : `data:image/jpeg;base64,${pass.garm_img}`;
 
-        if (!replicateResponse.ok || replicateData.error) {
-            console.error("DEBUG - Replicate Error:", replicateData.error || replicateData);
+            console.log(`DEBUG - Executing Pass ${i + 1}/${passes.length} (${pass.category})`);
 
-            if (replicateResponse.status === 401) {
-                return res.status(401).json({
-                    error: "خطأ في مفتاح Replicate. يرجى التأكد من إضافة بطاقة بنكية لحسابك أو صحة الرمز في Vercel."
-                });
-            }
-
-            throw new Error(`مشكلة في محرك Replicate: ${replicateData.error || replicateResponse.statusText}.`);
-        }
-
-        // Add polling mechanism in case Replicate returns early with "starting" or "processing" status
-        while (replicateData.status === "starting" || replicateData.status === "processing") {
-            console.log(`DEBUG - Polling Replicate... Status is ${replicateData.status}`);
-            await new Promise(resolve => setTimeout(resolve, 2500)); // Wait 2.5 seconds
-            if (!replicateData.urls || !replicateData.urls.get) {
-                console.log("DEBUG - No polling URL provided by Replicate.");
-                break;
-            }
-            const pollResponse = await fetch(replicateData.urls.get, {
-                headers: {
-                    "Authorization": `Bearer ${replicateToken}`,
+            const replicateResponse = await fetch(
+                `https://api.replicate.com/v1/predictions`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${replicateToken}`,
+                        "Content-Type": "application/json",
+                        "Prefer": "wait"
+                    },
+                    body: JSON.stringify({
+                        version: "c871bb9b046607b680449ecbae55fd8c6d945e0a1948644bf2361b3d021d3ff4", // IDM-VTON
+                        input: {
+                            crop: false,
+                            seed: Math.floor(Math.random() * 2147483647),
+                            steps: 30,
+                            category: pass.category,
+                            force_dc: false,
+                            garm_img: garmImageUri,
+                            human_img: currentHumanImageUri,
+                            mask_only: false,
+                            garment_des: pass.description,
+                            disable_safety_checker: true
+                        }
+                    }),
                 }
-            });
-            replicateData = await pollResponse.json();
+            );
+
+            let replicateData = await replicateResponse.json();
+            console.log(`DEBUG - Replicate Status: ${replicateResponse.status}`);
+
+            if (!replicateResponse.ok || replicateData.error) {
+                console.error("DEBUG - Replicate Error:", replicateData.error || replicateData);
+
+                if (replicateResponse.status === 401) {
+                    return res.status(401).json({
+                        error: "خطأ في مفتاح Replicate. يرجى التأكد من إضافة بطاقة بنكية لحسابك أو صحة الرمز في Vercel."
+                    });
+                }
+
+                throw new Error(`مشكلة في محرك Replicate: ${replicateData.error || replicateResponse.statusText}.`);
+            }
+
+            // Add polling mechanism in case Replicate returns early with "starting" or "processing" status
+            while (replicateData.status === "starting" || replicateData.status === "processing") {
+                console.log(`DEBUG - Polling Replicate... Status is ${replicateData.status}`);
+                await new Promise(resolve => setTimeout(resolve, 2500)); // Wait 2.5 seconds
+                if (!replicateData.urls || !replicateData.urls.get) {
+                    console.log("DEBUG - No polling URL provided by Replicate.");
+                    break;
+                }
+                const pollResponse = await fetch(replicateData.urls.get, {
+                    headers: {
+                        "Authorization": `Bearer ${replicateToken}`,
+                    }
+                });
+                replicateData = await pollResponse.json();
+            }
+
+            // Replicate returns the image URL in `output` (can be a string or array)
+            if (!replicateData.output) {
+                console.error("DEBUG - Replicate Output Empty or Failed. Final Status:", replicateData.status, "Error:", replicateData.error);
+                throw new Error(replicateData.error || "المحتوى غير لائق أو النظام لم يتمكن من التوليد.");
+            }
+
+            finalImageUrl = Array.isArray(replicateData.output) ? replicateData.output[0] : replicateData.output;
+            currentHumanImageUri = finalImageUrl; // Feed the output into the next pass
         }
 
-        // Replicate returns the image URL in `output` (can be a string or array)
-        if (!replicateData.output) {
-            console.error("DEBUG - Replicate Output Empty or Failed. Final Status:", replicateData.status, "Error:", replicateData.error);
-            throw new Error(replicateData.error || "المحتوى غير لائق أو النظام لم يتمكن من التوليد.");
-        }
-
-        const imageUrl = Array.isArray(replicateData.output) ? replicateData.output[0] : replicateData.output;
-
-        // Fetch the generated image url and convert it to Base64 to retain the format the frontend expects
-        const imageResponse = await fetch(imageUrl);
+        // Fetch the GENERATED final image url and convert it to Base64 to retain the format the frontend expects
+        const imageResponse = await fetch(finalImageUrl);
         const buffer = await imageResponse.arrayBuffer();
         const generatedImageBase64 = `data:image/png;base64,${Buffer.from(buffer).toString('base64')}`;
 
-        // --- ONLY IF SUCCESSFUL: Deduct credit ---
+        // --- ONLY IF ALL PASSES SUCCESSFUL: Deduct credits ---
         if (isDbConnected && db) {
             const userRef = db.collection('users').doc(uid);
             await userRef.update({
-                credits: admin.firestore.FieldValue.increment(-1),
-                totalGenerations: admin.firestore.FieldValue.increment(1)
+                credits: admin.firestore.FieldValue.increment(-requiredCredits),
+                totalGenerations: admin.firestore.FieldValue.increment(requiredCredits)
             });
         }
 

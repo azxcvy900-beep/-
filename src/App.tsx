@@ -68,6 +68,13 @@ const CAMERA_ANGLES = [
   'Dynamic low angle shot',
   'High angle shot, looking down'
 ];
+
+export const PREDEFINED_ACCESSORIES = [
+  { id: 'sunglasses', name: 'نظارات شمسية', placement: 'eyewear', icon: '🕶️' },
+  { id: 'watch', name: 'ساعة فاخرة', placement: 'jewelry', icon: '⌚' },
+  { id: 'bag', name: 'حقيبة يد', placement: 'bags', icon: '👜' },
+  { id: 'shoes', name: 'حذاء جلدي', placement: 'shoes', icon: '👞' },
+];
 const compressImage = (file: File, maxWidth = 1024, maxHeight = 1024, quality = 0.8): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -142,6 +149,13 @@ export default function App() {
 
   const [clothingAnalysis, setClothingAnalysis] = useState<Record<string, GarmentAnalysis>>({});
   const [analyzingImages, setAnalyzingImages] = useState<Record<string, boolean>>({});
+  const [selectedAccessories, setSelectedAccessories] = useState<string[]>([]);
+
+  const toggleAccessory = (id: string) => {
+    setSelectedAccessories(prev =>
+      prev.includes(id) ? prev.filter(a => a !== id) : [...prev, id]
+    );
+  };
 
   // Admin State
   const [adminStats, setAdminStats] = useState<AdminStats | null>(null);
@@ -303,79 +317,100 @@ export default function App() {
 
   const handleGenerate = async () => {
     console.log("DEBUG - handleGenerate started", { clothingCount: clothingImages.length, user: user?.uid });
-    if (clothingImages.length === 0) return;
+    if (clothingImages.length === 0 && selectedAccessories.length === 0) return;
     setIsGenerating(true);
     setError(null);
     setResultImages([]);
 
     try {
-      const generated: string[] = [];
+      // Build items array
+      const itemsToGenerate: any[] = [];
 
       for (const img of clothingImages) {
-        // Randomize pose if 'auto' is selected OR if isAutoMode is active
-        let poseToUse = selectedPose.prompt;
-        if (isAutoMode || selectedPose.id === 'auto') {
-          const randomPoses = POSES.filter(p => p.id !== 'auto');
-          poseToUse = randomPoses[Math.floor(Math.random() * randomPoses.length)].prompt;
-        }
-
-        // Randomize background if isAutoMode is active OR if 'auto' category is selected
-        let bgToUse = selectedBg;
-        if (isAutoMode || selectedBgCategory.id === 'auto') {
-          const allBgs = BACKGROUND_CATEGORIES.filter(c => c.id !== 'auto').flatMap(c => c.options);
-          bgToUse = allBgs[Math.floor(Math.random() * allBgs.length)];
-        }
-
-        // Randomize camera angle for variety
-        const cameraAngle = CAMERA_ANGLES[Math.floor(Math.random() * CAMERA_ANGLES.length)];
-
-        // Use the secure backend endpoint to perform real generation
-        const response = await fetch('/api/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            uid: user?.uid,
-            clothingImageBase64: img,
-            config: {
-              apiKey: settings.gemini_api_key,
-              gender,
-              category,
-              pose: poseToUse,
-              background: bgToUse,
-              cameraAngle,
-              modelImage: modelImage || undefined,
-              garmentCategory: clothingAnalysis[img]?.pieces?.[0]?.placement,
-              isFreeTrial: userProfile?.plan === 'trial'
-            }
-          })
-        });
-
-        let data;
-        let isJson = response.headers.get('content-type')?.includes('application/json');
-
-        if (isJson) {
-          data = await response.json();
-        }
-
-        if (!response.ok) {
-          throw new Error(data?.error || "حدث خطأ غير متوقع في الخادم (Server Error). يرجى المحاولة لاحقاً.");
-        }
-
-        generated.push(data.result);
-        setResultImages([...generated]); // Update UI incrementally
-
-        // Update local credit count based on server response
-        if (data.remainingCredits !== undefined && userProfile) {
-          setUserProfile({ ...userProfile, credits: data.remainingCredits });
+        const analysis = clothingAnalysis[img];
+        if (analysis && analysis.pieces && analysis.pieces.length > 0) {
+          for (const piece of analysis.pieces) {
+            itemsToGenerate.push({
+              base64: img,
+              description: piece.description,
+              placement: piece.placement
+            });
+          }
+        } else {
+          itemsToGenerate.push({
+            base64: img,
+            description: "Clothing item",
+            placement: "upper_body" // default fallback
+          });
         }
       }
+
+      for (const accId of selectedAccessories) {
+        const accDef = PREDEFINED_ACCESSORIES.find(a => a.id === accId);
+        if (accDef) {
+          itemsToGenerate.push({
+            description: accDef.name,
+            placement: accDef.placement
+          });
+        }
+      }
+
+      // Randomize pose and background
+      let poseToUse = selectedPose.prompt;
+      if (isAutoMode || selectedPose.id === 'auto') {
+        const randomPoses = POSES.filter(p => p.id !== 'auto');
+        poseToUse = randomPoses[Math.floor(Math.random() * randomPoses.length)].prompt;
+      }
+
+      let bgToUse = selectedBg;
+      if (isAutoMode || selectedBgCategory.id === 'auto') {
+        const allBgs = BACKGROUND_CATEGORIES.filter(c => c.id !== 'auto').flatMap(c => c.options);
+        bgToUse = allBgs[Math.floor(Math.random() * allBgs.length)];
+      }
+
+      const cameraAngle = CAMERA_ANGLES[Math.floor(Math.random() * CAMERA_ANGLES.length)];
+
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          uid: user?.uid,
+          items: itemsToGenerate,
+          config: {
+            apiKey: settings.gemini_api_key,
+            gender,
+            category,
+            pose: poseToUse,
+            background: bgToUse,
+            cameraAngle,
+            modelImage: modelImage || undefined,
+            isFreeTrial: userProfile?.plan === 'trial'
+          }
+        })
+      });
+
+      let data;
+      let isJson = response.headers.get('content-type')?.includes('application/json');
+
+      if (isJson) {
+        data = await response.json();
+      }
+
+      if (!response.ok) {
+        throw new Error(data?.error || "حدث خطأ غير متوقع في الخادم (Server Error). يرجى المحاولة لاحقاً.");
+      }
+
+      setResultImages([data.result]);
+
+      // Update local credit count based on server response
+      if (data.remainingCredits !== undefined && userProfile) {
+        setUserProfile({ ...userProfile, credits: data.remainingCredits });
+      }
+
     } catch (err: any) {
       console.error("Frontend Generation Error:", err);
-      // Fallback: If it's a 500 error, sometimes it's because Hugging Face is loading
-      const msg = err.message || "حدث خطأ";
-      setError(msg.includes("500") ? "المحرك يجهز نفسه.. يرجى المحاولة ثانية بعد ثقائق." : msg);
+      setError(err.message || "حدث خطأ غير متوقع أثناء التوليد.");
     } finally {
-      console.log("DEBUG - handleGenerate finished");
       setIsGenerating(false);
     }
   };
@@ -587,6 +622,35 @@ export default function App() {
                 </div>
               )}
             </div>
+
+            {/* Accessories Selection */}
+            <div className="space-y-4 bg-white/5 p-4 rounded-2xl border border-yafa-border">
+              <label className="text-[11px] font-bold text-yafa-gold uppercase tracking-widest flex items-center gap-2">
+                <Sparkles className="w-3 h-3" />
+                إضافات وإكسسوارات
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {PREDEFINED_ACCESSORIES.map(acc => {
+                  const isSelected = selectedAccessories.includes(acc.id);
+                  return (
+                    <button
+                      key={acc.id}
+                      onClick={() => toggleAccessory(acc.id)}
+                      className={cn(
+                        "flex items-center gap-2 p-3 rounded-xl border transition-all text-xs text-right",
+                        isSelected
+                          ? "bg-yafa-gold/10 border-yafa-gold text-white"
+                          : "bg-black/20 border-[#333] text-[#aaa] hover:border-[#555]"
+                      )}
+                    >
+                      <span className="text-xl">{acc.icon}</span>
+                      <span className="font-medium">{acc.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Smart Auto Mode Toggle */}
             <button
               onClick={() => setIsAutoMode(!isAutoMode)}
