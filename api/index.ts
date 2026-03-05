@@ -166,6 +166,62 @@ Provide a JSON response with the following structure:
     }
 });
 
+// Helper function to remove background using Replicate API (cjwbw/rembg)
+async function removeBackground(imageBase64: string, replicateToken: string): Promise<string> {
+    console.log("DEBUG - Starting background removal...");
+    try {
+        const replicateResponse = await fetch(
+            `https://api.replicate.com/v1/predictions`,
+            {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${replicateToken}`,
+                    "Content-Type": "application/json",
+                    "Prefer": "wait"
+                },
+                body: JSON.stringify({
+                    version: "fb8af171cfa1616ddcf1242c093f9c46bcada5ad4cf6f2fbe8b81b330ec5c003", // cjwbw/rembg
+                    input: {
+                        image: imageBase64,
+                        return_mask: false,
+                        alpha_matting: false
+                    }
+                }),
+            }
+        );
+
+        let replicateData = await replicateResponse.json();
+
+        if (!replicateResponse.ok || replicateData.error) {
+            console.error("DEBUG - BG Removal Replicate Error:", replicateData.error || replicateData);
+            throw new Error(`مشكلة في إزالة الخلفية: ${replicateData.error || replicateResponse.statusText}`);
+        }
+
+        // Poll if necessary
+        while (replicateData.status === "starting" || replicateData.status === "processing") {
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            if (!replicateData.urls || !replicateData.urls.get) break;
+            const pollResponse = await fetch(replicateData.urls.get, {
+                headers: { "Authorization": `Bearer ${replicateToken}` }
+            });
+            replicateData = await pollResponse.json();
+        }
+
+        if (!replicateData.output) {
+            throw new Error(replicateData.error || "فشل إزالة الخلفية.");
+        }
+
+        console.log("DEBUG - Background removal completed successfully.");
+        const imageUrl = replicateData.output;
+        const imageResponse = await fetch(imageUrl);
+        const buffer = await imageResponse.arrayBuffer();
+        return `data:image/png;base64,${Buffer.from(buffer).toString('base64')}`;
+    } catch (error) {
+        console.error("DEBUG - Background Removal failed, falling back to original image.", error);
+        return imageBase64;
+    }
+}
+
 // Helper function to process a single sequence of generations (passes)
 async function processVariationSequence(passes: any[], config: any, initialHumanImageUri: string, replicateToken: string) {
     let currentHumanImageUri = initialHumanImageUri;
@@ -173,11 +229,15 @@ async function processVariationSequence(passes: any[], config: any, initialHuman
 
     for (let i = 0; i < passes.length; i++) {
         const pass = passes[i];
-        const garmImageUri = pass.garm_img.startsWith('data:')
+        let garmImageUri = pass.garm_img.startsWith('data:')
             ? pass.garm_img
             : `data:image/jpeg;base64,${pass.garm_img}`;
 
         console.log(`DEBUG - Executing Pass ${i + 1}/${passes.length} (${pass.category}) for a variation`);
+
+        // --- STEP 1: Background Removal ---
+        // Note: we remove background only on the garment image before passing it to IDM-VTON
+        garmImageUri = await removeBackground(garmImageUri, replicateToken);
 
         const seed = Math.floor(Math.random() * 2147483647); // Ensure different seeds for variations
         const replicateResponse = await fetch(
