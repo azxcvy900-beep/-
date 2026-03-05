@@ -119,14 +119,15 @@ app.post("/api/analyze-clothing", async (req, res) => {
         const genAI = new GoogleGenerativeAI(geminiKey);
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-        const prompt = `Analyze this image containing clothing or accessories.
+        const prompt = `Analyze this image containing clothing or accessories for a Virtual Try-On system.
+CRITICAL INSTRUCTION: If the image contains a matching set or a complete top-and-bottom outfit (like a suit, uniform, tracksuit, or matching pyjamas) shown TOGETHER in the same image, you MUST classify it as a SINGLE piece with placement 'dresses'. The 'dresses' category in our VTON engine means 'full body outfit'. ONLY return multiple pieces if the user uploaded completely separate, unmatching mix-and-match items. IDM-VTON requires a single garment per image.
 Provide a JSON response with the following structure:
 {
-  "isMultiple": boolean, // true if there are multiple DIFFERENT clothing pieces (e.g. a shirt AND pants, or a suit). false if it's just one piece.
+  "isMultiple": boolean, // true ONLY if there are fundamentally unmatching/separate pieces not meant to be worn as a single contiguous outfit. false for suits, dresses, sets, and single items.
   "pieces": [ // Array of detected pieces
     {
-      "description": string, // Short description of the piece
-      "placement": "upper_body" | "lower_body" | "dresses" | "shoes" | "bags" | "headwear" | "eyewear" | "jewelry" // Determine the category where this piece is worn.
+      "description": string, // Detailed fashion description of the piece including color, fabric, and style.
+      "placement": "upper_body" | "lower_body" | "dresses" | "shoes" | "bags" | "headwear" | "eyewear" | "jewelry" // Determine the category where this piece is worn. Use 'dresses' for ANY full-body outfit or matching top-and-bottom set.
     }
   ]
 }`;
@@ -199,7 +200,7 @@ async function processVariationSequence(passes: any[], config: any, initialHuman
                         garm_img: garmImageUri,
                         human_img: currentHumanImageUri,
                         mask_only: false,
-                        garment_des: `${pass.description}. Designed for ${config.gender === 'ذكر' ? 'Male' : config.gender === 'أطفال' ? 'Kid/Child' : 'Female'} ${config.category === 'kids' ? 'child' : config.category === 'youth' ? 'teenager' : 'adult'}. Style: ${config.pose || 'standing straight'}. Note: Camera angle is full body shot, do not crop face.`,
+                        garment_des: `Premium fashion item: ${pass.description}. Tailored for ${config.gender === 'male' ? 'Male' : 'Female'} ${config.category === 'kids' ? 'child' : config.category === 'youth' ? 'teenager' : 'adult'} model. Overall style and setting: ${config.pose || 'standing straight'}. Note: Professional fashion photography, high-end e-commerce look, correct proportions, DO NOT crop face.`,
                         disable_safety_checker: true
                     }
                 }),
@@ -334,9 +335,9 @@ app.post("/api/generate", async (req, res) => {
         }
 
         if (!initialHumanImageUri) {
-            if (config.gender === 'أطفال') {
+            if (config.category === 'kids') {
                 initialHumanImageUri = "https://replicate.delivery/pbxt/L174bQ8O9o80zI20kS12vEFTX0Xf33kO6W4Hh0Gq7k3c5VnO/kid_mannequin.jpg";
-            } else if (config.gender === 'ذكر') {
+            } else if (config.gender === 'male') {
                 initialHumanImageUri = "https://replicate.delivery/pbxt/L0TfUKYvE467HlQxNXYv8sS7nONwIu9YqG8r2Hn8C0H3X7xS/male_model.jpg";
             } else {
                 initialHumanImageUri = "https://replicate.delivery/pbxt/L0TfUKYvE467HlQxNXYv8sS7nONwIu9YqG8r2Hn8C0H3X7xS/female_model.jpg";
