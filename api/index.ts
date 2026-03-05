@@ -99,7 +99,7 @@ app.post("/api/analyze-clothing", async (req, res) => {
         }
 
         const { clothingImageBase64, apiKey } = validatedBody.data;
-        const geminiKey = apiKey || process.env.GEMINI_API_KEY;
+        const geminiKey = apiKey || process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
 
         if (!geminiKey) {
             return res.status(500).json({ error: "Gemini API key is missing. Add it in settings." });
