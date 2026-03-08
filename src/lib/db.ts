@@ -18,7 +18,7 @@ db.exec(`
     email TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
     role TEXT DEFAULT 'user',
-    credits INTEGER DEFAULT 2,
+    credits INTEGER DEFAULT 9999,
     plan TEXT DEFAULT 'trial',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );

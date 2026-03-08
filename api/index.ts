@@ -83,7 +83,7 @@ app.post("/api/auth/register", async (req, res) => {
             .run(id, email, hashedPassword);
 
         const token = jwt.sign({ id, email, role: 'user' }, JWT_SECRET, { expiresIn: '7d' });
-        res.json({ token, user: { id, email, role: 'user', credits: 2, plan: 'trial' } });
+        res.json({ token, user: { id, email, role: 'user', credits: 9999, plan: 'premium' } });
     } catch (e: any) {
         res.status(500).json({ error: e.message });
     }
@@ -434,10 +434,12 @@ app.post("/api/generate", async (req, res) => {
             }
 
             if (user.credits < requiredCredits) {
-                return res.status(403).json({ error: `رصيدك غير كافٍ. تحتاج إلى ${requiredCredits} نقاط لتوليد ${variations} صور لمعالجة القطع.` });
+                // Temporarily disabled for testing
+                // return res.status(403).json({ error: `رصيدك غير كافٍ. تحتاج إلى ${requiredCredits} نقاط لتوليد ${variations} صور لمعالجة القطع.` });
             }
 
-            remainingCredits = user.credits - requiredCredits;
+            remainingCredits = user.credits; // Temporarily disabled deduction
+
         }
 
         // --- REPLICATE IMAGE GENERATION ---
@@ -477,8 +479,9 @@ app.post("/api/generate", async (req, res) => {
         // --- ONLY IF ALL PASSES SUCCESSFUL: Deduct credits ---
         if (uid && uid !== "trial_uid") {
             try {
-                db.prepare("UPDATE users SET credits = credits - ? WHERE id = ?").run(requiredCredits, uid);
-                console.log(`DEBUG - Deducted ${requiredCredits} credits for user ${uid}`);
+                // Temporarily disabled deduction for testing
+                // db.prepare("UPDATE users SET credits = credits - ? WHERE id = ?").run(requiredCredits, uid);
+                console.log(`DEBUG - Bypassed deduction of ${requiredCredits} credits for testing for user ${uid}`);
             } catch (e) {
                 console.error("Sqlite Error: Failed to deduct credits", e);
             }
