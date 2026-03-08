@@ -19,11 +19,11 @@ export const generateFashionImage = async (
 
   // Supercharge the prompt if the user is on a free trial to guarantee an amazing result
   if (config.isFreeTrial) {
-    finalPose += ", Captured by a professional fashion product photographer, perfectly fitted on a premium mannequin or invisible dummy, 8k resolution, ultra-detailed, cinematic studio lighting, photorealistic.";
+    finalPose += ", Captured by a professional fashion product photographer, perfectly fitted on a premium mannequin or invisible dummy, full-length garment display, 8k resolution, ultra-detailed, cinematic studio lighting, photorealistic.";
     finalBackground += ", soft elegant shadows, high-end e-commerce product background, seamless backdrop.";
   } else {
     // Standard baseline for all generations to ensure clean product display
-    finalPose += ", clean professional clothing display, mannequin or invisible dummy technique, high-quality fashion rendering.";
+    finalPose += ", clean professional clothing display, full-length garment representation, mannequin or invisible dummy technique, high-quality fashion rendering.";
   }
 
   console.log("Mocking fashion generation with config:", {

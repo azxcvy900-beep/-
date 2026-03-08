@@ -166,13 +166,17 @@ app.post("/api/analyze-clothing", async (req, res) => {
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
         const prompt = `Analyze this image containing clothing or accessories for a Virtual Try-On system.
-CRITICAL INSTRUCTION: If the image contains a matching set or a complete top-and-bottom outfit (like a suit, uniform, tracksuit, or matching pyjamas) shown TOGETHER in the same image, you MUST classify it as a SINGLE piece with placement 'dresses'. The 'dresses' category in our VTON engine means 'full body outfit'. ONLY return multiple pieces if the user uploaded completely separate, unmatching mix-and-match items. IDM-VTON requires a single garment per image.
+CRITICAL INSTRUCTIONS:
+1. If the image contains a matching set or a complete top-and-bottom outfit (like a suit, uniform, tracksuit, or matching pyjamas) shown TOGETHER in the same image, you MUST classify it as a SINGLE piece with placement 'dresses'. The 'dresses' category in our VTON engine means 'full body outfit'.
+2. For PANTS/TROUSERS: Carefully determine if they are LONG pants or SHORTS. If they appear to be long pants but the bottom part is obscured or cropped, YOU MUST INFER that they are full-length trousers based on the style, cut, and context. Do not default to 'shorts' unless it's clearly high-thigh or knee-length.
+3. ONLY return multiple pieces if the user uploaded completely separate, unmatching mix-and-match items. IDM-VTON requires a single garment per image for best results, so prioritizing 'dresses' for sets is essential.
+
 Provide a JSON response with the following structure:
 {
   "isMultiple": boolean, // true ONLY if there are fundamentally unmatching/separate pieces not meant to be worn as a single contiguous outfit. false for suits, dresses, sets, and single items.
   "pieces": [ // Array of detected pieces
     {
-      "description": string, // Detailed fashion description of the piece including color, fabric, and style.
+      "description": string, // Detailed fashion description of the piece including color, fabric, style, and EXACT LENGTH (e.g., 'full-length tailored trousers', 'floor-length evening gown', 'mid-thigh denim shorts').
       "placement": "upper_body" | "lower_body" | "dresses" | "shoes" | "bags" | "headwear" | "eyewear" | "jewelry" // Determine the category where this piece is worn. Use 'dresses' for ANY full-body outfit or matching top-and-bottom set.
     }
   ]
@@ -307,11 +311,12 @@ CRITICAL INSTRUCTIONS:
 1. You MUST strictly adhere to the REQUESTED POSE. Do not change the pose or vibe.
 2. You MUST strictly adhere to the REQUESTED BACKGROUND. Do not place the model in a different setting.
 3. The model MUST be described as having normal, tall, and realistic proportions. ABSOLUTELY NO dwarf, disproportionate, or short figures.
-4. Write a single, cohesive, highly descriptive paragraph combining these elements.
-5. Enhance with professional photography terms (e.g., "8k resolution", "cinematic lighting", "photorealistic", "ultra-detailed", "Vogue editorial style", "perfect skin texture").
-6. DO NOT include introductory or concluding remarks. Just output the prompt itself.
-7. Keep it under 100 words.
-8. End the prompt EXACTLY with: ", tall fashion model, realistic human proportions, correct anatomy, exact requested pose, exact requested background, DO NOT crop face."
+4. If the garment description mentions it is full-length, long, or a set, emphasize this clearly to ensure the AI doesn't shorten the garment.
+5. Write a single, cohesive, highly descriptive paragraph combining these elements.
+6. Enhance with professional photography terms (e.g., "8k resolution", "cinematic lighting", "photorealistic", "ultra-detailed", "Vogue editorial style", "perfect skin texture").
+7. DO NOT include introductory or concluding remarks. Just output the prompt itself.
+8. Keep it under 100 words.
+9. End the prompt EXACTLY with: ", tall fashion model, realistic human proportions, correct anatomy, exact requested pose, exact requested background, DO NOT crop face."
 
 YOUR GENERATED PROMPT:`;
 
