@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import { ArrowRight, Sparkles, Loader2 } from 'lucide-react';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../lib/firebase';
 
 interface Props {
     setView: (view: 'landing' | 'studio' | 'admin' | 'pricing' | 'login' | 'terms' | 'privacy' | 'refund') => void;
@@ -19,11 +17,19 @@ export default function AuthPage({ setView }: Props) {
         setAuthLoading(true);
         setError(null);
         try {
-            if (isLoginMode) {
-                await signInWithEmailAndPassword(auth, authEmail, authPassword);
-            } else {
-                await createUserWithEmailAndPassword(auth, authEmail, authPassword);
+            const endpoint = isLoginMode ? '/api/auth/login' : '/api/auth/register';
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: authEmail, password: authPassword })
+            });
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || "حدث خطأ في المصادقة");
             }
+
+            localStorage.setItem('token', data.token);
             setView('studio');
         } catch (err: any) {
             setError(err.message || "حدث خطأ في المصادقة");

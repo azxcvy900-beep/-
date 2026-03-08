@@ -1,56 +1,57 @@
 import express from "express";
-import * as admin from 'firebase-admin';
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import { z } from "zod";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import db from "../src/lib/db.js"; // Note: Adjust TS import resolution if needed, typically .js is required in ESM
 
-// Initialize Firebase Admin (Using a placeholder for the service account for security.
-// The user will need to set an environment variable or local file in their real deployment).
-let db: admin.firestore.Firestore | null = null;
+const JWT_SECRET = process.env.JWT_SECRET || "fall_back_secret_for_yafa_design";
 
-try {
-    if (!admin.apps.length) {
-        if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-            const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-            admin.initializeApp({
-                credential: admin.credential.cert(serviceAccount)
-            });
-        } else {
-            // If no service account is provided, we still init the app with default credentials
-            // This might fail in Vercel if not linked, which is why we catch it.
-            admin.initializeApp();
-        }
+// Auth middleware
+export const authenticate = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ error: "No token provided" });
+    const token = authHeader.split(" ")[1];
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET) as any;
+        (req as any).user = decoded;
+        next();
+    } catch (e) {
+        res.status(401).json({ error: "Invalid token" });
     }
-    db = admin.firestore();
-} catch (e: any) {
-    console.error('Firebase admin init error: Could not initialize Firestore Admin SDK.', e.message);
-    // Do not crash the server module, just log the error so we can return a proper JSON response
-}
+};
 
 const app = express();
 app.use(express.json({ limit: '50mb' }));
 
-app.get("/api/admin/stats", (req, res) => {
+app.get("/api/admin/stats", authenticate, (req, res) => {
+    const totalUsersStmt = db.prepare("SELECT count(*) as count FROM users").get() as { count: number };
+    const totalGenerationsStmt = db.prepare("SELECT sum(credits) as count FROM users").get() as { count: number }; // rough logic
+
     res.json({
-        totalUsers: 0,
+        totalUsers: totalUsersStmt.count,
         activePlans: [],
-        totalGenerations: 0,
-        apiStatus: "Disconnected",
+        totalGenerations: totalGenerationsStmt.count || 0,
+        apiStatus: "Connected",
     });
 });
 
-app.get("/api/admin/subscriptions", (req, res) => {
+app.get("/api/admin/subscriptions", authenticate, (req, res) => {
     res.json([]);
 });
 
-app.post("/api/admin/subscriptions/toggle", (req, res) => {
+app.post("/api/admin/subscriptions/toggle", authenticate, (req, res) => {
     res.json({ success: true });
 });
 
 app.get("/api/admin/settings", (req, res) => {
-    res.json({ gemini_api_key: "" });
+    const settings = db.prepare("SELECT gemini_api_key FROM settings WHERE id = 'global'").get() as { gemini_api_key: string };
+    res.json(settings || { gemini_api_key: "" });
 });
 
-app.post("/api/admin/settings/update", (req, res) => {
+app.post("/api/admin/settings/update", authenticate, (req, res) => {
+    const { gemini_api_key } = req.body;
+    db.prepare("UPDATE settings SET gemini_api_key = ? WHERE id = 'global'").run(gemini_api_key);
     res.json({ success: true });
 });
 
@@ -58,12 +59,57 @@ app.get("/api/admin/packages", (req, res) => {
     res.json([]);
 });
 
-app.post("/api/admin/packages/add", (req, res) => {
+app.post("/api/admin/packages/add", authenticate, (req, res) => {
     res.json({ success: true });
 });
 
-app.post("/api/admin/packages/delete", (req, res) => {
+app.post("/api/admin/packages/delete", authenticate, (req, res) => {
     res.json({ success: true });
+});
+
+// AUTHENTICATION ROUTES
+app.post("/api/auth/register", async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        if (!email || !password) return res.status(400).json({ error: "Email and password required" });
+
+        const existing = db.prepare("SELECT * FROM users WHERE email = ?").get(email);
+        if (existing) return res.status(400).json({ error: "User already exists" });
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const id = Math.random().toString(36).substring(2, 15);
+
+        db.prepare("INSERT INTO users (id, email, password) VALUES (?, ?, ?)")
+            .run(id, email, hashedPassword);
+
+        const token = jwt.sign({ id, email, role: 'user' }, JWT_SECRET, { expiresIn: '7d' });
+        res.json({ token, user: { id, email, role: 'user', credits: 2, plan: 'trial' } });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post("/api/auth/login", async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        const user = db.prepare("SELECT * FROM users WHERE email = ?").get(email) as any;
+        if (!user) return res.status(400).json({ error: "Invalid credentials" });
+
+        const valid = await bcrypt.compare(password, user.password);
+        if (!valid) return res.status(400).json({ error: "Invalid credentials" });
+
+        const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+        res.json({ token, user: { id: user.id, email: user.email, role: user.role, credits: user.credits, plan: user.plan } });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.get("/api/auth/me", authenticate, (req, res) => {
+    const userId = (req as any).user.id;
+    const user = db.prepare("SELECT id, email, role, credits, plan FROM users WHERE id = ?").get(userId) as any;
+    if (!user) return res.status(404).json({ error: "User not found" });
+    res.json({ user });
 });
 
 const generateSchema = z.object({
@@ -166,11 +212,27 @@ Provide a JSON response with the following structure:
     }
 });
 
+// Helper function to handle Replicate API requests with automatic retries for 429 (Too Many Requests)
+async function fetchReplicateWithRetry(url: string, options: any, retries: number = 3) {
+    let delay = 2000;
+    for (let i = 0; i < retries; i++) {
+        const response = await fetch(url, options);
+        if (response.status === 429) {
+            console.log(`DEBUG - Replicate 429 Too Many Requests (Attempt ${i + 1}/${retries}). Retrying in ${delay}ms...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+            delay *= 2; // Exponential backoff
+            continue;
+        }
+        return response;
+    }
+    return fetch(url, options); // Final attempt
+}
+
 // Helper function to remove background using Replicate API (cjwbw/rembg)
 async function removeBackground(imageBase64: string, replicateToken: string): Promise<string> {
     console.log("DEBUG - Starting background removal...");
     try {
-        const replicateResponse = await fetch(
+        const replicateResponse = await fetchReplicateWithRetry(
             `https://api.replicate.com/v1/predictions`,
             {
                 method: "POST",
@@ -240,7 +302,7 @@ async function processVariationSequence(passes: any[], config: any, initialHuman
         garmImageUri = await removeBackground(garmImageUri, replicateToken);
 
         const seed = Math.floor(Math.random() * 2147483647); // Ensure different seeds for variations
-        const replicateResponse = await fetch(
+        const replicateResponse = await fetchReplicateWithRetry(
             `https://api.replicate.com/v1/predictions`,
             {
                 method: "POST",
@@ -260,7 +322,7 @@ async function processVariationSequence(passes: any[], config: any, initialHuman
                         garm_img: garmImageUri,
                         human_img: currentHumanImageUri,
                         mask_only: false,
-                        garment_des: `Premium fashion item: ${pass.description}. Tailored for ${config.gender === 'male' ? 'Male' : 'Female'} ${config.category === 'kids' ? 'child' : config.category === 'youth' ? 'teenager' : 'adult'} model. Overall style and setting: ${config.pose || 'standing straight'}. Note: Professional fashion photography, high-end e-commerce look, correct proportions, DO NOT crop face.`,
+                        garment_des: `Premium fashion item: ${pass.description}. Tailored for ${config.gender === 'male' ? 'Male' : 'Female'} ${config.category === 'kids' ? 'child' : config.category === 'youth' ? 'teenager' : 'adult'} model. Overall style and setting: ${config.pose || 'standing straight'}. Note: Professional fashion photography, high-end e-commerce look, 8k resolution, photorealistic, premium editorial fashion styling, perfect skin texture, correct proportions, DO NOT crop face.`,
                         disable_safety_checker: true
                     }
                 }),
@@ -364,20 +426,18 @@ app.post("/api/generate", async (req, res) => {
         const requiredCredits = passes.length * variations;
 
         let remainingCredits = 0;
-        if (isDbConnected && db) {
-            const userRef = db.collection('users').doc(uid);
-            const userDoc = await userRef.get();
+        if (uid && uid !== "trial_uid") {
+            const user = db.prepare("SELECT * FROM users WHERE id = ?").get(uid) as any;
 
-            if (!userDoc.exists) {
-                return res.status(404).json({ error: "User not found" });
+            if (!user) {
+                return res.status(404).json({ error: "User not found. Please log in again." });
             }
 
-            const userData = userDoc.data();
-            if (!userData || userData.credits < requiredCredits) {
+            if (user.credits < requiredCredits) {
                 return res.status(403).json({ error: `رصيدك غير كافٍ. تحتاج إلى ${requiredCredits} نقاط لتوليد ${variations} صور لمعالجة القطع.` });
             }
 
-            remainingCredits = userData.credits - requiredCredits;
+            remainingCredits = user.credits - requiredCredits;
         }
 
         // --- REPLICATE IMAGE GENERATION ---
@@ -385,7 +445,7 @@ app.post("/api/generate", async (req, res) => {
 
         if (!replicateToken) {
             console.error("DEBUG - REPLICATE_API_TOKEN is missing in process.env");
-            return res.status(500).json({ error: "Replicate token is missing. Please add REPLICATE_API_TOKEN in Vercel settings." });
+            return res.status(500).json({ error: "Replicate token is missing. Please add REPLICATE_API_TOKEN in settings." });
         }
 
         // Define default models based on gender and category if the user didn't upload one
@@ -404,23 +464,24 @@ app.post("/api/generate", async (req, res) => {
             }
         }
 
-        console.log(`DEBUG - Generating ${variations} variations in parallel. Total initial passes required per variation: ${passes.length}`);
+        console.log(`DEBUG - Generating ${variations} variations sequentially to avoid Replicate rate limits. Total passes per variation: ${passes.length}`);
 
-        // Execute variation sequences in parallel
-        const variationPromises = [];
+        // Execute variation sequences sequentially to prevent Replicate 429 Concurrency limits
+        const results = [];
         for (let v = 0; v < variations; v++) {
-            variationPromises.push(processVariationSequence(passes, config, initialHumanImageUri, replicateToken));
+            console.log(`DEBUG - Starting variation ${v + 1} of ${variations}`);
+            const result = await processVariationSequence(passes, config, initialHumanImageUri, replicateToken);
+            results.push(result);
         }
 
-        const results = await Promise.all(variationPromises);
-
         // --- ONLY IF ALL PASSES SUCCESSFUL: Deduct credits ---
-        if (isDbConnected && db) {
-            const userRef = db.collection('users').doc(uid);
-            await userRef.update({
-                credits: admin.firestore.FieldValue.increment(-requiredCredits),
-                totalGenerations: admin.firestore.FieldValue.increment(requiredCredits)
-            });
+        if (uid && uid !== "trial_uid") {
+            try {
+                db.prepare("UPDATE users SET credits = credits - ? WHERE id = ?").run(requiredCredits, uid);
+                console.log(`DEBUG - Deducted ${requiredCredits} credits for user ${uid}`);
+            } catch (e) {
+                console.error("Sqlite Error: Failed to deduct credits", e);
+            }
         }
 
         console.log(`Success! Generated ${results.length} images via Replicate.`);
@@ -440,6 +501,8 @@ app.post("/api/generate", async (req, res) => {
             errorMessage = "المفتاح غير مفعل. تحتاج لإضافة بطاقة بنكية في حساب Replicate ليعمل بصورة صحيحة.";
         } else if (errorMessage.includes('NSFW content')) {
             errorMessage = "عذراً، نظام الحماية التلقائي حجب التوليد. يرجى تجربة صورة أخرى لا تتضمن محتوى غير لائق.";
+        } else if (errorMessage.includes('Too Many Requests') || errorMessage.includes('429')) {
+            errorMessage = "يوجد ضغط كبير على النظام في الوقت الحالي (Too Many Requests). يرجى المحاولة بعد قليل أو ترقية حساب Replicate.";
         }
 
         res.status(500).json({ error: `فشل التوليد: ${errorMessage}` });

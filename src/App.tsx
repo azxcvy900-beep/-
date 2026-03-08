@@ -26,18 +26,18 @@ import { motion, AnimatePresence } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { generateFashionImage } from './services/geminiService';
-import { auth, db } from './lib/firebase';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
 import LandingPage from './pages/LandingPage';
 import AdminDashboard from './pages/AdminDashboard';
 import PricingPage from './pages/PricingPage';
 import LegalPage from './pages/LegalPage';
 import AuthPage from './pages/AuthPage';
 import { cn } from './utils/cn';
-import type { User as FirebaseUser } from 'firebase/auth';
 import type { UserProfile, AdminStats, Subscription, Package } from './types';
 import { removeBackground } from '@imgly/background-removal';
+
+// PRO Features
+import ImageComparison from './components/ImageComparison';
+import { addWatermarkToImage } from './utils/watermark';
 
 interface GarmentAnalysis {
   isMultiple: boolean;
@@ -137,7 +137,8 @@ export default function App() {
     }
   }, []);
 
-  const [user, setUser] = useState<FirebaseUser | null>(null);
+  // Auth states
+  const [user, setUser] = useState<{ uid: string; email: string | null } | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [authEmail, setAuthEmail] = useState('');
   const [authPassword, setAuthPassword] = useState('');
@@ -222,61 +223,40 @@ export default function App() {
   }, [view]);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setUser(null);
+        setUserProfile(null);
+        setAuthLoading(false);
+        return;
+      }
       try {
-        setUser(currentUser);
-        if (currentUser) {
-          try {
-            // Fetch user profile from Firestore
-            const docRef = doc(db, 'users', currentUser.uid);
-            const docSnap = await getDoc(docRef);
-            if (docSnap.exists()) {
-              setUserProfile(docSnap.data());
-            } else {
-              // Create new user profile for the 2 free images trial
-              const newProfile = {
-                email: currentUser.email,
-                plan: 'trial',
-                credits: 2,
-                created_at: new Date().toISOString()
-              };
-              await setDoc(docRef, newProfile);
-              setUserProfile(newProfile);
-            }
-          } catch (err: any) {
-            console.error("Firestore Error in Auth Listener:", err);
-            setUserProfile({ email: currentUser.email, plan: 'trial', credits: 0, error: 'Database Not Connected' });
-          }
+        const res = await fetch('/api/auth/me', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setUser({ uid: data.user.id, email: data.user.email } as any);
+          setUserProfile(data.user);
         } else {
+          localStorage.removeItem('token');
+          setUser(null);
           setUserProfile(null);
         }
+      } catch (err) {
+        console.error("Auth Error:", err);
       } finally {
         setAuthLoading(false);
       }
-    });
-    return () => unsubscribe();
-  }, []);
-
-  const handleAuth = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setAuthLoading(true);
-    setError(null);
-    try {
-      if (isLoginMode) {
-        await signInWithEmailAndPassword(auth, authEmail, authPassword);
-      } else {
-        await createUserWithEmailAndPassword(auth, authEmail, authPassword);
-      }
-      setView('studio');
-    } catch (err: any) {
-      setError(err.message || "حدث خطأ في المصادقة");
-    } finally {
-      setAuthLoading(false);
-    }
-  };
+    };
+    checkAuth();
+  }, [view]);
 
   const handleLogout = async () => {
-    await signOut(auth);
+    localStorage.removeItem('token');
+    setUser(null);
+    setUserProfile(null);
     setView('landing');
   };
 
@@ -414,46 +394,55 @@ export default function App() {
 
       const cameraAngle = CAMERA_ANGLES[Math.floor(Math.random() * CAMERA_ANGLES.length)];
 
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          uid: user?.uid,
-          items: itemsToGenerate,
-          variations: variationsCount,
-          config: {
-            apiKey: settings.gemini_api_key,
-            gender,
-            category,
-            pose: poseToUse,
-            background: bgToUse,
-            cameraAngle,
-            modelImage: modelImage || undefined,
-            isFreeTrial: userProfile?.plan === 'trial'
-          }
-        })
-      });
+      // Progressive generation tracking
+      let currentCredits = userProfile ? userProfile.credits : 0;
 
-      let data;
-      let isJson = response.headers.get('content-type')?.includes('application/json');
+      for (let v = 0; v < variationsCount; v++) {
+        const response = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            uid: user?.uid,
+            items: itemsToGenerate,
+            variations: 1, // Generate one by one for real-time streaming
+            config: {
+              apiKey: settings.gemini_api_key,
+              gender,
+              category,
+              pose: poseToUse,
+              background: bgToUse,
+              cameraAngle,
+              modelImage: modelImage || undefined,
+              isFreeTrial: userProfile?.plan === 'trial'
+            }
+          })
+        });
 
-      if (isJson) {
-        data = await response.json();
+        let data;
+        let isJson = response.headers.get('content-type')?.includes('application/json');
+
+        if (isJson) {
+          data = await response.json();
+        }
+
+        if (!response.ok) {
+          throw new Error(data?.error || "حدث خطأ غير متوقع في الخادم (Server Error). يرجى المحاولة لاحقاً.");
+        }
+
+        if (data.results && Array.isArray(data.results)) {
+          setResultImages(prev => [...prev, ...data.results]);
+        } else if (data.result) {
+          setResultImages(prev => [...prev, data.result]);
+        }
+
+        if (data.remainingCredits !== undefined) {
+          currentCredits = data.remainingCredits;
+        }
       }
 
-      if (!response.ok) {
-        throw new Error(data?.error || "حدث خطأ غير متوقع في الخادم (Server Error). يرجى المحاولة لاحقاً.");
-      }
-
-      if (data.results && Array.isArray(data.results)) {
-        setResultImages(data.results);
-      } else if (data.result) {
-        setResultImages([data.result]);
-      }
-
-      // Update local credit count based on server response
-      if (data.remainingCredits !== undefined && userProfile) {
-        setUserProfile({ ...userProfile, credits: data.remainingCredits });
+      // Update local credit count after all passes
+      if (userProfile) {
+        setUserProfile({ ...userProfile, credits: currentCredits });
       }
 
     } catch (err: any) {
@@ -945,13 +934,14 @@ export default function App() {
                     <span className="text-[10px] font-bold">مسح الكل</span>
                   </button>
                   <button
-                    onClick={() => {
-                      resultImages.forEach((img, i) => {
+                    onClick={async () => {
+                      for (let i = 0; i < resultImages.length; i++) {
+                        const watermarkedUrl = await addWatermarkToImage(resultImages[i]);
                         const link = document.createElement('a');
-                        link.href = img;
+                        link.href = watermarkedUrl;
                         link.download = `fashion-ai-${i}.png`;
                         link.click();
-                      });
+                      }
                     }}
                     className="p-2 hover:bg-[#1A1A1A] rounded transition-colors text-[#888888] hover:text-white"
                   >
@@ -1013,12 +1003,18 @@ export default function App() {
                       className="relative flex justify-center w-full"
                     >
                       <div className="relative group aspect-[3/4] bg-[#161616] rounded-2xl overflow-hidden border border-[#262626] hover:border-yafa-gold/50 hover:shadow-[0_0_30px_rgba(251,191,36,0.15)] transition-all max-w-[400px] w-full">
-                        <img src={img} alt={`Result ${i}`} className="w-full h-full object-cover" />
+                        <ImageComparison
+                          originalImage={modelImage || clothingImages[0]}
+                          resultImage={img}
+                        />
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
                           <button
-                            onClick={() => {
+                            onClick={async (e) => {
+                              // Prevent click from triggering the comparison ImageComparison mousedown
+                              e.stopPropagation();
+                              const watermarkedUrl = await addWatermarkToImage(img);
                               const link = document.createElement('a');
-                              link.href = img;
+                              link.href = watermarkedUrl;
                               link.download = `fashion-ai-${i}.png`;
                               link.click();
                             }}

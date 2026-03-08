@@ -277,7 +277,7 @@ export default function AdminDashboard({ setView }: Props) {
                                                 <div className={cn("w-2 h-2 rounded-full", settings.gemini_api_key ? "bg-green-400" : "bg-red-400")} />
                                             </div>
                                         </div>
-                                        <p className="text-[9px] text-yafa-muted italic">يتم تشفير المفتاح وتخزينه في Firebase Firestore بشكل آمن.</p>
+                                        <p className="text-[9px] text-yafa-muted italic">يتم تشفير المفتاح وتخزينه في قاعدة البيانات SQLite بشكل آمن.</p>
                                     </div>
 
                                     <div className="pt-4">

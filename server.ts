@@ -5,49 +5,16 @@ import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+import apiRouter from "./api/index.js";
+
 async function startServer() {
   const app = express();
   const PORT = Number(process.env.PORT) || 3000;
 
   app.use(express.json());
 
-  // API Routes Mock for admin panel since backend is removed
-  app.get("/api/admin/stats", async (req, res) => {
-    res.json({
-      totalUsers: 0,
-      activePlans: [],
-      totalGenerations: 0,
-      apiStatus: "Disconnected",
-    });
-  });
-
-  app.get("/api/admin/subscriptions", async (req, res) => {
-    res.json([]);
-  });
-
-  app.post("/api/admin/subscriptions/toggle", async (req, res) => {
-    res.json({ success: true });
-  });
-
-  app.get("/api/admin/settings", async (req, res) => {
-    res.json({ gemini_api_key: "" });
-  });
-
-  app.post("/api/admin/settings/update", async (req, res) => {
-    res.json({ success: true });
-  });
-
-  app.get("/api/admin/packages", async (req, res) => {
-    res.json([]);
-  });
-
-  app.post("/api/admin/packages/add", async (req, res) => {
-    res.json({ success: true });
-  });
-
-  app.post("/api/admin/packages/delete", async (req, res) => {
-    res.json({ success: true });
-  });
+  // Mount API from api/index.ts
+  app.use("/", apiRouter);
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
