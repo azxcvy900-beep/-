@@ -1,8 +1,12 @@
 import Database from 'better-sqlite3';
 import path from 'path';
+import os from 'os';
 
-// Define DB file path (in the root directory for now, or inside a data directory)
-const dbPath = path.resolve(process.cwd(), 'sqlite.db');
+// Define DB file path. In serverless environments (like Vercel), the root directory is read-only.
+// We use the OS temp directory (e.g., /tmp) if running in production, to prevent read-only errors.
+const isProd = process.env.NODE_ENV === 'production';
+const dbDir = isProd ? os.tmpdir() : process.cwd();
+const dbPath = path.join(dbDir, 'sqlite.db');
 
 // Initialize the database
 const db = new Database(dbPath, { verbose: console.log });
@@ -28,7 +32,7 @@ db.exec(`
 // Insert default settings row if it doesn't exist
 const settingsCheck = db.prepare('SELECT count(*) as count FROM settings WHERE id = ?').get('global') as { count: number };
 if (settingsCheck.count === 0) {
-    db.prepare('INSERT INTO settings (id, gemini_api_key) VALUES (?, ?)').run('global', '');
+  db.prepare('INSERT INTO settings (id, gemini_api_key) VALUES (?, ?)').run('global', '');
 }
 
 export default db;
