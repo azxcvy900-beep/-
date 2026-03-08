@@ -284,8 +284,47 @@ async function removeBackground(imageBase64: string, replicateToken: string): Pr
     }
 }
 
+// Helper function to generate an enhanced, professional prompt using Gemini
+async function generateEnhancedPrompt(pass: any, config: any, geminiKey: string): Promise<string> {
+    try {
+        if (!geminiKey) {
+            console.log("DEBUG - No Gemini API key provided for prompt enhancement, falling back to basic prompt.");
+            throw new Error("No Gemini key");
+        }
+
+        const genAI = new GoogleGenerativeAI(geminiKey);
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }); // Fast and cheap for text
+
+        const basePrompt = `Act as an expert Fashion Photography Director and AI Prompt Engineer.
+We need a highly detailed, professional prompt for an AI Virtual Try-On system (IDM-VTON) to generate a realistic product photo.
+
+GARMENT DESCRIPTION: ${pass.description}
+TARGET MODEL: ${config.gender === 'male' ? 'Male' : 'Female'}, ${config.category === 'kids' ? 'child' : config.category === 'youth' ? 'teenager' : 'adult'}
+REQUESTED POSE/VIBE: ${config.pose || 'standing straight, professional'}
+REQUESTED BACKGROUND: ${config.background || 'clean studio background'}
+
+INSTRUCTIONS:
+1. Write a single, cohesive, highly descriptive paragraph describing the model wearing the garment in the specified pose and background.
+2. Enhance the description with professional photography terms (e.g., "8k resolution", "cinematic lighting", "photorealistic", "ultra-detailed", "Vogue editorial style", "perfect skin texture").
+3. DO NOT include introductory or concluding remarks. Just output the prompt itself.
+4. Keep it under 100 words.
+5. End the prompt with the exact phrase: ", correct proportions, DO NOT crop face."
+
+YOUR GENERATED PROMPT:`;
+
+        const result = await model.generateContent(basePrompt);
+        const enhancedPrompt = result.response.text().trim();
+        console.log(`DEBUG - Gemini Enhanced Prompt: ${enhancedPrompt}`);
+        return enhancedPrompt;
+    } catch (error) {
+        // Fallback to basic string building if API fails or key is missing
+        console.error("DEBUG - Gemini Prompt Enhancement failed, using basic prompt.", error);
+        return `Premium fashion item: ${pass.description}. Tailored for ${config.gender === 'male' ? 'Male' : 'Female'} ${config.category === 'kids' ? 'child' : config.category === 'youth' ? 'teenager' : 'adult'} model. Overall style and setting: ${config.pose || 'standing straight'} in ${config.background || 'a studio'}, 8k resolution, photorealistic, premium editorial fashion styling, perfect skin texture, correct proportions, DO NOT crop face.`;
+    }
+}
+
 // Helper function to process a single sequence of generations (passes)
-async function processVariationSequence(passes: any[], config: any, initialHumanImageUri: string, replicateToken: string) {
+async function processVariationSequence(passes: any[], config: any, initialHumanImageUri: string, replicateToken: string, geminiKey: string) {
     let currentHumanImageUri = initialHumanImageUri;
     let finalImageUrl = "";
 
@@ -322,7 +361,7 @@ async function processVariationSequence(passes: any[], config: any, initialHuman
                         garm_img: garmImageUri,
                         human_img: currentHumanImageUri,
                         mask_only: false,
-                        garment_des: `Premium fashion item: ${pass.description}. Tailored for ${config.gender === 'male' ? 'Male' : 'Female'} ${config.category === 'kids' ? 'child' : config.category === 'youth' ? 'teenager' : 'adult'} model. Overall style and setting: ${config.pose || 'standing straight'}. Note: Professional fashion photography, high-end e-commerce look, 8k resolution, photorealistic, premium editorial fashion styling, perfect skin texture, correct proportions, DO NOT crop face.`,
+                        garment_des: await generateEnhancedPrompt(pass, config, geminiKey),
                         disable_safety_checker: true
                     }
                 }),
@@ -468,11 +507,14 @@ app.post("/api/generate", async (req, res) => {
 
         console.log(`DEBUG - Generating ${variations} variations sequentially to avoid Replicate rate limits. Total passes per variation: ${passes.length}`);
 
+        // Extract Gemini API Key from config or environment for prompt enhancement
+        const geminiKey = config.apiKey || process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || "";
+
         // Execute variation sequences sequentially to prevent Replicate 429 Concurrency limits
         const results = [];
         for (let v = 0; v < variations; v++) {
             console.log(`DEBUG - Starting variation ${v + 1} of ${variations}`);
-            const result = await processVariationSequence(passes, config, initialHumanImageUri, replicateToken);
+            const result = await processVariationSequence(passes, config, initialHumanImageUri, replicateToken, geminiKey);
             results.push(result);
         }
 
