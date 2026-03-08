@@ -299,16 +299,19 @@ async function generateEnhancedPrompt(pass: any, config: any, geminiKey: string)
 We need a highly detailed, professional prompt for an AI Virtual Try-On system (IDM-VTON) to generate a realistic product photo.
 
 GARMENT DESCRIPTION: ${pass.description}
-TARGET MODEL: ${config.gender === 'male' ? 'Male' : 'Female'}, ${config.category === 'kids' ? 'child' : config.category === 'youth' ? 'teenager' : 'adult'}
+TARGET MODEL: ${config.gender === 'male' ? 'Male' : 'Female'}, ${config.category === 'kids' ? 'child' : config.category === 'youth' ? 'teenager' : 'adult'}. The model MUST have standard, beautiful fashion-model proportions (tall, elegant, realistic anatomy). 
 REQUESTED POSE/VIBE: ${config.pose || 'standing straight, professional'}
 REQUESTED BACKGROUND: ${config.background || 'clean studio background'}
 
-INSTRUCTIONS:
-1. Write a single, cohesive, highly descriptive paragraph describing the model wearing the garment in the specified pose and background.
-2. Enhance the description with professional photography terms (e.g., "8k resolution", "cinematic lighting", "photorealistic", "ultra-detailed", "Vogue editorial style", "perfect skin texture").
-3. DO NOT include introductory or concluding remarks. Just output the prompt itself.
-4. Keep it under 100 words.
-5. End the prompt with the exact phrase: ", correct proportions, DO NOT crop face."
+CRITICAL INSTRUCTIONS:
+1. You MUST strictly adhere to the REQUESTED POSE. Do not change the pose or vibe.
+2. You MUST strictly adhere to the REQUESTED BACKGROUND. Do not place the model in a different setting.
+3. The model MUST be described as having normal, tall, and realistic proportions. ABSOLUTELY NO dwarf, disproportionate, or short figures.
+4. Write a single, cohesive, highly descriptive paragraph combining these elements.
+5. Enhance with professional photography terms (e.g., "8k resolution", "cinematic lighting", "photorealistic", "ultra-detailed", "Vogue editorial style", "perfect skin texture").
+6. DO NOT include introductory or concluding remarks. Just output the prompt itself.
+7. Keep it under 100 words.
+8. End the prompt EXACTLY with: ", tall fashion model, realistic human proportions, correct anatomy, exact requested pose, exact requested background, DO NOT crop face."
 
 YOUR GENERATED PROMPT:`;
 
@@ -319,7 +322,7 @@ YOUR GENERATED PROMPT:`;
     } catch (error) {
         // Fallback to basic string building if API fails or key is missing
         console.error("DEBUG - Gemini Prompt Enhancement failed, using basic prompt.", error);
-        return `Premium fashion item: ${pass.description}. Tailored for ${config.gender === 'male' ? 'Male' : 'Female'} ${config.category === 'kids' ? 'child' : config.category === 'youth' ? 'teenager' : 'adult'} model. Overall style and setting: ${config.pose || 'standing straight'} in ${config.background || 'a studio'}, 8k resolution, photorealistic, premium editorial fashion styling, perfect skin texture, correct proportions, DO NOT crop face.`;
+        return `Premium fashion item: ${pass.description}. Tailored for ${config.gender === 'male' ? 'Male' : 'Female'} ${config.category === 'kids' ? 'child' : config.category === 'youth' ? 'teenager' : 'adult'} model. Overall style and setting: EXTREMELY STRICT ADHERENCE TO: pose: ${config.pose || 'standing straight'} and background: ${config.background || 'a studio'}. 8k resolution, photorealistic, premium editorial fashion styling, perfect skin texture, tall fashion model, realistic human proportions, correct anatomy, exact requested pose, exact requested background, DO NOT crop face.`;
     }
 }
 
