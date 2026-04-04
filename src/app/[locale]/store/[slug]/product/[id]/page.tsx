@@ -19,14 +19,15 @@ const getProduct = (id: string) => {
   return products.find(p => p.id === id) || products[0];
 };
 
-export default function ProductDetails({ params }: { params: { slug: string, id: string } }) {
-  const product = getProduct(params.id);
+export default function ProductDetails({ params }: { params: Promise<{ slug: string, id: string }> }) {
+  const resolvedParams = React.use(params);
+  const product = getProduct(resolvedParams.id);
   const t = useTranslations('Product');
   const locale = useLocale();
   
   return (
     <div className={styles.container}>
-      <Link href={`/${locale}/store/${params.slug}`} className={styles.backButton}>
+      <Link href={`/${locale}/store/${resolvedParams.slug}`} className={styles.backButton}>
         {t('back')}
       </Link>
       

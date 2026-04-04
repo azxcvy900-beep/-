@@ -67,7 +67,8 @@ const itemVariants = {
   }
 };
 
-export default function StoreHome({ params }: { params: { slug: string } }) {
+export default function StoreHome({ params }: { params: Promise<{ slug: string }> }) {
+  const resolvedParams = React.use(params);
   const t = useTranslations('StoreHome');
 
   return (
@@ -90,7 +91,7 @@ export default function StoreHome({ params }: { params: { slug: string } }) {
       >
         {DUMMY_PRODUCTS.map((product) => (
           <motion.div key={product.id} variants={itemVariants}>
-            <ProductCard slug={params.slug} {...product} />
+            <ProductCard slug={resolvedParams.slug} {...product} />
           </motion.div>
         ))}
       </motion.div>
