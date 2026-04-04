@@ -14,6 +14,8 @@ const firebaseConfig = {
 // Initialize Firebase (singleton pattern to avoid re-initialization in Next.js)
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
+import { getFirestore } from "firebase/firestore";
+
 // Initialize Analytics client-side only
 let analytics: ReturnType<typeof getAnalytics> | null = null;
 if (typeof window !== "undefined") {
@@ -24,4 +26,7 @@ if (typeof window !== "undefined") {
   });
 }
 
-export { app, analytics };
+// Initialize Firestore
+const db = getFirestore(app);
+
+export { app, analytics, db };

@@ -1,9 +1,12 @@
-import React from 'react';
+'use client';
+
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Moon, Sun, Globe, ShoppingCart } from 'lucide-react';
 import { useTheme } from '@/components/providers/ThemeProvider';
+import { useCartStore } from '@/lib/store';
 import styles from './Header.module.css';
 
 interface HeaderProps {
@@ -14,6 +17,14 @@ const Header: React.FC<HeaderProps> = ({ storeName }) => {
   const t = useTranslations('Header');
   const locale = useLocale();
   const { theme, toggleTheme } = useTheme();
+  
+  // Hydration safety for Zustand persist
+  const [mounted, setMounted] = useState(false);
+  const totalItems = useCartStore((state) => state.getTotalItems());
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const nextLocale = locale === 'ar' ? 'en' : 'ar';
 
@@ -58,7 +69,7 @@ const Header: React.FC<HeaderProps> = ({ storeName }) => {
           <Link href={`/${locale}/cart`} className={styles.cartLink}>
             <ShoppingCart size={18} />
             <span className={styles.cartText}>{t('cart')}</span>
-            <span className={styles.cartCount}>0</span>
+            <span className={styles.cartCount}>{mounted ? totalItems : 0}</span>
           </Link>
         </nav>
       </div>

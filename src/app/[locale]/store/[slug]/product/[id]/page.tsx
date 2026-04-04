@@ -1,30 +1,55 @@
-import React from 'react';
+'use client';
+
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
+import { getProductById, Product } from '@/lib/api';
+import { useCartStore } from '@/lib/store';
 import styles from './page.module.css';
-
-// Reuse dummy data or a finder function
-const getProduct = (id: string) => {
-  const products = [
-    {
-      id: '1',
-      name: 'ساعة آبل الذكية الجيل الثامن',
-      price: 150000,
-      description: 'تتميز ساعة Apple Watch Series 8 بمستشعرات وتطبيقات صحية متطورة، تتيح لك إجراء مخطط كهربائية القلب، وقياس معدل نبضات القلب، والأكسجين في الدم، وتتبع التغيرات في درجة الحرارة للحصول على رؤى متقدمة حول الدورة الشهرية.',
-      category: 'إلكترونيات',
-      image: 'https://images.unsplash.com/photo-1546868889-4e0ca0492cb4?w=1200&q=80',
-    },
-  ];
-  return products.find(p => p.id === id) || products[0];
-};
 
 export default function ProductDetails({ params }: { params: Promise<{ slug: string, id: string }> }) {
   const resolvedParams = React.use(params);
-  const product = getProduct(resolvedParams.id);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [quantity, setQuantity] = useState(1);
   const t = useTranslations('Product');
   const locale = useLocale();
+  const addItem = useCartStore((state) => state.addItem);
   
+  useEffect(() => {
+    async function fetchProduct() {
+      const data = await getProductById(resolvedParams.id);
+      setProduct(data);
+      setLoading(false);
+    }
+    fetchProduct();
+  }, [resolvedParams.id]);
+
+  const handleAddToCart = () => {
+    if (product) {
+      // Add the item N times or just use our store. Wait, our store addItem adds 1. 
+      // Let's adapt addItem to accept quantity or we just loop.
+      for (let i = 0; i < quantity; i++) {
+        addItem({
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          image: product.image
+        });
+      }
+      alert('تم إضافة المنتج بنجاح');
+    }
+  };
+
+  if (loading) {
+    return <div style={{ textAlign: 'center', padding: '4rem' }}>جاري التحميل...</div>;
+  }
+
+  if (!product) {
+    return <div style={{ textAlign: 'center', padding: '4rem' }}>المنتج غير موجود.</div>;
+  }
+
   return (
     <div className={styles.container}>
       <Link href={`/${locale}/store/${resolvedParams.slug}`} className={styles.backButton}>
@@ -58,11 +83,11 @@ export default function ProductDetails({ params }: { params: Promise<{ slug: str
           
           <div className={styles.actions}>
             <div className={styles.quantity}>
-               <button>-</button>
-               <span>1</span>
-               <button>+</button>
+               <button onClick={() => setQuantity(Math.max(1, quantity - 1))}>-</button>
+               <span>{quantity}</span>
+               <button onClick={() => setQuantity(quantity + 1)}>+</button>
             </div>
-            <button className={styles.addToCart}>
+            <button className={styles.addToCart} onClick={handleAddToCart}>
               {t('addToCart')}
             </button>
           </div>

@@ -1,53 +1,11 @@
-import React from 'react';
+'use client';
+
+import React, { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
 import ProductCard from '@/components/store/ProductCard/ProductCard';
+import { getStoreProducts, Product } from '@/lib/api';
 import styles from './page.module.css';
-
-const DUMMY_PRODUCTS = [
-  {
-    id: '1',
-    name: 'ساعة آبل الذكية الجيل الثامن',
-    price: 150000,
-    category: 'إلكترونيات',
-    image: 'https://images.unsplash.com/photo-1546868889-4e0ca0492cb4?w=800&q=80',
-  },
-  {
-    id: '2',
-    name: 'سماعات سوني لاسلكية عازلة للضوضاء',
-    price: 120000,
-    category: 'إلكترونيات',
-    image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80',
-  },
-  {
-    id: '3',
-    name: 'كاميرا كانون EOS R6 الاحترافية',
-    price: 850000,
-    category: 'تصوير',
-    image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800&q=80',
-  },
-  {
-    id: '4',
-    name: 'لابتوب أبل ماك بوك برو M3',
-    price: 1200000,
-    category: 'حواسيب',
-    image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&q=80',
-  },
-  {
-    id: '5',
-    name: 'جهاز تحكم بلايستيشن 5 برو',
-    price: 45000,
-    category: 'ألعاب',
-    image: 'https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=800&q=80',
-  },
-  {
-    id: '6',
-    name: 'إضاءة مكتبية ذكية RGB',
-    price: 15000,
-    category: 'ديكور مكتب',
-    image: 'https://images.unsplash.com/photo-1534073828943-f801091bb18c?w=800&q=80',
-  },
-];
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -70,6 +28,17 @@ const itemVariants = {
 export default function StoreHome({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = React.use(params);
   const t = useTranslations('StoreHome');
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadProducts() {
+      const data = await getStoreProducts(resolvedParams.slug);
+      setProducts(data);
+      setLoading(false);
+    }
+    loadProducts();
+  }, [resolvedParams.slug]);
 
   return (
     <div className={styles.container}>
@@ -83,18 +52,22 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
         <p className={styles.subtitle}>{t('subtitle')}</p>
       </motion.header>
       
-      <motion.div 
-        className={styles.grid}
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
-        {DUMMY_PRODUCTS.map((product) => (
-          <motion.div key={product.id} variants={itemVariants}>
-            <ProductCard slug={resolvedParams.slug} {...product} />
-          </motion.div>
-        ))}
-      </motion.div>
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '2rem' }}>جاري التحميل...</div>
+      ) : (
+        <motion.div 
+          className={styles.grid}
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          {products.map((product) => (
+            <motion.div key={product.id} variants={itemVariants}>
+              <ProductCard slug={resolvedParams.slug} {...product} />
+            </motion.div>
+          ))}
+        </motion.div>
+      )}
     </div>
   );
 }
