@@ -1,0 +1,22 @@
+{
+  "Header": {
+    "cart": "Cart"
+  },
+  "StoreHome": {
+    "title": "All Products",
+    "subtitle": "Discover the best offers and exclusive products"
+  },
+  "Product": {
+    "addToCart": "Add to Cart",
+    "currency": "YER",
+    "back": "← Back to Store",
+    "description": "Product Description"
+  },
+  "Landing": {
+    "title": "Buyers Platform",
+    "subtitle": "The ultimate destination for merchants in Yemen",
+    "cta": "Browse Demo Store",
+    "features": "Why Buyers?",
+    "sub_features": "Ease, speed, and integrated technical support"
+  }
+}

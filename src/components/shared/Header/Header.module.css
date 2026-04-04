@@ -1,0 +1,85 @@
+.header {
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--card-border);
+  padding: 1rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(8px);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--primary);
+  letter-spacing: -0.02em;
+}
+
+.nav {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.iconButton {
+  font-size: 1.25rem;
+  padding: 0.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease;
+}
+
+.iconButton:hover {
+  background: var(--muted);
+}
+
+.localeLink {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--secondary);
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.localeLink:hover {
+  background: var(--muted);
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.cartLink {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.cartLink:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+}
+
+.cartCount {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.1rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+}
