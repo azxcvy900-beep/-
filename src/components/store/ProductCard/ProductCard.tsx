@@ -53,7 +53,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, slug, name, price, image,
             whileTap={{ scale: 0.95 }}
           >
             <Plus size={16} />
-            <span>{t('addToCart')}</span>
+            <span className={styles.hideTextMobile}>{t('addToCart')}</span>
           </motion.button>
         </div>
       </div>

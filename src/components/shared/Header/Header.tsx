@@ -63,12 +63,12 @@ const Header: React.FC<HeaderProps> = ({ storeName }) => {
           
           <Link href={`/${nextLocale}`} className={styles.localeLink}>
             <Globe size={16} />
-            <span>{locale === 'ar' ? 'English' : 'العربية'}</span>
+            <span className={styles.hideOnMobile}>{locale === 'ar' ? 'English' : 'العربية'}</span>
           </Link>
 
           <Link href={`/${locale}/cart`} className={styles.cartLink}>
             <ShoppingCart size={18} />
-            <span className={styles.cartText}>{t('cart')}</span>
+            <span className={`${styles.cartText} ${styles.hideOnMobile}`}>{t('cart')}</span>
             <span className={styles.cartCount}>{mounted ? totalItems : 0}</span>
           </Link>
         </nav>

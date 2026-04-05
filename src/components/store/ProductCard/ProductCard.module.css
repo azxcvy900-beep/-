@@ -108,3 +108,26 @@
 .addButton:hover {
   filter: brightness(1.1);
 }
+
+@media (max-width: 640px) {
+  .info, .contentFooter {
+    padding: 0.75rem;
+  }
+  
+  .title {
+    font-size: 1rem;
+    min-height: 2.4em;
+  }
+  
+  .price {
+    font-size: 1rem;
+  }
+
+  .addButton {
+    padding: 0.5rem;
+  }
+
+  .hideTextMobile {
+    display: none;
+  }
+}
