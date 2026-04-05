@@ -21,6 +21,10 @@ export const metadata: Metadata = {
   description: "خدمات متكاملة للتجار في اليمن",
 };
 
+export function generateStaticParams() {
+  return [{ locale: 'ar' }, { locale: 'en' }];
+}
+
 export default async function RootLayout({
   children,
   params,
