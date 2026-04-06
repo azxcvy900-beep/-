@@ -36,9 +36,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       setLoading(false);
       
       // If we are on an admin page that isn't login, and not logged in, redirect
+      /* 
       if (!currentUser && !pathname.includes('/admin/login')) {
         router.push(`/${locale}/admin/login`);
       }
+      */
     });
 
     return () => unsubscribe();

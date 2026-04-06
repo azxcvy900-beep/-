@@ -116,6 +116,15 @@ export default function AdminLoginPage() {
               </>
             )}
           </button>
+
+          <button 
+            type="button"
+            className={styles.loginBtn}
+            style={{ marginTop: '0.5rem', background: 'rgba(var(--primary-rgb), 0.1)', color: 'var(--primary)' }}
+            onClick={() => router.push(`/${locale}/admin/dashboard`)}
+          >
+            دخول سريع (للتجربة)
+          </button>
         </form>
       </motion.div>
     </div>
