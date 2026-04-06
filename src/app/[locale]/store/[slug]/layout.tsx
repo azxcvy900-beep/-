@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Header from '@/components/shared/Header/Header';
+import { getStoreInfo } from '@/lib/api';
 
 interface StoreLayoutProps {
   children: React.ReactNode;
@@ -8,7 +9,8 @@ interface StoreLayoutProps {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const storeName = slug === 'demo' ? 'متجر بايرز التجريبي' : slug.toUpperCase();
+  const store = await getStoreInfo(slug);
+  const storeName = store?.name || (slug === 'demo' ? 'متجر بايرز التجريبي' : slug.toUpperCase());
   
   return {
     title: storeName,
@@ -22,12 +24,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function StoreLayout({ children, params }: StoreLayoutProps) {
   const { slug } = await params;
-  // In a real app, fetch store info based on slug
-  const storeName = slug === 'demo' ? 'بايرز ستور' : slug.toUpperCase();
+  const store = await getStoreInfo(slug);
   
   return (
     <>
-      <Header storeName={storeName} />
+      <Header 
+        storeName={store?.name || slug.toUpperCase()} 
+        storeLogo={store?.logo}
+      />
       <main style={{ minHeight: '100vh', padding: '2rem 0' }}>
         {children}
       </main>

@@ -7,13 +7,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Moon, Sun, Globe, ShoppingCart, ClipboardList, ShoppingBag } from 'lucide-react';
 import { useTheme } from '@/components/providers/ThemeProvider';
 import { useCartStore } from '@/lib/store';
+import Image from 'next/image';
 import styles from './Header.module.css';
 
 interface HeaderProps {
   storeName: string;
+  storeLogo?: string | null;
 }
 
-const Header: React.FC<HeaderProps> = ({ storeName }) => {
+const Header: React.FC<HeaderProps> = ({ storeName, storeLogo }) => {
   const t = useTranslations('Header');
   const ot = useTranslations('Orders');
   const locale = useLocale();
@@ -38,7 +40,16 @@ const Header: React.FC<HeaderProps> = ({ storeName }) => {
           transition={{ duration: 0.5 }}
         >
           <Link href={`/${locale}`} className={styles.logo}>
-            {storeName}
+            {storeLogo ? (
+              <img 
+                src={storeLogo} 
+                alt={storeName} 
+                className={styles.logoImage}
+                style={{ height: '40px', width: 'auto', objectFit: 'contain' }}
+              />
+            ) : (
+              storeName
+            )}
           </Link>
         </motion.div>
         

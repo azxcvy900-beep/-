@@ -80,7 +80,15 @@ const Footer = () => {
               <Link href={`/${locale}`} className={styles.logo}>
                 {storeInfo ? (
                   <div className={styles.storeBranding}>
-                    <Store size={22} className={styles.storeIcon} />
+                    {storeInfo.logo ? (
+                      <img 
+                        src={storeInfo.logo} 
+                        alt={storeInfo.name} 
+                        style={{ height: '32px', width: 'auto', objectFit: 'contain', borderRadius: '4px' }} 
+                      />
+                    ) : (
+                      <Store size={22} className={styles.storeIcon} />
+                    )}
                     <span>{storeInfo.name}</span>
                   </div>
                 ) : (

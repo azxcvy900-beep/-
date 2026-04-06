@@ -11,10 +11,12 @@ import {
   MessageCircle, 
   Save,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Image as ImageIcon,
+  X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getStoreInfo, updateStoreInfo, StoreInfo } from '@/lib/api';
+import { getStoreInfo, updateStoreInfo, uploadStoreLogo, StoreInfo } from '@/lib/api';
 import styles from './settings.module.css';
 
 export default function MerchantSettings() {
@@ -26,12 +28,17 @@ export default function MerchantSettings() {
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
 
+  // Logo States
+  const [selectedLogo, setSelectedLogo] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+
   useEffect(() => {
     async function loadStore() {
       try {
         const data = await getStoreInfo('demo');
         if (data) {
           setStoreData(data);
+          setLogoPreview(data.logo || null);
         } else {
           // Initialize with empty data if nothing found
           setStoreData({
@@ -51,6 +58,18 @@ export default function MerchantSettings() {
     loadStore();
   }, []);
 
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedLogo(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!storeData) return;
@@ -59,8 +78,21 @@ export default function MerchantSettings() {
     setSuccess(false);
 
     try {
-      // Ensure we are saving to the correct slug
-      await updateStoreInfo('demo', storeData);
+      let finalLogoUrl = storeData.logo;
+
+      // 1. Upload new logo if selected
+      if (selectedLogo) {
+        finalLogoUrl = await uploadStoreLogo(selectedLogo, 'demo');
+      }
+
+      const updatedData = {
+        ...storeData,
+        logo: finalLogoUrl
+      };
+
+      // 2. Save all info
+      await updateStoreInfo('demo', updatedData);
+      setStoreData(updatedData);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (error) {
@@ -83,6 +115,37 @@ export default function MerchantSettings() {
       </div>
 
       <form onSubmit={handleSave} className={styles.card}>
+        {/* قسم الشعار */}
+        <div className={styles.section} style={{ borderBottom: '1px solid rgba(128,128,128,0.1)', paddingBottom: '2rem' }}>
+          <h3 className={styles.sectionTitle}>شعار المتجر</h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+            <div style={{ position: 'relative', width: '100px', height: '100px', borderRadius: '50%', backgroundColor: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', border: '2px solid white', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
+              {logoPreview ? (
+                <img src={logoPreview} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Logo Preview" />
+              ) : (
+                <ImageIcon size={40} style={{ color: '#9ca3af' }} />
+              )}
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <input 
+                type="file" 
+                id="logo-upload" 
+                accept="image/*" 
+                onChange={handleLogoChange}
+                style={{ display: 'none' }} 
+              />
+              <label 
+                htmlFor="logo-upload" 
+                style={{ padding: '0.6rem 1.2rem', backgroundColor: '#3b82f6', color: 'white', borderRadius: '8px', fontWeight: 700, cursor: 'pointer', display: 'inline-block', fontSize: '0.9rem' }}
+              >
+                تغيير الشعار
+              </label>
+              <p style={{ fontSize: '0.75rem', color: '#6b7280' }}>يفضل استخدام صورة مربعة بحجم 512x512 بكسل.</p>
+            </div>
+          </div>
+        </div>
+
         <div className={styles.section}>
           <h3 className={styles.sectionTitle}>المعلومات الأساسية</h3>
           <div className={styles.formGrid}>

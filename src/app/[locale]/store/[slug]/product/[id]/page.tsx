@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { Heart, Share2, MessageCircle, ShoppingCart, Zap, CheckCircle2, RotateCcw, Trash2, Store } from 'lucide-react';
@@ -143,6 +144,27 @@ export default function ProductDetails({ params }: { params: Promise<{ slug: str
           
           <div className={styles.description}>
             <p>{product.description}</p>
+          </div>
+
+          {/* معلومات البائع - مستوحى من المواقع العالمية */}
+          <div style={{ margin: '1.5rem 0', padding: '1rem', background: 'rgba(var(--primary-rgb), 0.05)', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '1rem', border: '1px solid rgba(var(--primary-rgb), 0.1)' }}>
+            <div style={{ background: 'white', padding: '4px', borderRadius: '12px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+              {store?.logo ? (
+                <img src={store.logo} alt={store.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <Store size={24} color="#3b82f6" />
+              )}
+            </div>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '2px' }}>البائع:</p>
+              <h4 style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{store?.name || 'متجر معتمد'}</h4>
+            </div>
+            <Link 
+              href={`/${locale}/store/${resolvedParams.slug}`}
+              style={{ fontSize: '0.8rem', color: '#3b82f6', fontWeight: 600, padding: '4px 12px', borderRadius: '20px', border: '1px solid #3b82f6' }}
+            >
+              زيارة المتجر
+            </Link>
           </div>
 
           {product.options && product.options.map((option) => (

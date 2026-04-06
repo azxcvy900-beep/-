@@ -204,6 +204,19 @@ export async function uploadProductImage(file: File, storeSlug: string): Promise
   }
 }
 
+// Upload store logo to Firebase Storage
+export async function uploadStoreLogo(file: File, storeSlug: string): Promise<string> {
+  try {
+    const fileName = `${Date.now()}_logo_${file.name.replace(/\s+/g, '_')}`;
+    const storageRef = ref(storage, `stores/${storeSlug}/logo/${fileName}`);
+    const snapshot = await uploadBytes(storageRef, file);
+    return await getDownloadURL(snapshot.ref);
+  } catch (error) {
+    console.error("Error uploading logo:", error);
+    throw error;
+  }
+}
+
 // Add a new product
 export async function addProduct(product: Omit<Product, 'id'>): Promise<string> {
   try {
