@@ -4,9 +4,9 @@ import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useTranslations, useLocale } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { Heart, Share2, MessageCircle, ShoppingCart, Zap, CheckCircle2, RotateCcw, Trash2 } from 'lucide-react';
+import { Heart, Share2, MessageCircle, ShoppingCart, Zap, CheckCircle2, RotateCcw, Trash2, Store } from 'lucide-react';
 import BackButton from '@/components/shared/BackButton/BackButton';
-import { getProductById, getRelatedProducts, Product } from '@/lib/api';
+import { getProductById, getRelatedProducts, getStoreInfo, Product, StoreInfo } from '@/lib/api';
 import { useCartStore } from '@/lib/store';
 import ProductCard from '@/components/store/ProductCard/ProductCard';
 import styles from './page.module.css';
@@ -15,6 +15,7 @@ export default function ProductDetails({ params }: { params: Promise<{ slug: str
   const resolvedParams = React.use(params);
   const router = useRouter();
   const [product, setProduct] = useState<Product | null>(null);
+  const [store, setStore] = useState<StoreInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
@@ -27,16 +28,22 @@ export default function ProductDetails({ params }: { params: Promise<{ slug: str
   
   useEffect(() => {
     async function fetchData() {
-      // Fetching product and related products in parallel
-      const productPromise = getProductById(resolvedParams.id);
-      const productData = await productPromise;
+      // Fetching product, store info, and related products
+      const [productData, storeData] = await Promise.all([
+        getProductById(resolvedParams.id),
+        getStoreInfo(resolvedParams.slug)
+      ]);
 
       if (productData) {
         setProduct(productData);
-        // Start related products fetch once we know the category
         const related = await getRelatedProducts(productData.category, productData.id, resolvedParams.slug, 4);
         setRelatedProducts(related);
       }
+      
+      if (storeData) {
+        setStore(storeData);
+      }
+      
       setLoading(false);
     }
     fetchData();
