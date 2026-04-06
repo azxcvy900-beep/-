@@ -55,6 +55,9 @@ export default function CheckoutPage() {
     label: 'home' as 'home' | 'work' | 'other'
   });
 
+  const [longPressId, setLongPressId] = useState<string | null>(null);
+  const longPressTimer = React.useRef<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
     setMounted(true);
     
@@ -62,14 +65,58 @@ export default function CheckoutPage() {
       router.push(`/${locale}/cart`);
     }
 
-    if (mounted && addresses.length === 0) {
+    // Default to first address if available
+    if (mounted && addresses.length > 0 && !selectedAddressId) {
+      const first = addresses[0];
+      setSelectedAddress(first.id);
+      setFormData(first);
+    } else if (mounted && addresses.length === 0) {
       setIsAddingNew(true);
     }
-  }, [mounted, items, router, locale, addresses.length]);
+  }, [mounted, items, router, locale, addresses, selectedAddressId, setSelectedAddress]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    // Clear selection if user modifies data (optional, but safer)
+    if (selectedAddressId) {
+      setSelectedAddress('');
+    }
+  };
+
+  const handleSelectAddress = (addr: UserInfo) => {
+    setSelectedAddress(addr.id);
+    setFormData({
+      fullName: addr.fullName,
+      phone: addr.phone,
+      city: addr.city,
+      region: addr.region,
+      details: addr.details,
+      label: addr.label
+    });
+    setIsAddingNew(false);
+  };
+
+  const startLongPress = (id: string) => {
+    setLongPressId(id);
+    longPressTimer.current = setTimeout(() => {
+      if (confirm(t('confirmDeleteAddress') || 'Delete this address?')) {
+        removeAddress(id);
+        if (selectedAddressId === id) {
+          setFormData({ fullName: '', phone: '', city: '', region: '', details: '', label: 'home' });
+          setIsAddingNew(true);
+        }
+      }
+      setLongPressId(null);
+    }, 800);
+  };
+
+  const cancelLongPress = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+    setLongPressId(null);
   };
 
   const handleAddAddress = (e: React.MouseEvent) => {
@@ -86,15 +133,7 @@ export default function CheckoutPage() {
 
     addAddress(newAddress);
     setIsAddingNew(false);
-    // Reset form
-    setFormData({
-      fullName: '',
-      phone: '',
-      city: '',
-      region: '',
-      details: '',
-      label: 'home'
-    });
+    setSelectedAddress(newAddress.id);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -112,8 +151,8 @@ export default function CheckoutPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedAddressId && !isAddingNew) {
-      alert(t('selectAddress'));
+    if (!selectedAddressId && (!formData.fullName || !formData.phone)) {
+      alert(t('errorIncompleteInfo'));
       return;
     }
 
@@ -136,9 +175,9 @@ export default function CheckoutPage() {
 
   const getAddressIcon = (label: string) => {
     switch (label) {
-      case 'home': return <Home size={18} />;
-      case 'work': return <Briefcase size={18} />;
-      default: return <MapPin size={18} />;
+      case 'home': return <Home size={24} />;
+      case 'work': return <Briefcase size={24} />;
+      default: return <MapPin size={24} />;
     }
   };
 
@@ -163,155 +202,154 @@ export default function CheckoutPage() {
           <div className={styles.card}>
             <h3>{t('customerInfo')}</h3>
             
-            {!isAddingNew && addresses.length > 0 ? (
-              <>
-                <div className={styles.addressGrid}>
-                  {addresses.map((addr) => (
-                    <motion.div
-                      key={addr.id}
-                      className={`${styles.addressCard} ${selectedAddressId === addr.id ? styles.addressSelected : ''}`}
-                      onClick={() => setSelectedAddress(addr.id)}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <div className={styles.addressLabel}>
-                        {getAddressIcon(addr.label)}
-                        {t(addr.label)}
-                      </div>
-                      <div className={styles.addressName}>{addr.fullName}</div>
-                      <div className={styles.addressLocality}>{addr.city}, {addr.region}</div>
-                      <div className={styles.addressDetails}>{addr.details}</div>
-                      <div className={styles.addressPhone}>{addr.phone}</div>
-                      
-                      {selectedAddressId === addr.id && (
-                        <CheckCircle2 className={styles.checkIcon} size={18} />
-                      )}
-                      
-                      <button 
-                        className={styles.deleteAddress}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeAddress(addr.id);
-                        }}
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </motion.div>
-                  ))}
-                  
-                  <button 
-                    type="button"
-                    className={`${styles.addressCard} ${styles.addAddressBtn}`}
-                    onClick={() => setIsAddingNew(true)}
+            {/* Address Icon Row */}
+            <div className={styles.addressRow}>
+              {addresses.map((addr) => (
+                <div key={addr.id} className={styles.addressIconWrapper}>
+                  <motion.div
+                    className={`${styles.iconCircle} ${selectedAddressId === addr.id ? styles.iconCircleActive : ''}`}
+                    onClick={() => handleSelectAddress(addr)}
+                    onMouseDown={() => startLongPress(addr.id)}
+                    onMouseUp={cancelLongPress}
+                    onMouseLeave={cancelLongPress}
+                    onTouchStart={() => startLongPress(addr.id)}
+                    onTouchEnd={cancelLongPress}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                   >
-                    <Plus size={24} />
-                    <span>{t('addAddress')}</span>
-                  </button>
+                    {getAddressIcon(addr.label)}
+                    {selectedAddressId === addr.id && (
+                      <motion.div className={styles.iconSelectionMarker} layoutId="marker">
+                        <CheckCircle2 size={14} />
+                      </motion.div>
+                    )}
+                    {longPressId === addr.id && (
+                      <motion.div 
+                        className={styles.longPressPulse}
+                        animate={{ scale: [1, 1.2, 1], opacity: [0, 0.5, 0] }}
+                        transition={{ duration: 0.8, repeat: Infinity }}
+                      />
+                    )}
+                  </motion.div>
+                  <span className={`${styles.iconLabel} ${selectedAddressId === addr.id ? styles.iconLabelActive : ''}`}>
+                    {t(addr.label)}
+                  </span>
                 </div>
-              </>
-            ) : (
-              <div className={styles.newAddressForm}>
-                <div className={styles.labelSwitcher}>
-                  {(['home', 'work', 'other'] as const).map((l) => (
-                    <button
-                      key={l}
-                      type="button"
-                      className={`${styles.labelOption} ${formData.label === l ? styles.labelActive : ''}`}
-                      onClick={() => setFormData(prev => ({ ...prev, label: l }))}
-                    >
-                      {getAddressIcon(l)}
-                      {t(l)}
-                    </button>
-                  ))}
-                </div>
+              ))}
+              
+              <div className={styles.addressIconWrapper}>
+                <motion.div 
+                  className={`${styles.iconCircle} ${styles.addIconCircle} ${isAddingNew ? styles.iconCircleActive : ''}`}
+                  onClick={() => {
+                    setIsAddingNew(true);
+                    setSelectedAddress('');
+                    setFormData({ fullName: '', phone: '', city: '', region: '', details: '', label: 'home' });
+                  }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Plus size={24} />
+                </motion.div>
+                <span className={`${styles.iconLabel} ${isAddingNew ? styles.iconLabelActive : ''}`}>
+                  {t('addAddress')}
+                </span>
+              </div>
+            </div>
 
+            {/* Address Form (Always Visible, Dynamic Content) */}
+            <div className={styles.newAddressForm}>
+              <div className={styles.labelSwitcher}>
+                {(['home', 'work', 'other'] as const).map((l) => (
+                  <button
+                    key={l}
+                    type="button"
+                    className={`${styles.labelOption} ${formData.label === l ? styles.labelActive : ''}`}
+                    onClick={() => setFormData(prev => ({ ...prev, label: l }))}
+                  >
+                    {l === 'home' && <Home size={16} />}
+                    {l === 'work' && <Briefcase size={16} />}
+                    {l === 'other' && <MapPin size={16} />}
+                    {t(l)}
+                  </button>
+                ))}
+              </div>
+
+              <div className={styles.inputGroup}>
+                <label htmlFor="fullName">{t('fullName')}</label>
+                <input
+                  type="text"
+                  id="fullName"
+                  name="fullName"
+                  required
+                  value={formData.fullName}
+                  onChange={handleInputChange}
+                  placeholder={t('fullNamePlaceholder')}
+                />
+              </div>
+
+              <div className={styles.formGrid}>
                 <div className={styles.inputGroup}>
-                  <label htmlFor="fullName">{t('fullName')}</label>
+                  <label htmlFor="city">{t('city')}</label>
                   <input
                     type="text"
-                    id="fullName"
-                    name="fullName"
-                    required={isAddingNew}
-                    value={formData.fullName}
+                    id="city"
+                    name="city"
+                    required
+                    value={formData.city}
                     onChange={handleInputChange}
-                    placeholder={t('fullNamePlaceholder')}
+                    placeholder={t('city')}
                   />
                 </div>
-
-                <div className={styles.formGrid}>
-                  <div className={styles.inputGroup}>
-                    <label htmlFor="city">{t('city')}</label>
-                    <input
-                      type="text"
-                      id="city"
-                      name="city"
-                      required={isAddingNew}
-                      value={formData.city}
-                      onChange={handleInputChange}
-                      placeholder={t('city')}
-                    />
-                  </div>
-                  <div className={styles.inputGroup}>
-                    <label htmlFor="region">{t('region')}</label>
-                    <input
-                      type="text"
-                      id="region"
-                      name="region"
-                      required={isAddingNew}
-                      value={formData.region}
-                      onChange={handleInputChange}
-                      placeholder={t('region')}
-                    />
-                  </div>
-                </div>
-
                 <div className={styles.inputGroup}>
-                  <label htmlFor="phone">{t('phone')}</label>
+                  <label htmlFor="region">{t('region')}</label>
                   <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    required={isAddingNew}
-                    value={formData.phone}
+                    type="text"
+                    id="region"
+                    name="region"
+                    required
+                    value={formData.region}
                     onChange={handleInputChange}
-                    placeholder="77XXXXXXX"
+                    placeholder={t('region')}
                   />
-                </div>
-                
-                <div className={styles.inputGroup}>
-                  <label htmlFor="details">{t('extraDetails')}</label>
-                  <textarea
-                    id="details"
-                    name="details"
-                    rows={2}
-                    value={formData.details}
-                    onChange={handleInputChange}
-                    placeholder={t('addressPlaceholder')}
-                  />
-                </div>
-
-                <div style={{ display: 'flex', gap: '1rem' }}>
-                  <button 
-                    type="button" 
-                    className={styles.placeOrderBtn}
-                    onClick={handleAddAddress}
-                    style={{ flex: 2 }}
-                  >
-                    {t('addAddress')}
-                  </button>
-                  {addresses.length > 0 && (
-                    <button 
-                      type="button" 
-                      className={styles.placeOrderBtn}
-                      onClick={() => setIsAddingNew(false)}
-                      style={{ flex: 1, background: 'var(--muted)', color: 'var(--foreground)' }}
-                    >
-                      {t('back')}
-                    </button>
-                  )}
                 </div>
               </div>
-            )}
+
+              <div className={styles.inputGroup}>
+                <label htmlFor="phone">{t('phone')}</label>
+                <input
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  required
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  placeholder="77XXXXXXX"
+                />
+              </div>
+              
+              <div className={styles.inputGroup}>
+                <label htmlFor="details">{t('extraDetails')}</label>
+                <textarea
+                  id="details"
+                  name="details"
+                  rows={2}
+                  value={formData.details}
+                  onChange={handleInputChange}
+                  placeholder={t('addressPlaceholder')}
+                />
+              </div>
+
+              {isAddingNew && (
+                <button 
+                  type="button" 
+                  className={styles.placeOrderBtn}
+                  onClick={handleAddAddress}
+                  style={{ marginBottom: '1rem' }}
+                >
+                  {t('addAddress')}
+                </button>
+              )}
+            </div>
           </div>
 
           <div className={styles.card}>

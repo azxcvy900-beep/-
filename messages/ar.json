@@ -32,6 +32,8 @@
     "other": "أخرى",
     "addAddress": "إضافة عنوان جديد",
     "selectAddress": "اختر عنوان التوصيل",
+    "confirmDeleteAddress": "هل أنت متأكد من حذف هذا العنوان؟",
+    "errorIncompleteInfo": "يرجى إكمال بيانات العنوان المطلوبة.",
     "paymentMethod": "طريقة الدفع",
     "electronicPayment": "دفع إلكتروني",
     "electronicPaymentDesc": "الدفع عبر المحافظ الإلكترونية أو البطاقات (قريباً)",

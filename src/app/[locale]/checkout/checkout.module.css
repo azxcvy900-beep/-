@@ -81,70 +81,129 @@
   box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
 }
 
-.addressGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1rem;
+.addressRow {
+  display: flex;
+  gap: 1.25rem;
+  padding: 0.5rem 0.25rem;
   margin-bottom: 2rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
-.addressCard {
-  position: relative;
-  background: var(--bg-card);
-  border: 2px solid rgba(128, 128, 128, 0.1);
-  border-radius: 16px;
-  padding: 1.25rem;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+.addressRow::-webkit-scrollbar {
+  display: none;
+}
+
+.addressIconWrapper {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-}
-
-.addressCard:hover {
-  border-color: var(--primary);
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-}
-
-.addressSelected {
-  border-color: var(--primary);
-  background: rgba(var(--primary-rgb), 0.03);
-  box-shadow: 0 8px 15px rgba(var(--primary-rgb), 0.1);
-}
-
-.addressLabel {
-  display: flex;
   align-items: center;
   gap: 0.5rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.iconCircle {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 2px solid rgba(128, 128, 128, 0.1);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.iconCircleActive {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+  box-shadow: 0 8px 20px rgba(var(--primary-rgb), 0.3);
+  transform: scale(1.1);
+}
+
+.iconLabel {
+  font-size: 0.75rem;
   font-weight: 700;
-  color: var(--primary);
-  font-size: 0.85rem;
+  color: var(--text-secondary);
   text-transform: uppercase;
-  margin-bottom: 0.25rem;
+  transition: color 0.3s ease;
 }
 
-.addressName {
+.iconLabelActive {
+  color: var(--primary);
+}
+
+.iconSelectionMarker {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background: var(--primary);
+  color: white;
+  border-radius: 50%;
+  padding: 2px;
+  border: 2px solid var(--bg-card);
+}
+
+.addIconCircle {
+  border-style: dashed;
+  background: transparent;
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+.addIconCircle:hover {
+  opacity: 1;
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.deleteTooltip {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ef4444;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.7rem;
   font-weight: 700;
-  font-size: 1rem;
-  color: var(--text-primary);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 10;
 }
 
-.addressLocality {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  font-weight: 600;
+.deleteTooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: #ef4444;
 }
 
-.addressDetails {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  opacity: 0.8;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+.longPressPulse {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid #ef4444;
+  opacity: 0;
+}
+
+.newAddressForm {
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .deleteAddress {
