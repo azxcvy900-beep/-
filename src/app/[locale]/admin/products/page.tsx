@@ -48,10 +48,12 @@ export default function MerchantProducts() {
   const [formData, setFormData] = useState({
     name: '',
     price: '',
+    originalPrice: '',
     category: '',
     image: '',
     description: '',
-    storeSlug: 'demo'
+    storeSlug: 'demo',
+    stockCount: '0'
   });
 
   useEffect(() => {
@@ -87,20 +89,24 @@ export default function MerchantProducts() {
       setFormData({
         name: product.name,
         price: product.price.toString(),
+        originalPrice: product.originalPrice?.toString() || '',
         category: product.category,
         image: product.image,
         description: product.description || '',
-        storeSlug: product.storeSlug
+        storeSlug: product.storeSlug,
+        stockCount: product.stockCount.toString()
       });
     } else {
       setEditingProduct(null);
       setFormData({
         name: '',
         price: '',
+        originalPrice: '',
         category: storeCategories.length > 0 ? storeCategories[0].name : '',
         image: '',
         description: '',
-        storeSlug: 'demo'
+        storeSlug: 'demo',
+        stockCount: '0'
       });
     }
     setIsModalOpen(true);
@@ -138,16 +144,21 @@ export default function MerchantProducts() {
         finalImageUrl = await uploadProductImage(selectedFile, formData.storeSlug);
       }
 
+      const stockNum = parseInt(formData.stockCount) || 0;
+
       const productData = {
         ...formData,
         image: finalImageUrl,
         price: parseFloat(formData.price),
+        originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
+        stockCount: stockNum,
+        inStock: stockNum > 0
       };
 
       if (editingProduct) {
-        await updateProduct(editingProduct.id, productData);
+        await updateProduct(editingProduct.id, productData as any);
       } else {
-        await addProduct(productData);
+        await addProduct(productData as any);
       }
       await loadData();
       handleCloseModal();
@@ -207,23 +218,45 @@ export default function MerchantProducts() {
                 <th>{t('products.name')}</th>
                 <th>{t('products.category')}</th>
                 <th>{t('products.price')}</th>
+                <th>المخزون</th>
                 <th>الإجراءات</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={4} style={{ textAlign: 'center', padding: '3rem' }}>جاري التحميل...</td></tr>
+                <tr><td colSpan={5} style={{ textAlign: 'center', padding: '3rem' }}>جاري التحميل...</td></tr>
               ) : filteredProducts.length > 0 ? (
                 filteredProducts.map((p) => (
                   <tr key={p.id}>
                     <td>
                       <div className={styles.productInfo}>
-                        <img src={p.image} className={styles.productImage} alt={p.name} />
+                        <div style={{ position: 'relative' }}>
+                          <img src={p.image} className={styles.productImage} alt={p.name} />
+                          {p.originalPrice && p.originalPrice > p.price && (
+                            <span style={{ position: 'absolute', top: '-5px', right: '-5px', background: '#ef4444', color: 'white', fontSize: '0.6rem', padding: '2px 4px', borderRadius: '4px', fontWeight: 'bold' }}>SALE</span>
+                          )}
+                        </div>
                         <span className={styles.productName}>{p.name}</span>
                       </div>
                     </td>
                     <td>{p.category}</td>
-                    <td>{p.price.toLocaleString()} ر.ي</td>
+                    <td>
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span>{p.price.toLocaleString()} ر.ي</span>
+                        {p.originalPrice && (
+                          <span style={{ fontSize: '0.8rem', color: '#9ca3af', textDecoration: 'line-through' }}>
+                            {p.originalPrice.toLocaleString()} ر.ي
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td>
+                      {p.stockCount <= 0 ? (
+                        <span style={{ color: '#ef4444', fontWeight: 600, fontSize: '0.85rem', background: 'rgba(239, 68, 68, 0.1)', padding: '4px 8px', borderRadius: '6px' }}>نفد</span>
+                      ) : (
+                        <span style={{ color: '#10b981', fontWeight: 600, fontSize: '0.85rem', background: 'rgba(16, 185, 129, 0.1)', padding: '4px 8px', borderRadius: '6px' }}>{p.stockCount} متوفر</span>
+                      )}
+                    </td>
                     <td>
                       <div className={styles.actions}>
                         <button className={`${styles.actionBtn} ${styles.editBtn}`} onClick={() => handleOpenModal(p)}>
@@ -237,7 +270,7 @@ export default function MerchantProducts() {
                   </tr>
                 ))
               ) : (
-                <tr><td colSpan={4} style={{ textAlign: 'center', padding: '3rem' }}>لا توجد منتجات بعد.</td></tr>
+                <tr><td colSpan={5} style={{ textAlign: 'center', padding: '3rem' }}>لا توجد منتجات بعد.</td></tr>
               )}
             </tbody>
           </table>
@@ -275,8 +308,8 @@ export default function MerchantProducts() {
                     />
                   </div>
                   
-                  <div className={styles.inputGroup}>
-                    <label>{t('products.price')} (ر.ي)</label>
+                   <div className={styles.inputGroup}>
+                    <label>السعر الحالي (ر.ي)</label>
                     <input 
                       type="number"
                       className={styles.input}
@@ -287,11 +320,41 @@ export default function MerchantProducts() {
                   </div>
 
                   <div className={styles.inputGroup}>
-                    <label>{t('products.category')}</label>
+                    <label>السعر السابق (اختياري)</label>
                     <input 
+                      type="number"
+                      className={styles.input}
+                      placeholder="لإظهار خصم..."
+                      value={formData.originalPrice}
+                      onChange={(e) => setFormData({...formData, originalPrice: e.target.value})}
+                    />
+                  </div>
+
+                  <div className={styles.inputGroup}>
+                    <label>{t('products.category')}</label>
+                    <select 
                       className={styles.input}
                       value={formData.category}
                       onChange={(e) => setFormData({...formData, category: e.target.value})}
+                      required
+                    >
+                      {storeCategories.length > 0 ? (
+                        storeCategories.map(cat => (
+                          <option key={cat.id} value={cat.name}>{cat.name}</option>
+                        ))
+                      ) : (
+                        <option value="">لا توجد أقسام - يرجى إضافة قسم أولاً</option>
+                      )}
+                    </select>
+                  </div>
+
+                  <div className={styles.inputGroup}>
+                    <label>الكمية المتوفرة</label>
+                    <input 
+                      type="number"
+                      className={styles.input}
+                      value={formData.stockCount}
+                      onChange={(e) => setFormData({...formData, stockCount: e.target.value})}
                       required
                     />
                   </div>

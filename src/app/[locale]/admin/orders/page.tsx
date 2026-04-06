@@ -12,7 +12,9 @@ import {
   Truck, 
   XCircle,
   ExternalLink,
-  ChevronRight
+  ChevronRight,
+  Printer,
+  MessageSquare
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getStoreOrders, updateOrderStatus } from '@/lib/api';
@@ -66,6 +68,29 @@ export default function MerchantOrders() {
   };
 
   const statusOptions: Order['status'][] = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'pending': return 'قيد الانتظار';
+      case 'processing': return 'جاري التجهيز';
+      case 'shipped': return 'تم الشحن';
+      case 'delivered': return 'تم التوصيل';
+      case 'cancelled': return 'ملغي';
+      default: return status;
+    }
+  };
+
+  const handleWhatsApp = (order: Order) => {
+    const statusText = getStatusLabel(order.status);
+    const message = `مرحباً ${order.address.fullName}%0Aنحيطكم علماً بأن حالة طلبكم رقم (${order.id.slice(-8)}) في متجر بايرز هي حالياً: *${statusText}*%0Aشكراً لتسوقكم معنا!`;
+    const whatsappUrl = `https://wa.me/${order.address.phone.replace(/\D/g, '')}?text=${message}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
+  const handlePrint = (order: Order) => {
+    // Basic implementation for now - could be a more detailed printable view
+    window.print();
+  };
 
   return (
     <div className={styles.ordersPage}>
@@ -152,6 +177,21 @@ export default function MerchantOrders() {
                   </div>
 
                   <div className={styles.actions}>
+                    <button 
+                      className={`${styles.actionBtn} ${styles.whatsappBtn}`}
+                      onClick={() => handleWhatsApp(order)}
+                      title="إرسال تنبيه واتساب"
+                    >
+                      <MessageSquare size={18} />
+                    </button>
+                    <button 
+                      className={`${styles.actionBtn} ${styles.printBtn}`}
+                      onClick={() => handlePrint(order)}
+                      title="طباعة الفاتورة"
+                    >
+                      <Printer size={18} />
+                    </button>
+                    
                     <select 
                       className={styles.statusDropdown}
                       value={order.status}
@@ -159,7 +199,7 @@ export default function MerchantOrders() {
                       onChange={(e) => handleStatusUpdate(order.id, e.target.value as Order['status'])}
                     >
                       {statusOptions.map(opt => (
-                        <option key={opt} value={opt}>{opt}</option>
+                        <option key={opt} value={opt}>{getStatusLabel(opt)}</option>
                       ))}
                     </select>
                     <button className={styles.updateBtn} disabled={updatingId === order.id}>

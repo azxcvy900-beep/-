@@ -46,6 +46,9 @@ export default function MerchantDashboard() {
     .filter(o => o.status !== 'cancelled')
     .reduce((sum, order) => sum + order.total, 0);
 
+  const pendingOrdersCount = orders.filter(o => o.status === 'pending').length;
+  const outOfStockCount = products.filter(p => p.stockCount === 0).length;
+
   const stats = [
     { 
       label: t('dashboard.totalSales'), 
@@ -54,9 +57,9 @@ export default function MerchantDashboard() {
       class: 'sales' 
     },
     { 
-      label: t('dashboard.totalOrders'), 
-      value: orders.length, 
-      icon: ShoppingBag, 
+      label: 'طلبات معلقة', 
+      value: pendingOrdersCount, 
+      icon: Clock, 
       class: 'orders' 
     },
     { 
@@ -64,6 +67,12 @@ export default function MerchantDashboard() {
       value: products.length, 
       icon: Package, 
       class: 'products' 
+    },
+    { 
+      label: 'نفد من المخزون', 
+      value: outOfStockCount, 
+      icon: AlertCircle, 
+      class: 'outOfStock' 
     },
   ];
 

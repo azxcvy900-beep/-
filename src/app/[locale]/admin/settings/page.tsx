@@ -46,6 +46,7 @@ export default function MerchantSettings() {
             name: '',
             phone: '',
             description: '',
+            primaryColor: '#3b82f6', // Default blue
             social: { instagram: '', twitter: '', facebook: '' }
           });
         }
@@ -178,6 +179,27 @@ export default function MerchantSettings() {
                 onChange={(e) => setStoreData(prev => prev ? {...prev, description: e.target.value} : null)}
               />
             </div>
+          </div>
+        </div>
+
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>هوية المتجر البصرية</h3>
+          <div className={styles.formGrid}>
+             <div className={styles.inputGroup}>
+               <label>اللون الأساسي للمتجر</label>
+               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                 <input 
+                   type="color"
+                   style={{ width: '50px', height: '50px', border: 'none', borderRadius: '8px', cursor: 'pointer', padding: '0', background: 'none' }}
+                   value={storeData?.primaryColor || '#3b82f6'}
+                   onChange={(e) => setStoreData(prev => prev ? {...prev, primaryColor: e.target.value} : null)}
+                 />
+                 <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>{storeData?.primaryColor || '#3b82f6'}</span>
+                    <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>سيتم تطبيق هذا اللون على الأزرار والعناصر الرئيسية.</span>
+                 </div>
+               </div>
+             </div>
           </div>
         </div>
 

@@ -22,12 +22,27 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
+function hexToRgb(hex: string) {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? 
+    `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : 
+    '59, 130, 246'; // Default fallback
+}
+
 export default async function StoreLayout({ children, params }: StoreLayoutProps) {
   const { slug } = await params;
   const store = await getStoreInfo(slug);
+  const primaryColor = store?.primaryColor || '#3b82f6';
+  const primaryRgb = hexToRgb(primaryColor);
   
   return (
     <>
+      <style dangerouslySetInnerHTML={{ __html: `
+        :root {
+          --primary: ${primaryColor} !important;
+          --primary-rgb: ${primaryRgb} !important;
+        }
+      `}} />
       <Header 
         storeName={store?.name || slug.toUpperCase()} 
         storeLogo={store?.logo}

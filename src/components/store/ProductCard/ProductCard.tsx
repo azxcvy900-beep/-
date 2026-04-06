@@ -12,11 +12,12 @@ interface ProductCardProps {
   slug: string;
   name: string;
   price: number;
+  originalPrice?: number;
   image: string;
   category: string;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ id, slug, name, price, image, category }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ id, slug, name, price, originalPrice, image, category }) => {
   const t = useTranslations('Product');
   const locale = useLocale();
   const addItem = useCartStore((state) => state.addItem);
@@ -42,19 +43,36 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, slug, name, price, image,
             className={styles.image}
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
-          <span className={styles.categoryBadge}>{category}</span>
+          <div className={styles.badges}>
+            <span className={styles.categoryBadge}>{category}</span>
+            {originalPrice && originalPrice > price && (
+              <span className={styles.saleBadge}>SALE</span>
+            )}
+          </div>
         </div>
         
         <div className={styles.info}>
           <h3 className={styles.title}>{name}</h3>
+          {originalPrice && originalPrice > price && (
+            <div className={styles.discountInfo}>
+              <span className={styles.originalPrice}>
+                {originalPrice.toLocaleString()} {t('currency')}
+              </span>
+              <span className={styles.discountPercent}>
+                -{Math.round(((originalPrice - price) / originalPrice) * 100)}%
+              </span>
+            </div>
+          )}
         </div>
       </Link>
       
       <div className={styles.contentFooter}>
         <div className={styles.footer}>
-          <span className={styles.price}>
-            {price.toLocaleString()} <span className={styles.currency}>{t('currency')}</span>
-          </span>
+          <div className={styles.priceContainer}>
+            <span className={styles.price}>
+              {price.toLocaleString()} <span className={styles.currency}>{t('currency')}</span>
+            </span>
+          </div>
           <motion.button 
             className={styles.addButton}
             onClick={handleAddToCart}

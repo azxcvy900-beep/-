@@ -12,11 +12,15 @@ export interface Product {
   id: string;
   name: string;
   price: number;
+  originalPrice?: number; // Price before discount
+  discountPrice?: number; // Actual selling price (if different)
   category: string;
   image: string;
   description?: string;
   storeSlug: string;
   options?: ProductOption[];
+  stockCount: number;
+  inStock: boolean;
 }
 
 export interface StoreInfo {
@@ -25,6 +29,8 @@ export interface StoreInfo {
   logo?: string;
   description?: string;
   phone: string;
+  primaryColor?: string; // Custom store theme color
+  secondaryColor?: string;
   social?: {
     instagram?: string;
     twitter?: string;
@@ -44,22 +50,28 @@ const DUMMY_PRODUCTS: Product[] = [
     id: 'iphone-15-pro',
     name: 'iPhone 15 Pro Max - 256GB',
     price: 1250000,
+    originalPrice: 1350000,
     category: 'إلكترونيات',
     image: 'https://images.unsplash.com/photo-1696446701796-da61225697cc?w=800&q=80',
     description: 'يتميز iPhone 15 Pro بتصميم من التيتانيوم القوي والخفيف، مع زر الإجراءات القابل للتخصيص، ونظام الكاميرا الأكثر تقدماً في iPhone حتى الآن.',
     storeSlug: 'demo',
     options: [
       { name: 'اللون', values: ['تيتانيوم طبيعي', 'تيتانيوم أزرق', 'تيتانيوم أسود'] }
-    ]
+    ],
+    stockCount: 15,
+    inStock: true
   },
   {
     id: 'sony-xm5',
     name: 'Sony WH-1000XM5 Headphones',
     price: 380000,
+    originalPrice: 420000,
     category: 'إلكترونيات',
     image: 'https://images.unsplash.com/photo-1675243048035-9051873b624d?w=800&q=80',
     description: 'سماعات الرأس الرائدة عالمياً في إلغاء الضوضاء، تمنحك تجربة استماع غامرة ونقاء صوت لا يضاهى مع عمر بطارية يصل لـ 30 ساعة.',
-    storeSlug: 'demo'
+    storeSlug: 'demo',
+    stockCount: 8,
+    inStock: true
   },
   {
     id: 'macbook-m3',
@@ -71,7 +83,9 @@ const DUMMY_PRODUCTS: Product[] = [
     storeSlug: 'demo',
     options: [
       { name: 'الذاكرة', values: ['8GB', '16GB', '24GB'] }
-    ]
+    ],
+    stockCount: 0,
+    inStock: false
   },
   {
     id: 'yemeni-honey',
@@ -83,16 +97,21 @@ const DUMMY_PRODUCTS: Product[] = [
     storeSlug: 'demo',
     options: [
       { name: 'الحجم', values: ['500 جرام', '1 كيلوجرام'] }
-    ]
+    ],
+    stockCount: 50,
+    inStock: true
   },
   {
     id: 'playstation-5',
     name: 'PlayStation 5 Console',
     price: 550000,
+    originalPrice: 600000,
     category: 'ألعاب',
     image: 'https://images.unsplash.com/photo-1606813907291-d86efa9b94db?w=800&q=80',
     description: 'انطلق في مغامرات لا حدود لها مع منصة الألعاب الأقوى في العالم، والتي توفر تجربة لعب بدقة 4K وسرعات تحميل فائقة.',
-    storeSlug: 'demo'
+    storeSlug: 'demo',
+    stockCount: 5,
+    inStock: true
   },
   {
     id: 'al-kbous-coffee',
@@ -101,7 +120,9 @@ const DUMMY_PRODUCTS: Product[] = [
     category: 'منتجات محلية',
     image: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=800&q=80',
     description: 'قهوة الكبوس الشهيرة بعبقها الأصيل ونكهتها الغنية التي تعكس تراث القهوة اليمنية وتمنحك بداية يوم مثالية.',
-    storeSlug: 'demo'
+    storeSlug: 'demo',
+    stockCount: 100,
+    inStock: true
   }
 ];
 
