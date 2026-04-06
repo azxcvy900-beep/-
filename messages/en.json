@@ -2,9 +2,62 @@
   "Header": {
     "cart": "Cart"
   },
+  "Cart": {
+    "title": "Shopping Cart",
+    "itemsInCart": "items in your cart",
+    "emptyCart": "Your cart is empty",
+    "emptyCartDesc": "Looks like you haven't added any products yet. Explore our store and start shopping now!",
+    "continueShopping": "Continue Shopping",
+    "orderSummary": "Order Summary",
+    "subtotal": "Subtotal",
+    "shipping": "Shipping",
+    "free": "Free",
+    "total": "Order Total",
+    "checkout": "Proceed to Checkout"
+  },
+  "Checkout": {
+    "title": "Checkout",
+    "shippingAndPayment": "Shipping & Payment",
+    "confirmation": "Confirmation",
+    "customerInfo": "Customer Information",
+    "fullName": "Full Name",
+    "fullNamePlaceholder": "Enter your full name",
+    "phone": "Phone Number",
+    "address": "Detailed Address",
+    "addressPlaceholder": "Governorate - District - Street - Nearby Landmark",
+    "paymentMethod": "Payment Method",
+    "electronicPayment": "Electronic Payment",
+    "electronicPaymentDesc": "Pay via e-wallets or cards (Coming Soon)",
+    "transferPayment": "Bank Transfer / Deposit",
+    "transferPaymentDesc": "Send manual transfer and upload receipt for confirmation",
+    "transferInstructions": "Please send the total to account: (123456789) then upload the receipt below.",
+    "uploadReceipt": "Upload Receipt",
+    "uploadReceiptDesc": "Click here to upload your transfer receipt",
+    "changePhoto": "Change Photo",
+    "orderSummary": "Order Summary",
+    "total": "Total",
+    "placeOrder": "Complete Order Now",
+    "secureCheckout": "Secure and encrypted checkout process",
+    "errorReceiptRequired": "Please upload the transfer receipt first"
+  },
+  "Success": {
+    "thankYou": "Thank you for your order!",
+    "orderReceived": "Your order has been received successfully and will be reviewed immediately.",
+    "orderNumber": "Order Number",
+    "statusPending": "Order Status: Pending Review & Verification",
+    "nextSteps": "What happens next?",
+    "step1": "The merchant will review your information and the uploaded receipt.",
+    "step2": "You will receive a confirmation message once the order is accepted.",
+    "step3": "Preparation and shipping of your order will begin promptly.",
+    "backToHome": "Back to Home",
+    "browseMore": "Browse More Products"
+  },
   "StoreHome": {
     "title": "All Products",
-    "subtitle": "Discover the best offers and exclusive products"
+    "subtitle": "Discover the best offers and exclusive products",
+    "allCategories": "All Categories",
+    "noProducts": "No products in this category yet",
+    "loading": "Loading products..."
   },
   "Product": {
     "addToCart": "Add to Cart",
