@@ -5,9 +5,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { Heart, Share2, MessageCircle, ShoppingCart, Zap, CheckCircle2, RotateCcw, Trash2, Store } from 'lucide-react';
+import { Heart, Share2, MessageCircle, ShoppingCart, Zap, CheckCircle2, RotateCcw, Trash2, Store, Star, User } from 'lucide-react';
 import BackButton from '@/components/shared/BackButton/BackButton';
-import { getProductById, getRelatedProducts, getStoreInfo, Product, StoreInfo } from '@/lib/api';
+import { getProductById, getRelatedProducts, getStoreInfo, getProductReviews, addReview, Product, StoreInfo, Review } from '@/lib/api';
 import { useCartStore } from '@/lib/store';
 import ProductCard from '@/components/store/ProductCard/ProductCard';
 import styles from './page.module.css';
@@ -22,17 +22,30 @@ export default function ProductDetails({ params }: { params: Promise<{ slug: str
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
   const t = useTranslations('Product');
   const locale = useLocale();
-  const { addItem, wishlist, toggleWishlist, clearCart } = useCartStore();
+  const { addItem, wishlist, toggleWishlist, clearCart, currency, rates } = useCartStore();
   const [isAdded, setIsAdded] = useState(false);
+
+  const formatPrice = (amount: number) => {
+    if (currency === 'YER') return `${amount.toLocaleString()} ${t('currency')}`;
+    const rate = rates[currency] || 1;
+    const converted = amount / rate;
+    const symbols: { [key: string]: string } = { 'SAR': 'ر.س', 'USD': '$' };
+    return `${converted.toFixed(2)} ${symbols[currency] || currency}`;
+  };
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [userReview, setUserReview] = useState({ rating: 5, comment: '', name: '' });
+  const [isReviewing, setIsReviewing] = useState(false);
+  const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const isWishlisted = product ? wishlist.includes(product.id) : false;
-  
+
   useEffect(() => {
     async function fetchData() {
       // Fetching product, store info, and related products
-      const [productData, storeData] = await Promise.all([
+      const [productData, storeData, reviewsData] = await Promise.all([
         getProductById(resolvedParams.id),
-        getStoreInfo(resolvedParams.slug)
+        getStoreInfo(resolvedParams.slug),
+        getProductReviews(resolvedParams.slug, resolvedParams.id)
       ]);
 
       if (productData) {
@@ -44,11 +57,37 @@ export default function ProductDetails({ params }: { params: Promise<{ slug: str
       if (storeData) {
         setStore(storeData);
       }
+
+      if (reviewsData) {
+        setReviews(reviewsData);
+      }
       
       setLoading(false);
     }
     fetchData();
   }, [resolvedParams.id, resolvedParams.slug]);
+
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!product || !userReview.comment || !userReview.name) return;
+    setIsReviewing(true);
+    try {
+      await addReview({
+        productId: product.id,
+        storeSlug: resolvedParams.slug,
+        customerName: userReview.name,
+        rating: userReview.rating,
+        comment: userReview.comment
+      });
+      setReviewSubmitted(true);
+      setUserReview({ rating: 5, comment: '', name: '' });
+      setTimeout(() => setReviewSubmitted(false), 5000);
+    } catch (error) {
+      alert("حدث خطأ أثناء إرسال التقييم.");
+    } finally {
+      setIsReviewing(false);
+    }
+  };
 
   const handleAddToCart = () => {
     if (product) {
@@ -82,7 +121,7 @@ export default function ProductDetails({ params }: { params: Promise<{ slug: str
 
   const getWhatsAppLink = () => {
     if (!product) return '#';
-    const message = `مرحباً، أود الاستفسار عن منتج: ${product.name}\nالسعر: ${product.price.toLocaleString()} ${t('currency')}\n${window.location.href}`;
+    const message = `مرحباً، أود الاستفسار عن منتج: ${product.name}\nالسعر: ${formatPrice(product.price)}\n${window.location.href}`;
     return `https://wa.me/967770000000?text=${encodeURIComponent(message)}`;
   };
 
@@ -134,7 +173,7 @@ export default function ProductDetails({ params }: { params: Promise<{ slug: str
           <h1 className={styles.title}>{product.name}</h1>
           <div className={styles.priceRow}>
             <p className={styles.price}>
-              {product.price.toLocaleString()} <span>{t('currency')}</span>
+              {formatPrice(product.price)}
             </p>
             <div className={styles.stockBadge}>
               <CheckCircle2 size={14} />
@@ -208,6 +247,98 @@ export default function ProductDetails({ params }: { params: Promise<{ slug: str
             <MessageCircle size={20} />
             استفسر عبر الواتساب
           </a>
+        </div>
+      </div>
+
+      <div className={styles.reviewsSection}>
+        <h2 className={styles.sectionTitle}>تقييمات العملاء</h2>
+        
+        <div className={styles.reviewsGrid}>
+          {/* Review Stats Summary */}
+          <div className={styles.reviewsSummary}>
+            <div className={styles.averageRating}>
+              <span className={styles.ratingNum}>
+                {reviews.length > 0 
+                  ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1) 
+                  : '5.0'}
+              </span>
+              <div className={styles.stars}>
+                {[1,2,3,4,5].map(s => (
+                  <Star key={s} size={20} fill={s <= (reviews.length > 0 ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length) : 5) ? "#fbbf24" : "none"} color="#fbbf24" />
+                ))}
+              </div>
+              <p className={styles.reviewCount}>بناءً على {reviews.length} تقييم</p>
+            </div>
+
+            {/* Add Review Form */}
+            <form onSubmit={handleReviewSubmit} className={styles.reviewForm}>
+              <h3 style={{ marginBottom: '1rem', fontWeight: 800 }}>أضف تقييمك</h3>
+              {reviewSubmitted ? (
+                <div style={{ background: '#dcfce7', color: '#166534', padding: '1rem', borderRadius: '12px', textAlign: 'center' }}>
+                  <CheckCircle2 size={24} style={{ marginBottom: '8px' }} />
+                  <p>شكراً لتقييمك! سيظهر بعد مراجعة الإدارة.</p>
+                </div>
+              ) : (
+                <>
+                  <div className={styles.starInput}>
+                    {[1,2,3,4,5].map(s => (
+                      <button 
+                        key={s} 
+                        type="button" 
+                        onClick={() => setUserReview({...userReview, rating: s})}
+                      >
+                        <Star size={24} fill={s <= userReview.rating ? "#fbbf24" : "none"} color="#fbbf24" />
+                      </button>
+                    ))}
+                  </div>
+                  <input 
+                    className={styles.input}
+                    placeholder="اسمك"
+                    value={userReview.name}
+                    onChange={(e) => setUserReview({...userReview, name: e.target.value})}
+                    required
+                  />
+                  <textarea 
+                    className={styles.textarea}
+                    placeholder="رأيك في المنتج..."
+                    value={userReview.comment}
+                    onChange={(e) => setUserReview({...userReview, comment: e.target.value})}
+                    required
+                  />
+                  <button type="submit" className={styles.submitReview} disabled={isReviewing}>
+                    {isReviewing ? 'جاري الإرسال...' : 'إرسال التقييم'}
+                  </button>
+                </>
+              )}
+            </form>
+          </div>
+
+          {/* Reviews List */}
+          <div className={styles.reviewsList}>
+            {reviews.length > 0 ? (
+              reviews.map(review => (
+                <div key={review.id} className={styles.reviewCard}>
+                  <div className={styles.reviewHeader}>
+                    <div className={styles.userIcon}><User size={16} /></div>
+                    <div style={{ flex: 1 }}>
+                      <h4 className={styles.userName}>{review.customerName}</h4>
+                      <div className={styles.reviewStars}>
+                        {[1,2,3,4,5].map(s => (
+                          <Star key={s} size={14} fill={s <= review.rating ? "#fbbf24" : "none"} color="#fbbf24" />
+                        ))}
+                      </div>
+                    </div>
+                    <span className={styles.reviewDate}>{new Date(review.date).toLocaleDateString(locale)}</span>
+                  </div>
+                  <p className={styles.reviewText}>{review.comment}</p>
+                </div>
+              ))
+            ) : (
+              <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
+                لا توجد تقييمات لهذا المنتج بعد. كن أول من يقيّم!
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

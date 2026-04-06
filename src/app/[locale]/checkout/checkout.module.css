@@ -445,17 +445,90 @@
   color: var(--text-secondary);
 }
 
-.summaryTotal {
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 2px dashed rgba(128, 128, 128, 0.2);
+.couponSection {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.1);
+}
+
+.couponInputWrapper {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.couponInput {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(128, 128, 128, 0.2);
+  background: rgba(var(--primary-rgb), 0.02);
+  font-size: 0.9rem;
+}
+
+.couponBtn {
+  padding: 0.75rem 1.25rem;
+  background: var(--primary);
+  color: white;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  min-width: 80px;
+}
+
+.couponBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.couponError {
+  color: #ef4444;
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+  font-weight: 600;
+}
+
+.appliedCoupon {
+  margin-top: 1rem;
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.removeCoupon {
+  color: #ef4444;
+  font-weight: 700;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+}
+
+.discountRow {
+  color: #10b981;
+  font-weight: 600;
 }
 
 .totalRow {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 2px dashed rgba(128, 128, 128, 0.1);
 }
 
 .totalPrice {

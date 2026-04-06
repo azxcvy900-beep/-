@@ -24,14 +24,10 @@ export interface Order {
   id: string;
   items: CartItem[];
   total: number;
-  address: {
-    fullName: string;
-    phone: string;
-    city: string;
-    region: string;
-    details: string;
-    label: string;
-  };
+  subtotal: number;
+  discountAmount?: number;
+  couponCode?: string;
+  address: UserInfo;
   paymentMethod: string;
   paymentProof?: string;
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
@@ -44,6 +40,10 @@ interface CartStore {
   selectedAddressId: string | null;
   orders: Order[];
   wishlist: string[];
+  currency: string;
+  rates: { [key: string]: number };
+  setCurrency: (currency: string) => void;
+  setRates: (rates: { [key: string]: number }) => void;
   addItem: (item: CartItem) => void;
   removeItem: (id: string, selectedOptions?: Record<string, string>) => void;
   updateQuantity: (id: string, quantity: number, selectedOptions?: Record<string, string>) => void;
@@ -66,6 +66,10 @@ export const useCartStore = create<CartStore>()(
       selectedAddressId: null,
       orders: [],
       wishlist: [],
+      currency: 'YER',
+      rates: { 'SAR': 140, 'USD': 530 },
+      setCurrency: (currency) => set({ currency }),
+      setRates: (rates) => set({ rates }),
       
       addItem: (item) => {
         set((state) => {

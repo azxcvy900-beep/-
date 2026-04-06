@@ -17,8 +17,9 @@ import {
   Plus,
   Trash2
 } from 'lucide-react';
-import { useCartStore, UserInfo } from '@/lib/store';
+import { useCartStore, UserInfo, Order } from '@/lib/store';
 import BackButton from '@/components/shared/BackButton/BackButton';
+import { validateCoupon, Coupon } from '@/lib/api';
 import styles from './checkout.module.css';
 
 type PaymentMethod = 'electronic' | 'transfer';
@@ -28,6 +29,7 @@ export default function CheckoutPage() {
   const pt = useTranslations('Product');
   const locale = useLocale();
   const router = useRouter();
+  
   const { 
     items, 
     getTotalPrice, 
@@ -38,6 +40,17 @@ export default function CheckoutPage() {
     removeAddress, 
     setSelectedAddress 
   } = useCartStore();
+
+  const currency = useCartStore(state => state.currency);
+  const rates = useCartStore(state => state.rates);
+
+  const formatPrice = (amount: number) => {
+    if (currency === 'YER') return `${amount.toLocaleString()} ${pt('currency')}`;
+    const rate = rates[currency] || 1;
+    const converted = amount / rate;
+    const symbols: { [key: string]: string } = { 'SAR': 'ر.س', 'USD': '$' };
+    return `${converted.toFixed(2)} ${symbols[currency] || currency}`;
+  };
   
   const [mounted, setMounted] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('electronic');
@@ -46,6 +59,12 @@ export default function CheckoutPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAddingNew, setIsAddingNew] = useState(false);
   
+  // Coupon State
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [isCheckingCoupon, setIsCheckingCoupon] = useState(false);
+
   const [formData, setFormData] = useState({
     fullName: '',
     phone: '',
@@ -148,6 +167,35 @@ export default function CheckoutPage() {
     }
   };
 
+  const handleApplyCoupon = async () => {
+    if (!couponCode) return;
+    setIsCheckingCoupon(true);
+    setCouponError(null);
+    try {
+      const coupon = await validateCoupon('demo', couponCode.toUpperCase(), getTotalPrice());
+      if (coupon) {
+        setAppliedCoupon(coupon);
+        setCouponError(null);
+      } else {
+        setCouponError(t('invalidCoupon') || 'كوبون غير صالح أو انتهت صلاحيته أو لم يصل للحد الأدنى.');
+      }
+    } catch (error) {
+      setCouponError('حدث خطأ أثناء التحقق من الكوبون.');
+    } finally {
+      setIsCheckingCoupon(false);
+    }
+  };
+
+  const calculateDiscount = () => {
+    if (!appliedCoupon) return 0;
+    const subtotal = getTotalPrice();
+    if (appliedCoupon.type === 'percent') {
+      return (subtotal * appliedCoupon.value) / 100;
+    } else {
+      return appliedCoupon.value;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -169,13 +217,21 @@ export default function CheckoutPage() {
       ...formData
     };
 
-    const newOrder: any = {
+    const subtotal = getTotalPrice();
+    const discount = calculateDiscount();
+    const finalTotal = Math.max(0, subtotal - discount);
+
+    const newOrder: Order = {
       id: `ORD-${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
       items: [...items],
-      total: getTotalPrice(),
+      subtotal: subtotal,
+      discountAmount: discount,
+      couponCode: appliedCoupon?.code,
+      total: finalTotal,
       status: 'pending',
       date: new Date().toISOString(),
-      address: selectedAddress
+      address: selectedAddress as any,
+      paymentMethod: paymentMethod
     };
 
     // Simulate API call
@@ -424,19 +480,62 @@ export default function CheckoutPage() {
         <div className={styles.summarySection}>
           <div className={styles.card}>
             <h3>{t('orderSummary')}</h3>
+            
+            {/* Coupon Section */}
+            <div className={styles.couponSection}>
+              <div className={styles.couponInputWrapper}>
+                <input 
+                  type="text" 
+                  placeholder="كود الخصم (مثل: SAVE20)" 
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                  className={styles.couponInput}
+                  disabled={!!appliedCoupon || isCheckingCoupon}
+                />
+                <button 
+                  type="button" 
+                  onClick={handleApplyCoupon}
+                  className={styles.couponBtn}
+                  disabled={!couponCode || !!appliedCoupon || isCheckingCoupon}
+                >
+                  {isCheckingCoupon ? '...' : (appliedCoupon ? <CheckCircle2 size={18} /> : 'تطبيق')}
+                </button>
+              </div>
+              {couponError && <p className={styles.couponError}>{couponError}</p>}
+              {appliedCoupon && (
+                <div className={styles.appliedCoupon}>
+                  <span>تم تطبيق الكوبون: <strong>{appliedCoupon.code}</strong></span>
+                  <button type="button" onClick={() => { setAppliedCoupon(null); setCouponCode(''); }} className={styles.removeCoupon}>إزالة</button>
+                </div>
+              )}
+            </div>
+
             <div className={styles.miniList}>
               {items.map(item => (
                 <div key={item.id} className={styles.miniItem}>
                   <span>{item.name} × {item.quantity}</span>
-                  <span>{(item.price * item.quantity).toLocaleString()} {pt('currency')}</span>
+                  <span>{formatPrice(item.price * item.quantity)}</span>
                 </div>
               ))}
             </div>
+
             <div className={styles.summaryTotal}>
+              <div className={styles.summaryRow}>
+                <span>المجموع الفرعي</span>
+                <span>{formatPrice(getTotalPrice())}</span>
+              </div>
+              
+              {appliedCoupon && (
+                <div className={`${styles.summaryRow} ${styles.discountRow}`}>
+                  <span>الخصم ({appliedCoupon.code})</span>
+                  <span>-{formatPrice(calculateDiscount())}</span>
+                </div>
+              )}
+
               <div className={styles.totalRow}>
                 <span>{t('total')}</span>
                 <span className={styles.totalPrice}>
-                  {getTotalPrice().toLocaleString()} {pt('currency')}
+                  {formatPrice(getTotalPrice() - calculateDiscount())}
                 </span>
               </div>
             </div>

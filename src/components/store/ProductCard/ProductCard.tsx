@@ -20,7 +20,15 @@ interface ProductCardProps {
 const ProductCard: React.FC<ProductCardProps> = ({ id, slug, name, price, originalPrice, image, category }) => {
   const t = useTranslations('Product');
   const locale = useLocale();
-  const addItem = useCartStore((state) => state.addItem);
+  const { addItem, currency, rates } = useCartStore();
+
+  const formatPrice = (amount: number) => {
+    if (currency === 'YER') return `${amount.toLocaleString()} ${t('currency')}`;
+    const rate = rates[currency] || 1;
+    const converted = amount / rate;
+    const symbols: { [key: string]: string } = { 'SAR': 'ر.س', 'USD': '$' };
+    return `${converted.toFixed(2)} ${symbols[currency] || currency}`;
+  };
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -56,7 +64,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, slug, name, price, origin
           {originalPrice && originalPrice > price && (
             <div className={styles.discountInfo}>
               <span className={styles.originalPrice}>
-                {originalPrice.toLocaleString()} {t('currency')}
+                {formatPrice(originalPrice)}
               </span>
               <span className={styles.discountPercent}>
                 -{Math.round(((originalPrice - price) / originalPrice) * 100)}%
@@ -70,7 +78,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, slug, name, price, origin
         <div className={styles.footer}>
           <div className={styles.priceContainer}>
             <span className={styles.price}>
-              {price.toLocaleString()} <span className={styles.currency}>{t('currency')}</span>
+              {formatPrice(price)}
             </span>
           </div>
           <motion.button 

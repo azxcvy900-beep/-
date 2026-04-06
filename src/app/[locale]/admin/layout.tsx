@@ -14,11 +14,14 @@ import {
   X,
   User,
   Store,
-  Grid
+  Grid,
+  Ticket,
+  MessageSquare
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
+import OrderNotification from '@/components/shared/OrderNotification/OrderNotification';
 import styles from './admin-layout.module.css';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -60,6 +63,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: t('sidebar.dashboard'), href: `/${locale}/admin/dashboard`, icon: LayoutDashboard },
     { name: 'الأقسام', href: `/${locale}/admin/categories`, icon: Grid },
     { name: t('sidebar.products'), href: `/${locale}/admin/products`, icon: Package },
+    { name: 'الكوبونات', href: `/${locale}/admin/coupons`, icon: Ticket },
+    { name: 'التقييمات', href: `/${locale}/admin/reviews`, icon: MessageSquare },
     { name: t('sidebar.orders'), href: `/${locale}/admin/orders`, icon: ShoppingBag },
     { name: t('sidebar.settings'), href: `/${locale}/admin/settings`, icon: Settings },
   ];

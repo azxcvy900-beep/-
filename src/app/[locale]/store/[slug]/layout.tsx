@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Header from '@/components/shared/Header/Header';
+import StoreInitializer from '@/components/shared/StoreInitializer/StoreInitializer';
 import { getStoreInfo } from '@/lib/api';
 
 interface StoreLayoutProps {
@@ -12,12 +13,17 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const store = await getStoreInfo(slug);
   const storeName = store?.name || (slug === 'demo' ? 'متجر بايرز التجريبي' : slug.toUpperCase());
   
+  const seoTitle = store?.seo?.titleTemplate ? store.seo.titleTemplate.replace('%s', storeName) : storeName;
+  const seoDesc = store?.seo?.description || `تسوق من ${storeName} عبر منصة بايرز. أفضل المنتجات بأسعار منافسة في اليمن.`;
+
   return {
-    title: storeName,
-    description: `تسوق من ${storeName} عبر منصة بايرز. أفضل المنتجات بأسعار منافسة في اليمن.`,
+    title: seoTitle,
+    description: seoDesc,
+    keywords: store?.seo?.keywords?.join(', '),
     openGraph: {
-      title: storeName,
-      description: `تسوق أونلاين من ${storeName}`,
+      title: seoTitle,
+      description: seoDesc,
+      images: store?.logo ? [store.logo] : []
     }
   };
 }
@@ -43,6 +49,10 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
           --primary-rgb: ${primaryRgb} !important;
         }
       `}} />
+      <StoreInitializer 
+        rates={store?.currencySettings?.rates} 
+        defaultCurrency={store?.currencySettings?.default} 
+      />
       <Header 
         storeName={store?.name || slug.toUpperCase()} 
         storeLogo={store?.logo}

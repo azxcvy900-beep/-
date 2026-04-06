@@ -1,5 +1,17 @@
 import { db, storage } from './firebase';
-import { collection, getDocs, doc, getDoc, writeBatch, updateDoc, deleteDoc, query, where, setDoc } from 'firebase/firestore';
+import { 
+  collection, 
+  getDocs, 
+  getDoc, 
+  doc, 
+  setDoc, 
+  updateDoc, 
+  deleteDoc, 
+  query, 
+  where,
+  orderBy,
+  writeBatch
+} from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Order } from './store';
 
@@ -31,11 +43,44 @@ export interface StoreInfo {
   phone: string;
   primaryColor?: string; // Custom store theme color
   secondaryColor?: string;
+  currencySettings?: {
+    default: string; // 'YER', 'SAR', 'USD'
+    rates: { [key: string]: number }; // e.g. { 'USD': 530, 'SAR': 140 }
+  };
+  seo?: {
+    titleTemplate?: string;
+    description?: string;
+    keywords?: string[];
+  };
   social?: {
     instagram?: string;
     twitter?: string;
     facebook?: string;
   };
+}
+
+export interface Coupon {
+  id: string;
+  code: string;
+  type: 'percent' | 'fixed';
+  value: number;
+  minOrderAmount?: number;
+  expiryDate?: string;
+  usageLimit?: number;
+  usageCount: number;
+  storeSlug: string;
+  isActive: boolean;
+}
+
+export interface Review {
+  id: string;
+  productId: string;
+  storeSlug: string;
+  customerName: string;
+  rating: number; // 1 to 5
+  comment: string;
+  date: string;
+  isApproved: boolean;
 }
 
 export interface Category {
@@ -270,6 +315,94 @@ export async function getStoreCategories(storeSlug: string): Promise<Category[]>
     console.error("Error fetching categories:", error);
     return [];
   }
+}
+
+// --- COUPONS ---
+export async function getStoreCoupons(storeSlug: string): Promise<Coupon[]> {
+  const couponsRef = collection(db, 'stores', storeSlug, 'coupons');
+  const q = query(couponsRef, orderBy('id', 'desc'));
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map(doc => doc.data() as Coupon);
+}
+
+export async function addCoupon(coupon: Omit<Coupon, 'id' | 'usageCount' | 'isActive'>): Promise<string> {
+  const id = `cpn_${Date.now()}`;
+  const newCoupon: Coupon = {
+    ...coupon,
+    id,
+    usageCount: 0,
+    isActive: true
+  };
+  await setDoc(doc(db, 'stores', coupon.storeSlug, 'coupons', id), newCoupon);
+  return id;
+}
+
+export async function updateCoupon(storeSlug: string, id: string, data: Partial<Coupon>): Promise<void> {
+  const couponRef = doc(db, 'stores', storeSlug, 'coupons', id);
+  await updateDoc(couponRef, data);
+}
+
+export async function deleteCoupon(storeSlug: string, id: string): Promise<void> {
+  const couponRef = doc(db, 'stores', storeSlug, 'coupons', id);
+  await deleteDoc(couponRef);
+}
+
+export async function validateCoupon(storeSlug: string, code: string, subtotal: number): Promise<Coupon | null> {
+  const couponsRef = collection(db, 'stores', storeSlug, 'coupons');
+  const q = query(couponsRef, where('code', '==', code), where('isActive', '==', true));
+  const querySnapshot = await getDocs(q);
+  
+  if (querySnapshot.empty) return null;
+  
+  const coupon = querySnapshot.docs[0].data() as Coupon;
+  
+  // Check expiry
+  if (coupon.expiryDate && new Date(coupon.expiryDate) < new Date()) return null;
+  
+  // Check usage limit
+  if (coupon.usageLimit && coupon.usageCount >= coupon.usageLimit) return null;
+  
+  // Check min order
+  if (coupon.minOrderAmount && subtotal < coupon.minOrderAmount) return null;
+  
+  return coupon;
+}
+
+// --- REVIEWS ---
+export async function getProductReviews(storeSlug: string, productId: string): Promise<Review[]> {
+  const reviewsRef = collection(db, 'stores', storeSlug, 'reviews');
+  const q = query(reviewsRef, where('productId', '==', productId), where('isApproved', '==', true));
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map(doc => doc.data() as Review);
+}
+
+export async function getStoreReviews(storeSlug: string): Promise<Review[]> {
+  const reviewsRef = collection(db, 'stores', storeSlug, 'reviews');
+  const q = query(reviewsRef, orderBy('date', 'desc'));
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map(doc => doc.data() as Review);
+}
+
+export async function addReview(review: Omit<Review, 'id' | 'date' | 'isApproved'>): Promise<string> {
+  const id = `rev_${Date.now()}`;
+  const newReview: Review = {
+    ...review,
+    id,
+    date: new Date().toISOString(),
+    isApproved: false // Requires admin approval by default
+  };
+  await setDoc(doc(db, 'stores', review.storeSlug, 'reviews', id), newReview);
+  return id;
+}
+
+export async function updateReviewStatus(storeSlug: string, id: string, isApproved: boolean): Promise<void> {
+  const reviewRef = doc(db, 'stores', storeSlug, 'reviews', id);
+  await updateDoc(reviewRef, { isApproved });
+}
+
+export async function deleteReview(storeSlug: string, id: string): Promise<void> {
+  const reviewRef = doc(db, 'stores', storeSlug, 'reviews', id);
+  await deleteDoc(reviewRef);
 }
 
 // Add a new category

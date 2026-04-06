@@ -8,6 +8,7 @@ import { Moon, Sun, Globe, ShoppingCart, ClipboardList, ShoppingBag } from 'luci
 import { useTheme } from '@/components/providers/ThemeProvider';
 import { useCartStore } from '@/lib/store';
 import Image from 'next/image';
+import CurrencySwitcher from '@/components/shared/CurrencySwitcher/CurrencySwitcher';
 import styles from './Header.module.css';
 
 interface HeaderProps {
@@ -101,6 +102,10 @@ const Header: React.FC<HeaderProps> = ({ storeName, storeLogo }) => {
               )}
             </AnimatePresence>
           </Link>
+          
+          <div className={styles.hideOnMobile}>
+            <CurrencySwitcher />
+          </div>
 
           <Link href={`/${nextLocale}`} className={styles.localeLink}>
             <Globe size={16} />
