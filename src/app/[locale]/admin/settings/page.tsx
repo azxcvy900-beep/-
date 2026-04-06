@@ -6,9 +6,9 @@ import {
   Store, 
   Phone, 
   Info, 
-  Instagram, 
-  Twitter, 
-  Facebook, 
+  Globe, 
+  Send, 
+  MessageCircle, 
   Save,
   CheckCircle,
   AlertCircle
@@ -111,7 +111,7 @@ export default function MerchantSettings() {
             <div className={styles.inputGroup}>
               <label>Instagram</label>
               <div className={styles.socialGroup}>
-                <div className={styles.socialIcon}><Instagram size={20} /></div>
+                <div className={styles.socialIcon}><Globe size={20} /></div>
                 <input 
                   className={styles.input}
                   placeholder="اسم المستخدم"
@@ -127,7 +127,7 @@ export default function MerchantSettings() {
             <div className={styles.inputGroup}>
               <label>Twitter / X</label>
               <div className={styles.socialGroup}>
-                <div className={styles.socialIcon}><Twitter size={20} /></div>
+                <div className={styles.socialIcon}><Send size={20} /></div>
                 <input 
                   className={styles.input}
                   placeholder="اسم المستخدم"
@@ -143,7 +143,7 @@ export default function MerchantSettings() {
             <div className={styles.inputGroup}>
               <label>Facebook</label>
               <div className={styles.socialGroup}>
-                <div className={styles.socialIcon}><Facebook size={20} /></div>
+                <div className={styles.socialIcon}><MessageCircle size={20} /></div>
                 <input 
                   className={styles.input}
                   placeholder="رابط الصفحة"
