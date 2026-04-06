@@ -73,7 +73,20 @@ const Header: React.FC<HeaderProps> = ({ storeName }) => {
           <Link href={`/${locale}/cart`} className={styles.cartLink}>
             <ShoppingCart size={18} />
             <span className={`${styles.cartText} ${styles.hideOnMobile}`}>{t('cart')}</span>
-            <span className={styles.cartCount}>{mounted ? totalItems : 0}</span>
+            <AnimatePresence>
+              {mounted && totalItems > 0 && (
+                <motion.span 
+                  key="cart-badge"
+                  className={styles.cartCount}
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0, opacity: 0 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                >
+                  {totalItems}
+                </motion.span>
+              )}
+            </AnimatePresence>
           </Link>
         </nav>
       </div>
