@@ -33,6 +33,7 @@ interface CartStore {
   addresses: UserInfo[];
   selectedAddressId: string | null;
   orders: Order[];
+  wishlist: string[];
   addItem: (item: Omit<CartItem, 'quantity'>) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
@@ -41,6 +42,7 @@ interface CartStore {
   removeAddress: (id: string) => void;
   setSelectedAddress: (id: string) => void;
   addOrder: (order: Order) => void;
+  toggleWishlist: (id: string) => void;
   getTotalItems: () => number;
   getTotalPrice: () => number;
 }
@@ -52,6 +54,7 @@ export const useCartStore = create<CartStore>()(
       addresses: [],
       selectedAddressId: null,
       orders: [],
+      wishlist: [],
       
       addItem: (item) => {
         set((state) => {
@@ -108,6 +111,14 @@ export const useCartStore = create<CartStore>()(
       addOrder: (order) => {
         set((state) => ({
           orders: [order, ...state.orders]
+        }));
+      },
+
+      toggleWishlist: (id) => {
+        set((state) => ({
+          wishlist: state.wishlist.includes(id) 
+            ? state.wishlist.filter(i => i !== id)
+            : [...state.wishlist, id]
         }));
       },
       

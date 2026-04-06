@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import "../globals.css";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import WhatsAppSupport from "@/components/shared/WhatsAppSupport/WhatsAppSupport";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -54,6 +55,7 @@ export default async function RootLayout({
         <NextIntlClientProvider messages={messages} locale={locale}>
           <ThemeProvider>
             {children}
+            <WhatsAppSupport />
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>

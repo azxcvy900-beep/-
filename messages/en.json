@@ -1,6 +1,9 @@
 {
   "Header": {
-    "cart": "Cart"
+    "cart": "Cart",
+    "trackOrder": "Track Order",
+    "myOrders": "My Orders",
+    "wishlist": "Wishlist"
   },
   "Cart": {
     "title": "Shopping Cart",
@@ -83,7 +86,10 @@
     "addToCart": "Add to Cart",
     "currency": "YER",
     "back": "← Back to Store",
-    "description": "Product Description"
+    "description": "Product Description",
+    "quantity": "Quantity",
+    "buyNow": "Buy Now",
+    "relatedProducts": "You May Also Like"
   },
   "Landing": {
     "title": "Buyers Platform",

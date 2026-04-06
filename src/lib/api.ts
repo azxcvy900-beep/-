@@ -113,6 +113,14 @@ export async function getProductById(id: string): Promise<Product | null> {
   }
 }
 
+// Fetch related products (same category, different ID)
+export async function getRelatedProducts(category: string, excludeId: string, limit: number = 4): Promise<Product[]> {
+  const allProducts = await getStoreProducts('demo'); // Default to demo for now
+  return allProducts
+    .filter(p => p.category === category && p.id !== excludeId)
+    .slice(0, limit);
+}
+
 // Helper to seed database initially
 export async function seedDatabase() {
   try {

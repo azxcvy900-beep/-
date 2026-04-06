@@ -2,30 +2,39 @@
 
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
+import { useRouter } from 'next/navigation';
+import { Heart, Share2, MessageCircle, ShoppingCart, Zap, CheckCircle2 } from 'lucide-react';
 import BackButton from '@/components/shared/BackButton/BackButton';
-import { getProductById, Product } from '@/lib/api';
+import { getProductById, getRelatedProducts, Product } from '@/lib/api';
 import { useCartStore } from '@/lib/store';
+import ProductCard from '@/components/store/ProductCard/ProductCard';
 import styles from './page.module.css';
 
 export default function ProductDetails({ params }: { params: Promise<{ slug: string, id: string }> }) {
   const resolvedParams = React.use(params);
+  const router = useRouter();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const t = useTranslations('Product');
   const locale = useLocale();
+  const { addItem, wishlist, toggleWishlist, clearCart } = useCartStore();
   const [isAdded, setIsAdded] = useState(false);
-  const addItem = useCartStore((state) => state.addItem);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  const isWishlisted = product ? wishlist.includes(product.id) : false;
   
   useEffect(() => {
-    async function fetchProduct() {
+    async function fetchData() {
       const data = await getProductById(resolvedParams.id);
-      setProduct(data);
+      if (data) {
+        setProduct(data);
+        const related = await getRelatedProducts(data.category, data.id, 4);
+        setRelatedProducts(related);
+      }
       setLoading(false);
     }
-    fetchProduct();
+    fetchData();
   }, [resolvedParams.id]);
 
   const handleAddToCart = () => {
@@ -41,6 +50,25 @@ export default function ProductDetails({ params }: { params: Promise<{ slug: str
       setIsAdded(true);
       setTimeout(() => setIsAdded(false), 2000);
     }
+  };
+
+  const handleBuyNow = () => {
+    if (product) {
+      clearCart();
+      addItem({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.image
+      });
+      router.push(`/${locale}/checkout`);
+    }
+  };
+
+  const getWhatsAppLink = () => {
+    if (!product) return '#';
+    const message = `مرحباً، أود الاستفسار عن منتج: ${product.name}\nالسعر: ${product.price.toLocaleString()} ${t('currency')}\n${window.location.href}`;
+    return `https://wa.me/967770000000?text=${encodeURIComponent(message)}`;
   };
 
   if (loading) {
@@ -65,33 +93,81 @@ export default function ProductDetails({ params }: { params: Promise<{ slug: str
               className={styles.image}
               priority
             />
+            <button 
+              className={`${styles.wishlistBtn} ${isWishlisted ? styles.wishlisted : ''}`}
+              onClick={() => toggleWishlist(product.id)}
+            >
+              <Heart size={24} fill={isWishlisted ? "currentColor" : "none"} />
+            </button>
+            
+            <div className={styles.galleryDots}>
+              <span className={styles.dotActive}></span>
+              <span></span>
+              <span></span>
+            </div>
           </div>
         </div>
         
         <div className={styles.infoSection}>
-          <span className={styles.category}>{product.category}</span>
+          <div className={styles.infoHeader}>
+            <span className={styles.category}>{product.category}</span>
+            <button className={styles.shareBtn} onClick={() => navigator.clipboard.writeText(window.location.href).then(() => alert('تم نسخ الرابط!'))}>
+              <Share2 size={18} />
+            </button>
+          </div>
+          
           <h1 className={styles.title}>{product.name}</h1>
-          <p className={styles.price}>
-            {product.price.toLocaleString()} <span>{t('currency')}</span>
-          </p>
+          <div className={styles.priceRow}>
+            <p className={styles.price}>
+              {product.price.toLocaleString()} <span>{t('currency')}</span>
+            </p>
+            <div className={styles.stockBadge}>
+              <CheckCircle2 size={14} />
+              متوفر في المخزون
+            </div>
+          </div>
           
           <div className={styles.description}>
-            <h3>{t('description')}</h3>
             <p>{product.description}</p>
           </div>
           
-          <div className={styles.actions}>
+          <div className={styles.quantitySection}>
+            <label>{t('quantity') || 'الكمية'}</label>
             <div className={styles.quantity}>
                <button onClick={() => setQuantity(Math.max(1, quantity - 1))}>-</button>
                <span>{quantity}</span>
                <button onClick={() => setQuantity(quantity + 1)}>+</button>
             </div>
+          </div>
+          
+          <div className={styles.actions}>
             <button className={`${styles.addToCart} ${isAdded ? styles.added : ''}`} onClick={handleAddToCart} disabled={isAdded}>
+              <ShoppingCart size={20} />
               {isAdded ? 'تمت الإضافة ✓' : t('addToCart')}
             </button>
+            <button className={styles.buyNow} onClick={handleBuyNow}>
+              <Zap size={20} />
+              اشتري الآن
+            </button>
           </div>
+          
+          <a href={getWhatsAppLink()} target="_blank" rel="noopener noreferrer" className={styles.whatsappInquiry}>
+            <MessageCircle size={20} />
+            استفسر عبر الواتساب
+          </a>
         </div>
       </div>
+
+      {relatedProducts.length > 0 && (
+        <div className={styles.relatedSection}>
+          <h2 className={styles.sectionTitle}>منتجات قد تعجبك</h2>
+          <div className={styles.relatedGrid}>
+            {relatedProducts.map(p => (
+              <ProductCard key={p.id} {...p} slug={resolvedParams.slug} />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
