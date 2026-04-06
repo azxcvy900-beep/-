@@ -16,7 +16,7 @@ export default function CheckoutPage() {
   const pt = useTranslations('Product');
   const locale = useLocale();
   const router = useRouter();
-  const { items, getTotalPrice, clearCart } = useCartStore();
+  const { items, getTotalPrice, clearCart, userInfo, setUserInfo } = useCartStore();
   
   const [mounted, setMounted] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('electronic');
@@ -33,10 +33,21 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     setMounted(true);
+    
+    // Auto-fill form if info exists in store
+    if (userInfo) {
+      setFormData(prev => ({
+        ...prev,
+        fullName: userInfo.fullName || '',
+        phone: userInfo.phone || '',
+        address: userInfo.address || ''
+      }));
+    }
+
     if (mounted && items.length === 0) {
       router.push(`/${locale}/cart`);
     }
-  }, [mounted, items, router, locale]);
+  }, [mounted, items, router, locale, userInfo]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -64,6 +75,13 @@ export default function CheckoutPage() {
     }
 
     setIsSubmitting(true);
+    
+    // Save user info for future use
+    setUserInfo({
+      fullName: formData.fullName,
+      phone: formData.phone,
+      address: formData.address
+    });
     
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 2000));

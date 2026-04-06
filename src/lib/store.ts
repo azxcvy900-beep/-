@@ -9,12 +9,20 @@ export interface CartItem {
   quantity: number;
 }
 
+export interface UserInfo {
+  fullName: string;
+  phone: string;
+  address: string;
+}
+
 interface CartStore {
   items: CartItem[];
+  userInfo: UserInfo | null;
   addItem: (item: Omit<CartItem, 'quantity'>) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
+  setUserInfo: (info: UserInfo) => void;
   getTotalItems: () => number;
   getTotalPrice: () => number;
 }
@@ -23,6 +31,7 @@ export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
       items: [],
+      userInfo: null,
       
       addItem: (item) => {
         set((state) => {
@@ -57,6 +66,8 @@ export const useCartStore = create<CartStore>()(
       },
       
       clearCart: () => set({ items: [] }),
+      
+      setUserInfo: (info) => set({ userInfo: info }),
       
       getTotalItems: () => {
         return get().items.reduce((total, item) => total + item.quantity, 0);
