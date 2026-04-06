@@ -109,16 +109,52 @@
     "date": "التاريخ",
     "status": "الحالة",
     "total": "الإجمالي",
-    "reorder": "إعادة الطلب",
     "noOrders": "لا يوجد طلبات سابقة بعد",
-    "viewStore": "اذهب للمتجر",
     "pending": "قيد الانتظار",
     "processing": "جارٍ المعالجة",
     "shipped": "تم الشحن",
     "delivered": "تم التوصيل",
     "cancelled": "ملغي",
-    "cancelOrder": "إلغاء الطلب",
-    "confirmCancel": "هل أنت متأكد من رغبتك في إلغاء هذا الطلب؟"
+    "reorder": "إعادة طلب",
+    "confirmCancel": "هل أنت متأكد من إلغاء هذا الطلب؟",
+    "cancelOrder": "إلغاء الطلب"
+  },
+  "Admin": {
+    "loginTitle": "دخول التجار",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "loginBtn": "تسجيل الدخول",
+    "sidebar": {
+      "dashboard": "الإحصائيات",
+      "products": "المنتجات",
+      "orders": "الطلبات",
+      "settings": "الإعدادات",
+      "logout": "تسجيل الخروج"
+    },
+    "dashboard": {
+      "totalSales": "إجمالي المبيعات",
+      "totalOrders": "إجمالي الطلبات",
+      "activeProducts": "المنتجات النشطة",
+      "recentOrders": "آخر الطلبات"
+    },
+    "products": {
+      "title": "إدارة المنتجات",
+      "addNew": "إضافة منتج جديد",
+      "edit": "تعديل",
+      "delete": "حذف",
+      "name": "اسم المنتج",
+      "price": "السعر",
+      "category": "الفئة",
+      "save": "حفظ",
+      "cancel": "إلغاء"
+    },
+    "orders": {
+      "title": "إدارة الطلبات",
+      "orderId": "رقم الطلب",
+      "customer": "العميل",
+      "status": "الحالة",
+      "updateStatus": "تحديث الحالة"
+    }
   },
   "Footer": {
     "fastDelivery": "توصيل سريع",

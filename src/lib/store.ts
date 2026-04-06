@@ -24,9 +24,18 @@ export interface Order {
   id: string;
   items: CartItem[];
   total: number;
+  address: {
+    fullName: string;
+    phone: string;
+    city: string;
+    region: string;
+    details: string;
+    label: string;
+  };
+  paymentMethod: string;
+  paymentProof?: string;
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   date: string;
-  address: UserInfo;
 }
 
 interface CartStore {

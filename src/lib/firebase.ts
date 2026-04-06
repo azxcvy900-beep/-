@@ -15,6 +15,7 @@ const firebaseConfig = {
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
 import { getFirestore } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 
 // Initialize Analytics client-side only
 let analytics: ReturnType<typeof getAnalytics> | null = null;
@@ -29,4 +30,7 @@ if (typeof window !== "undefined") {
 // Initialize Firestore
 const db = getFirestore(app);
 
-export { app, analytics, db };
+// Initialize Auth
+const auth = getAuth(app);
+
+export { app, analytics, db, auth };

@@ -1,5 +1,6 @@
 import { db } from './firebase';
-import { collection, getDocs, doc, getDoc, writeBatch } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, writeBatch, updateDoc, deleteDoc, query, where } from 'firebase/firestore';
+import { Order } from './store';
 
 export interface ProductOption {
   name: string;
@@ -184,5 +185,80 @@ export async function seedDatabase() {
     console.log("Database seeded successfully!");
   } catch (error) {
     console.error("Error seeding database:", error);
+  }
+}
+
+// --- MERCHANT API ---
+
+// Add a new product
+export async function addProduct(product: Omit<Product, 'id'>): Promise<string> {
+  try {
+    const productsCol = collection(db, 'products');
+    const docRef = doc(productsCol);
+    const newProduct = { ...product, id: docRef.id };
+    await writeBatch(db).set(doc(db, 'products', newProduct.id), newProduct).commit();
+    return newProduct.id;
+  } catch (error) {
+    console.error("Error adding product:", error);
+    throw error;
+  }
+}
+
+// Update existing product
+export async function updateProduct(id: string, updates: Partial<Product>): Promise<void> {
+  try {
+    const productRef = doc(db, 'products', id);
+    await writeBatch(db).update(productRef, updates as any).commit();
+  } catch (error) {
+    console.error("Error updating product:", error);
+    throw error;
+  }
+}
+
+// Delete product
+export async function deleteProduct(id: string): Promise<void> {
+  try {
+    const productRef = doc(db, 'products', id);
+    await writeBatch(db).delete(productRef).commit();
+  } catch (error) {
+    console.error("Error deleting product:", error);
+    throw error;
+  }
+}
+
+// Fetch all orders for a specific store
+export async function getStoreOrders(storeSlug: string): Promise<Order[]> {
+  try {
+    const ordersCol = collection(db, 'orders');
+    const orderSnapshot = await getDocs(ordersCol);
+    return orderSnapshot.docs
+      .map(doc => ({ id: doc.id, ...doc.data() } as Order))
+      .filter(o => o.items.some(item => (item as any).storeSlug === storeSlug || storeSlug === 'demo'))
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  } catch (error) {
+    console.error("Error fetching store orders:", error);
+    return [];
+  }
+}
+
+// Update order status
+export async function updateOrderStatus(orderId: string, status: Order['status']): Promise<void> {
+  try {
+    const orderRef = doc(db, 'orders', orderId);
+    await writeBatch(db).update(orderRef, { status }).commit();
+  } catch (error) {
+    console.error("Error updating order status:", error);
+    throw error;
+  }
+}
+
+// Update store information
+export async function updateStoreInfo(slug: string, updates: Partial<StoreInfo>): Promise<void> {
+  try {
+    const storeRef = doc(db, 'stores', slug);
+    await writeBatch(db).update(storeRef, updates as any).commit();
+  } catch (error) {
+    console.error("Error updating store info:", error);
+    throw error;
   }
 }
