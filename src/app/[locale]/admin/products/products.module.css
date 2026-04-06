@@ -116,26 +116,37 @@
   transform: scale(1.1);
 }
 
-/* Modal Styling */
+/* Modal Styling - Fixed Transparency and Layout */
 .modalOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
-  padding: 1rem;
+  z-index: 9999; /* Ensure it's above everything */
+  padding: 1.5rem;
 }
 
 .modal {
   width: 100%;
   max-width: 600px;
-  background: var(--bg-card);
-  border-radius: 30px;
+  background: var(--bg-card); /* Should be solid color defined in global css */
+  background-color: #fff; /* Fallback for light mode to ensure no transparency */
+  border: 1px solid rgba(128, 128, 128, 0.2);
+  border-radius: 24px;
   padding: 2.5rem;
   max-height: 90vh;
   overflow-y: auto;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  position: relative;
+}
+
+/* Dark mode support if applicable */
+:global(.dark) .modal {
+  background-color: #1a1a1a;
+  border-color: #333;
 }
 
 .modalTitle {
@@ -143,34 +154,56 @@
   font-weight: 800;
   margin-bottom: 2rem;
   text-align: center;
+  color: #000;
+}
+
+:global(.dark) .modalTitle {
+  color: #fff;
 }
 
 .formGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.25rem;
+  gap: 1.5rem;
   margin-bottom: 1.5rem;
+  text-align: right;
+}
+
+[dir='ltr'] .formGrid {
+  text-align: left;
 }
 
 .fullWidth {
   grid-column: 1 / -1;
 }
 
-.inputGroup label {
-  display: block;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  font-size: 0.9rem;
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-.input, .textarea, .select {
+.inputGroup label {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.input, .textarea {
   width: 100%;
-  padding: 0.8rem 1rem;
+  padding: 0.9rem 1rem;
   border-radius: 12px;
-  border: 1px solid rgba(128, 128, 128, 0.2);
-  background: rgba(var(--primary-rgb), 0.02);
-  color: var(--text-primary);
+  border: 1px solid rgba(128, 128, 128, 0.3);
+  background: #fdfdfd;
+  color: #333;
   font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+:global(.dark) .input, :global(.dark) .textarea {
+  background: #262626;
+  color: #eee;
+  border-color: #444;
 }
 
 .textarea {
