@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Moon, Sun, Globe, ShoppingCart } from 'lucide-react';
+import { Moon, Sun, Globe, ShoppingCart, ClipboardList, ShoppingBag } from 'lucide-react';
 import { useTheme } from '@/components/providers/ThemeProvider';
 import { useCartStore } from '@/lib/store';
 import styles from './Header.module.css';
@@ -15,6 +15,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ storeName }) => {
   const t = useTranslations('Header');
+  const ot = useTranslations('Orders');
   const locale = useLocale();
   const { theme, toggleTheme } = useTheme();
   
@@ -60,9 +61,15 @@ const Header: React.FC<HeaderProps> = ({ storeName }) => {
               </motion.div>
             </AnimatePresence>
           </motion.button>
+
+          <Link href={`/${locale}/orders`} className={styles.navLink}>
+            <ShoppingBag size={18} style={{ margin: '0 4px', verticalAlign: 'middle' }} />
+            <span className={styles.hideOnMobile}>{ot('title')}</span>
+          </Link>
           
           <Link href={`/${locale}/track`} className={styles.navLink}>
-            {t('trackOrder')}
+            <ClipboardList size={18} style={{ margin: '0 4px', verticalAlign: 'middle' }} />
+            <span className={styles.hideOnMobile}>{t('trackOrder')}</span>
           </Link>
 
           <Link href={`/${nextLocale}`} className={styles.localeLink}>

@@ -163,8 +163,26 @@ export default function CheckoutPage() {
 
     setIsSubmitting(true);
     
+    // Create new order record
+    const selectedAddress = addresses.find(a => a.id === selectedAddressId) || {
+      id: 'temp',
+      ...formData
+    };
+
+    const newOrder: any = {
+      id: `ORD-${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
+      items: [...items],
+      total: getTotalPrice(),
+      status: 'pending',
+      date: new Date().toISOString(),
+      address: selectedAddress
+    };
+
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Save to store
+    useCartStore.getState().addOrder(newOrder);
     
     clearCart();
     setIsSubmitting(false);

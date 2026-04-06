@@ -91,5 +91,20 @@
     "cta": "Browse Demo Store",
     "features": "Why Buyers?",
     "sub_features": "Ease, speed, and integrated technical support"
+  },
+  "Orders": {
+    "title": "My Orders",
+    "orderId": "Order ID",
+    "date": "Date",
+    "status": "Status",
+    "total": "Total",
+    "reorder": "Re-order",
+    "noOrders": "No previous orders yet",
+    "viewStore": "Go to Store",
+    "pending": "Pending",
+    "processing": "Processing",
+    "shipped": "Shipped",
+    "delivered": "Delivered",
+    "cancelled": "Cancelled"
   }
 }

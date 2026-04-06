@@ -19,10 +19,20 @@ export interface UserInfo {
   details: string;
 }
 
+export interface Order {
+  id: string;
+  items: CartItem[];
+  total: number;
+  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  date: string;
+  address: UserInfo;
+}
+
 interface CartStore {
   items: CartItem[];
   addresses: UserInfo[];
   selectedAddressId: string | null;
+  orders: Order[];
   addItem: (item: Omit<CartItem, 'quantity'>) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
@@ -30,6 +40,7 @@ interface CartStore {
   addAddress: (address: UserInfo) => void;
   removeAddress: (id: string) => void;
   setSelectedAddress: (id: string) => void;
+  addOrder: (order: Order) => void;
   getTotalItems: () => number;
   getTotalPrice: () => number;
 }
@@ -40,6 +51,7 @@ export const useCartStore = create<CartStore>()(
       items: [],
       addresses: [],
       selectedAddressId: null,
+      orders: [],
       
       addItem: (item) => {
         set((state) => {
@@ -91,6 +103,12 @@ export const useCartStore = create<CartStore>()(
 
       setSelectedAddress: (id) => {
         set({ selectedAddressId: id });
+      },
+
+      addOrder: (order) => {
+        set((state) => ({
+          orders: [order, ...state.orders]
+        }));
       },
       
       getTotalItems: () => {
