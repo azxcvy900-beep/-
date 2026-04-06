@@ -13,7 +13,8 @@ import {
   Menu, 
   X,
   User,
-  Store
+  Store,
+  Grid
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { auth } from '@/lib/firebase';
@@ -57,6 +58,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const navItems = [
     { name: t('sidebar.dashboard'), href: `/${locale}/admin/dashboard`, icon: LayoutDashboard },
+    { name: 'الأقسام', href: `/${locale}/admin/categories`, icon: Grid },
     { name: t('sidebar.products'), href: `/${locale}/admin/products`, icon: Package },
     { name: t('sidebar.orders'), href: `/${locale}/admin/orders`, icon: ShoppingBag },
     { name: t('sidebar.settings'), href: `/${locale}/admin/settings`, icon: Settings },

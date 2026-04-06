@@ -32,6 +32,13 @@ export interface StoreInfo {
   };
 }
 
+export interface Category {
+  id: string;
+  name: string;
+  image?: string; // Icon or Image for the category
+  storeSlug: string;
+}
+
 const DUMMY_PRODUCTS: Product[] = [
   {
     id: 'iphone-15-pro',
@@ -213,6 +220,69 @@ export async function uploadStoreLogo(file: File, storeSlug: string): Promise<st
     return await getDownloadURL(snapshot.ref);
   } catch (error) {
     console.error("Error uploading logo:", error);
+    throw error;
+  }
+}
+
+// Upload category image/icon to Firebase Storage
+export async function uploadCategoryImage(file: File, storeSlug: string): Promise<string> {
+  try {
+    const fileName = `${Date.now()}_cat_${file.name.replace(/\s+/g, '_')}`;
+    const storageRef = ref(storage, `stores/${storeSlug}/categories/${fileName}`);
+    const snapshot = await uploadBytes(storageRef, file);
+    return await getDownloadURL(snapshot.ref);
+  } catch (error) {
+    console.error("Error uploading category image:", error);
+    throw error;
+  }
+}
+
+// --- CATEGORY API ---
+
+// Fetch all categories for a specific store
+export async function getStoreCategories(storeSlug: string): Promise<Category[]> {
+  try {
+    const categoriesCol = collection(db, 'stores', storeSlug, 'categories');
+    const categorySnapshot = await getDocs(categoriesCol);
+    return categorySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Category));
+  } catch (error) {
+    console.error("Error fetching categories:", error);
+    return [];
+  }
+}
+
+// Add a new category
+export async function addCategory(category: Omit<Category, 'id'>): Promise<string> {
+  try {
+    const categoriesCol = collection(db, 'stores', category.storeSlug, 'categories');
+    const docRef = doc(categoriesCol);
+    const newCategory = { ...category, id: docRef.id };
+    await setDoc(docRef, newCategory);
+    return newCategory.id;
+  } catch (error) {
+    console.error("Error adding category:", error);
+    throw error;
+  }
+}
+
+// Update existing category
+export async function updateCategory(storeSlug: string, id: string, updates: Partial<Category>): Promise<void> {
+  try {
+    const categoryRef = doc(db, 'stores', storeSlug, 'categories', id);
+    await updateDoc(categoryRef, updates as any);
+  } catch (error) {
+    console.error("Error updating category:", error);
+    throw error;
+  }
+}
+
+// Delete category
+export async function deleteCategory(storeSlug: string, id: string): Promise<void> {
+  try {
+    const categoryRef = doc(db, 'stores', storeSlug, 'categories', id);
+    await deleteDoc(categoryRef);
+  } catch (error) {
+    console.error("Error deleting category:", error);
     throw error;
   }
 }

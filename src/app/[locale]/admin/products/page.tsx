@@ -13,7 +13,16 @@ import {
   Image as ImageIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getStoreProducts, addProduct, updateProduct, deleteProduct, uploadProductImage, Product } from '@/lib/api';
+import { 
+  getStoreProducts, 
+  addProduct, 
+  updateProduct, 
+  deleteProduct, 
+  uploadProductImage, 
+  getStoreCategories,
+  Product, 
+  Category
+} from '@/lib/api';
 import styles from './products.module.css';
 
 export default function MerchantProducts() {
@@ -22,6 +31,7 @@ export default function MerchantProducts() {
   const locale = useLocale();
   
   const [products, setProducts] = useState<Product[]>([]);
+  const [storeCategories, setStoreCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -45,15 +55,24 @@ export default function MerchantProducts() {
   });
 
   useEffect(() => {
-    loadProducts();
+    loadData();
   }, []);
 
-  async function loadProducts() {
+  async function loadData() {
     try {
-      const data = await getStoreProducts('demo');
-      setProducts(data);
+      const [productsData, catsData] = await Promise.all([
+        getStoreProducts('demo'),
+        getStoreCategories('demo')
+      ]);
+      setProducts(productsData);
+      setStoreCategories(catsData);
+      
+      // If categories exist and form category is empty, set default
+      if (catsData.length > 0 && !formData.category) {
+        setFormData(prev => ({ ...prev, category: catsData[0].name }));
+      }
     } catch (error) {
-      console.error("Error loading products:", error);
+      console.error("Error loading products/categories:", error);
     } finally {
       setLoading(false);
     }
@@ -78,7 +97,7 @@ export default function MerchantProducts() {
       setFormData({
         name: '',
         price: '',
-        category: '',
+        category: storeCategories.length > 0 ? storeCategories[0].name : '',
         image: '',
         description: '',
         storeSlug: 'demo'
@@ -130,7 +149,7 @@ export default function MerchantProducts() {
       } else {
         await addProduct(productData);
       }
-      await loadProducts();
+      await loadData();
       handleCloseModal();
     } catch (error) {
       console.error("Submit error:", error);
@@ -144,7 +163,7 @@ export default function MerchantProducts() {
     if (confirm("هل أنت متأكد من حذف هذا المنتج؟")) {
       try {
         await deleteProduct(id);
-        await loadProducts();
+        await loadData();
       } catch (error) {
         alert("حدث خطأ أثناء الحذف.");
       }
