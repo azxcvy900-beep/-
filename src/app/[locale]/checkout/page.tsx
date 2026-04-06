@@ -4,8 +4,20 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CreditCard, Landmark, Upload, CheckCircle2, AlertCircle, ChevronRight } from 'lucide-react';
-import { useCartStore } from '@/lib/store';
+import { 
+  CreditCard, 
+  Landmark, 
+  Upload, 
+  CheckCircle2, 
+  AlertCircle, 
+  ChevronRight,
+  Home,
+  Briefcase,
+  MapPin,
+  Plus,
+  Trash2
+} from 'lucide-react';
+import { useCartStore, UserInfo } from '@/lib/store';
 import BackButton from '@/components/shared/BackButton/BackButton';
 import styles from './checkout.module.css';
 
@@ -16,42 +28,73 @@ export default function CheckoutPage() {
   const pt = useTranslations('Product');
   const locale = useLocale();
   const router = useRouter();
-  const { items, getTotalPrice, clearCart, userInfo, setUserInfo } = useCartStore();
+  const { 
+    items, 
+    getTotalPrice, 
+    clearCart, 
+    addresses, 
+    selectedAddressId, 
+    addAddress, 
+    removeAddress, 
+    setSelectedAddress 
+  } = useCartStore();
   
   const [mounted, setMounted] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('electronic');
   const [receipt, setReceipt] = useState<File | null>(null);
   const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAddingNew, setIsAddingNew] = useState(false);
   
   const [formData, setFormData] = useState({
     fullName: '',
     phone: '',
-    address: '',
-    notes: ''
+    city: '',
+    region: '',
+    details: '',
+    label: 'home' as 'home' | 'work' | 'other'
   });
 
   useEffect(() => {
     setMounted(true);
     
-    // Auto-fill form if info exists in store
-    if (userInfo) {
-      setFormData(prev => ({
-        ...prev,
-        fullName: userInfo.fullName || '',
-        phone: userInfo.phone || '',
-        address: userInfo.address || ''
-      }));
-    }
-
     if (mounted && items.length === 0) {
       router.push(`/${locale}/cart`);
     }
-  }, [mounted, items, router, locale, userInfo]);
+
+    if (mounted && addresses.length === 0) {
+      setIsAddingNew(true);
+    }
+  }, [mounted, items, router, locale, addresses.length]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleAddAddress = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!formData.fullName || !formData.phone || !formData.city || !formData.region) {
+      alert('Please fill all required fields');
+      return;
+    }
+
+    const newAddress: UserInfo = {
+      id: Math.random().toString(36).substr(2, 9),
+      ...formData
+    };
+
+    addAddress(newAddress);
+    setIsAddingNew(false);
+    // Reset form
+    setFormData({
+      fullName: '',
+      phone: '',
+      city: '',
+      region: '',
+      details: '',
+      label: 'home'
+    });
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -69,19 +112,17 @@ export default function CheckoutPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!selectedAddressId && !isAddingNew) {
+      alert(t('selectAddress'));
+      return;
+    }
+
     if (paymentMethod === 'transfer' && !receipt) {
       alert(t('errorReceiptRequired'));
       return;
     }
 
     setIsSubmitting(true);
-    
-    // Save user info for future use
-    setUserInfo({
-      fullName: formData.fullName,
-      phone: formData.phone,
-      address: formData.address
-    });
     
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 2000));
@@ -92,6 +133,14 @@ export default function CheckoutPage() {
   };
 
   if (!mounted || items.length === 0) return null;
+
+  const getAddressIcon = (label: string) => {
+    switch (label) {
+      case 'home': return <Home size={18} />;
+      case 'work': return <Briefcase size={18} />;
+      default: return <MapPin size={18} />;
+    }
+  };
 
   return (
     <div className={styles.container}>
@@ -113,42 +162,156 @@ export default function CheckoutPage() {
         <div className={styles.formSection}>
           <div className={styles.card}>
             <h3>{t('customerInfo')}</h3>
-            <div className={styles.inputGroup}>
-              <label htmlFor="fullName">{t('fullName')}</label>
-              <input
-                type="text"
-                id="fullName"
-                name="fullName"
-                required
-                value={formData.fullName}
-                onChange={handleInputChange}
-                placeholder={t('fullNamePlaceholder')}
-              />
-            </div>
-            <div className={styles.inputGroup}>
-              <label htmlFor="phone">{t('phone')}</label>
-              <input
-                type="tel"
-                id="phone"
-                name="phone"
-                required
-                value={formData.phone}
-                onChange={handleInputChange}
-                placeholder="77XXXXXXX"
-              />
-            </div>
-            <div className={styles.inputGroup}>
-              <label htmlFor="address">{t('address')}</label>
-              <textarea
-                id="address"
-                name="address"
-                required
-                rows={3}
-                value={formData.address}
-                onChange={handleInputChange}
-                placeholder={t('addressPlaceholder')}
-              />
-            </div>
+            
+            {!isAddingNew && addresses.length > 0 ? (
+              <>
+                <div className={styles.addressGrid}>
+                  {addresses.map((addr) => (
+                    <motion.div
+                      key={addr.id}
+                      className={`${styles.addressCard} ${selectedAddressId === addr.id ? styles.addressSelected : ''}`}
+                      onClick={() => setSelectedAddress(addr.id)}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <div className={styles.addressLabel}>
+                        {getAddressIcon(addr.label)}
+                        {t(addr.label)}
+                      </div>
+                      <div className={styles.addressName}>{addr.fullName}</div>
+                      <div className={styles.addressLocality}>{addr.city}, {addr.region}</div>
+                      <div className={styles.addressDetails}>{addr.details}</div>
+                      <div className={styles.addressPhone}>{addr.phone}</div>
+                      
+                      {selectedAddressId === addr.id && (
+                        <CheckCircle2 className={styles.checkIcon} size={18} />
+                      )}
+                      
+                      <button 
+                        className={styles.deleteAddress}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeAddress(addr.id);
+                        }}
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </motion.div>
+                  ))}
+                  
+                  <button 
+                    type="button"
+                    className={`${styles.addressCard} ${styles.addAddressBtn}`}
+                    onClick={() => setIsAddingNew(true)}
+                  >
+                    <Plus size={24} />
+                    <span>{t('addAddress')}</span>
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className={styles.newAddressForm}>
+                <div className={styles.labelSwitcher}>
+                  {(['home', 'work', 'other'] as const).map((l) => (
+                    <button
+                      key={l}
+                      type="button"
+                      className={`${styles.labelOption} ${formData.label === l ? styles.labelActive : ''}`}
+                      onClick={() => setFormData(prev => ({ ...prev, label: l }))}
+                    >
+                      {getAddressIcon(l)}
+                      {t(l)}
+                    </button>
+                  ))}
+                </div>
+
+                <div className={styles.inputGroup}>
+                  <label htmlFor="fullName">{t('fullName')}</label>
+                  <input
+                    type="text"
+                    id="fullName"
+                    name="fullName"
+                    required={isAddingNew}
+                    value={formData.fullName}
+                    onChange={handleInputChange}
+                    placeholder={t('fullNamePlaceholder')}
+                  />
+                </div>
+
+                <div className={styles.formGrid}>
+                  <div className={styles.inputGroup}>
+                    <label htmlFor="city">{t('city')}</label>
+                    <input
+                      type="text"
+                      id="city"
+                      name="city"
+                      required={isAddingNew}
+                      value={formData.city}
+                      onChange={handleInputChange}
+                      placeholder={t('city')}
+                    />
+                  </div>
+                  <div className={styles.inputGroup}>
+                    <label htmlFor="region">{t('region')}</label>
+                    <input
+                      type="text"
+                      id="region"
+                      name="region"
+                      required={isAddingNew}
+                      value={formData.region}
+                      onChange={handleInputChange}
+                      placeholder={t('region')}
+                    />
+                  </div>
+                </div>
+
+                <div className={styles.inputGroup}>
+                  <label htmlFor="phone">{t('phone')}</label>
+                  <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    required={isAddingNew}
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    placeholder="77XXXXXXX"
+                  />
+                </div>
+                
+                <div className={styles.inputGroup}>
+                  <label htmlFor="details">{t('extraDetails')}</label>
+                  <textarea
+                    id="details"
+                    name="details"
+                    rows={2}
+                    value={formData.details}
+                    onChange={handleInputChange}
+                    placeholder={t('addressPlaceholder')}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                  <button 
+                    type="button" 
+                    className={styles.placeOrderBtn}
+                    onClick={handleAddAddress}
+                    style={{ flex: 2 }}
+                  >
+                    {t('addAddress')}
+                  </button>
+                  {addresses.length > 0 && (
+                    <button 
+                      type="button" 
+                      className={styles.placeOrderBtn}
+                      onClick={() => setIsAddingNew(false)}
+                      style={{ flex: 1, background: 'var(--muted)', color: 'var(--foreground)' }}
+                    >
+                      {t('back')}
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className={styles.card}>

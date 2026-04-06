@@ -10,19 +10,26 @@ export interface CartItem {
 }
 
 export interface UserInfo {
+  id: string;
+  label: 'home' | 'work' | 'other';
   fullName: string;
   phone: string;
-  address: string;
+  city: string;
+  region: string;
+  details: string;
 }
 
 interface CartStore {
   items: CartItem[];
-  userInfo: UserInfo | null;
+  addresses: UserInfo[];
+  selectedAddressId: string | null;
   addItem: (item: Omit<CartItem, 'quantity'>) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
-  setUserInfo: (info: UserInfo) => void;
+  addAddress: (address: UserInfo) => void;
+  removeAddress: (id: string) => void;
+  setSelectedAddress: (id: string) => void;
   getTotalItems: () => number;
   getTotalPrice: () => number;
 }
@@ -31,7 +38,8 @@ export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
       items: [],
-      userInfo: null,
+      addresses: [],
+      selectedAddressId: null,
       
       addItem: (item) => {
         set((state) => {
@@ -66,8 +74,24 @@ export const useCartStore = create<CartStore>()(
       },
       
       clearCart: () => set({ items: [] }),
-      
-      setUserInfo: (info) => set({ userInfo: info }),
+
+      addAddress: (address) => {
+        set((state) => ({
+          addresses: [...state.addresses, address],
+          selectedAddressId: address.id
+        }));
+      },
+
+      removeAddress: (id) => {
+        set((state) => ({
+          addresses: state.addresses.filter((a) => a.id !== id),
+          selectedAddressId: state.selectedAddressId === id ? null : state.selectedAddressId
+        }));
+      },
+
+      setSelectedAddress: (id) => {
+        set({ selectedAddressId: id });
+      },
       
       getTotalItems: () => {
         return get().items.reduce((total, item) => total + item.quantity, 0);

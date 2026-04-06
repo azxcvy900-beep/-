@@ -81,6 +81,158 @@
   box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
 }
 
+.addressGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.addressCard {
+  position: relative;
+  background: var(--bg-card);
+  border: 2px solid rgba(128, 128, 128, 0.1);
+  border-radius: 16px;
+  padding: 1.25rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.addressCard:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+}
+
+.addressSelected {
+  border-color: var(--primary);
+  background: rgba(var(--primary-rgb), 0.03);
+  box-shadow: 0 8px 15px rgba(var(--primary-rgb), 0.1);
+}
+
+.addressLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  color: var(--primary);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+}
+
+.addressName {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.addressLocality {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.addressDetails {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  opacity: 0.8;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.deleteAddress {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+
+[dir='rtl'] .deleteAddress {
+  left: auto;
+  right: 0.75rem;
+}
+
+.addressCard:hover .deleteAddress {
+  opacity: 1;
+}
+
+.deleteAddress:hover {
+  background: #ef4444;
+  color: white;
+}
+
+.addAddressBtn {
+  border: 2px dashed rgba(128, 128, 128, 0.2);
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.addAddressBtn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: rgba(var(--primary-rgb), 0.02);
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.labelSwitcher {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.labelOption {
+  flex: 1;
+  padding: 0.6rem;
+  border: 1px solid rgba(128, 128, 128, 0.2);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.labelActive {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
 .paymentMethods {
   display: grid;
   grid-template-columns: 1fr 1fr;
