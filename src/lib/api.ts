@@ -78,15 +78,8 @@ export async function getStoreProducts(storeSlug: string): Promise<Product[]> {
   try {
     const productsCol = collection(db, 'products');
     const productSnapshot = await getDocs(productsCol);
-    const productList = productSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
-    
-    const storeProducts = productList.filter(p => p.storeSlug === storeSlug);
-    
-    if (storeProducts.length === 0) {
-      return DUMMY_PRODUCTS;
-    }
-    
-    return storeProducts;
+    return productSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product))
+      .filter(p => p.storeSlug === storeSlug);
   } catch (error) {
     console.error("Error fetching products:", error);
     return DUMMY_PRODUCTS;
@@ -95,8 +88,9 @@ export async function getStoreProducts(storeSlug: string): Promise<Product[]> {
 
 // Fetch single product by ID
 export async function getProductById(id: string): Promise<Product | null> {
-  // Optimization: Instant search in dummy data first for demo/fallback speed
+  // Optimization: If it's a dummy product, return it IMMEDIATELY without network hit
   const dummyProduct = DUMMY_PRODUCTS.find(p => p.id === id);
+  if (dummyProduct) return dummyProduct;
   
   try {
     const productDoc = doc(db, 'products', id);
@@ -104,18 +98,17 @@ export async function getProductById(id: string): Promise<Product | null> {
 
     if (productSnap.exists()) {
       return { id: productSnap.id, ...productSnap.data() } as Product;
-    } else {
-      return dummyProduct || null;
     }
+    return null;
   } catch (error) {
     console.error("Error fetching product:", error);
-    return dummyProduct || null;
+    return null;
   }
 }
 
 // Fetch related products (same category, different ID)
-export async function getRelatedProducts(category: string, excludeId: string, limit: number = 4): Promise<Product[]> {
-  const allProducts = await getStoreProducts('demo'); // Default to demo for now
+export async function getRelatedProducts(category: string, excludeId: string, storeSlug: string = 'demo', limit: number = 4): Promise<Product[]> {
+  const allProducts = await getStoreProducts(storeSlug); 
   return allProducts
     .filter(p => p.category === category && p.id !== excludeId)
     .slice(0, limit);

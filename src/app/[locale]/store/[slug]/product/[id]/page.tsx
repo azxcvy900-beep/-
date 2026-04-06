@@ -26,16 +26,20 @@ export default function ProductDetails({ params }: { params: Promise<{ slug: str
   
   useEffect(() => {
     async function fetchData() {
-      const data = await getProductById(resolvedParams.id);
-      if (data) {
-        setProduct(data);
-        const related = await getRelatedProducts(data.category, data.id, 4);
+      // Fetching product and related products in parallel
+      const productPromise = getProductById(resolvedParams.id);
+      const productData = await productPromise;
+
+      if (productData) {
+        setProduct(productData);
+        // Start related products fetch once we know the category
+        const related = await getRelatedProducts(productData.category, productData.id, resolvedParams.slug, 4);
         setRelatedProducts(related);
       }
       setLoading(false);
     }
     fetchData();
-  }, [resolvedParams.id]);
+  }, [resolvedParams.id, resolvedParams.slug]);
 
   const handleAddToCart = () => {
     if (product) {
