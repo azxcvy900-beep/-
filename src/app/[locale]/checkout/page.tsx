@@ -173,12 +173,8 @@ export default function CheckoutPage() {
 
   if (!mounted || items.length === 0) return null;
 
-  const getAddressIcon = (label: string) => {
-    switch (label) {
-      case 'home': return <Home size={24} />;
-      case 'work': return <Briefcase size={24} />;
-      default: return <MapPin size={24} />;
-    }
+  const getAddressIcon = () => {
+    return <MapPin size={24} />;
   };
 
   return (
@@ -217,7 +213,7 @@ export default function CheckoutPage() {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    {getAddressIcon(addr.label)}
+                    {getAddressIcon()}
                     {selectedAddressId === addr.id && (
                       <motion.div className={styles.iconSelectionMarker} layoutId="marker">
                         <CheckCircle2 size={14} />
@@ -232,7 +228,7 @@ export default function CheckoutPage() {
                     )}
                   </motion.div>
                   <span className={`${styles.iconLabel} ${selectedAddressId === addr.id ? styles.iconLabelActive : ''}`}>
-                    {t(addr.label)}
+                    {addr.region}
                   </span>
                 </div>
               ))}
@@ -258,21 +254,6 @@ export default function CheckoutPage() {
 
             {/* Address Form (Always Visible, Dynamic Content) */}
             <div className={styles.newAddressForm}>
-              <div className={styles.labelSwitcher}>
-                {(['home', 'work', 'other'] as const).map((l) => (
-                  <button
-                    key={l}
-                    type="button"
-                    className={`${styles.labelOption} ${formData.label === l ? styles.labelActive : ''}`}
-                    onClick={() => setFormData(prev => ({ ...prev, label: l }))}
-                  >
-                    {l === 'home' && <Home size={16} />}
-                    {l === 'work' && <Briefcase size={16} />}
-                    {l === 'other' && <MapPin size={16} />}
-                    {t(l)}
-                  </button>
-                ))}
-              </div>
 
               <div className={styles.inputGroup}>
                 <label htmlFor="fullName">{t('fullName')}</label>
