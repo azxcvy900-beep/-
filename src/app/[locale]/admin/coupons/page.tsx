@@ -12,7 +12,8 @@ import {
   CheckCircle, 
   XCircle,
   X,
-  Calendar
+  Calendar,
+  ShoppingBag
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -191,22 +192,22 @@ export default function MerchantCoupons() {
         {isModalOpen && (
           <div className={styles.modalOverlay} onClick={() => setIsModalOpen(false)}>
             <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 30, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 30, scale: 0.95 }}
               className={styles.modal} 
               onClick={e => e.stopPropagation()}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 style={{ margin: 0, fontWeight: 800 }}>إضافة كوبون جديد</h3>
-                <button onClick={() => setIsModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-                  <X size={24} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <h3 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 900, color: 'var(--text-primary)' }}>إضافة كوبون جديد</h3>
+                <button className={styles.closeBtn} onClick={() => setIsModalOpen(false)}>
+                  <X size={20} />
                 </button>
               </div>
 
               <form onSubmit={handleSubmit} className={styles.form}>
                 <div className={styles.inputGroup}>
-                  <label>كود الكوبون (باللغة الإنجليزية)</label>
+                  <label><Tag size={16} /> كود الكوبون (باللغة الإنجليزية)</label>
                   <input 
                     className={styles.input}
                     placeholder="مثال: SAVE20"
@@ -218,7 +219,7 @@ export default function MerchantCoupons() {
 
                 <div className={styles.row}>
                   <div className={styles.inputGroup}>
-                    <label>نوع الخصم</label>
+                    <label><Tag size={16} /> نوع الخصم</label>
                     <select 
                       className={styles.input}
                       value={formData.type}
@@ -229,10 +230,11 @@ export default function MerchantCoupons() {
                     </select>
                   </div>
                   <div className={styles.inputGroup}>
-                    <label>القيمة</label>
+                    <label><DollarSign size={16} /> القيمة</label>
                     <input 
                       type="number"
                       className={styles.input}
+                      placeholder="0.00"
                       value={formData.value}
                       onChange={e => setFormData({...formData, value: e.target.value})}
                       required
@@ -242,7 +244,7 @@ export default function MerchantCoupons() {
 
                 <div className={styles.row}>
                   <div className={styles.inputGroup}>
-                    <label>الحد الأدنى للطلب</label>
+                    <label><ShoppingBag size={16} /> الحد الأدنى للطلب</label>
                     <input 
                       type="number"
                       className={styles.input}
@@ -252,7 +254,7 @@ export default function MerchantCoupons() {
                     />
                   </div>
                   <div className={styles.inputGroup}>
-                    <label>حد الاستخدام</label>
+                    <label><Users size={16} /> حد الاستخدام</label>
                     <input 
                       type="number"
                       className={styles.input}
@@ -264,7 +266,7 @@ export default function MerchantCoupons() {
                 </div>
 
                 <div className={styles.inputGroup}>
-                  <label>تاريخ الانتهاء</label>
+                  <label><Calendar size={16} /> تاريخ الانتهاء</label>
                   <input 
                     type="date"
                     className={styles.input}
@@ -274,7 +276,7 @@ export default function MerchantCoupons() {
                 </div>
 
                 <button type="submit" className={styles.saveBtn} disabled={isSubmitting}>
-                  {isSubmitting ? 'جاري الحفظ...' : 'حفظ الكوبون'}
+                  {isSubmitting ? 'جاري الحفظ...' : 'حفظ الكوبون وتفعيله'}
                 </button>
               </form>
             </motion.div>

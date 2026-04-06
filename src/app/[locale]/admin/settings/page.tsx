@@ -256,6 +256,126 @@ export default function MerchantSettings() {
           </div>
         </div>
 
+        {/* قسم إعدادات العملة */}
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>إعدادات العملات وأسعار الصرف</h3>
+          <div className={styles.formGrid}>
+            <div className={styles.inputGroup}>
+              <label>العملة الافتراضية للمتجر</label>
+              <select 
+                className={styles.input}
+                value={storeData?.currencySettings?.default || 'YER'}
+                onChange={(e) => setStoreData(prev => prev ? {
+                  ...prev,
+                  currencySettings: {
+                    default: e.target.value,
+                    rates: prev.currencySettings?.rates || { 'SAR': 140, 'USD': 530 }
+                  }
+                } : null)}
+              >
+                <option value="YER">ريال يمني (YER)</option>
+                <option value="SAR">ريال سعودي (SAR)</option>
+                <option value="USD">دولار أمريكي (USD)</option>
+              </select>
+            </div>
+            
+            <div className={styles.inputGroup}>
+              <label>سعر صرف الريال السعودي (مقابل اليمني)</label>
+              <input 
+                type="number"
+                className={styles.input}
+                value={storeData?.currencySettings?.rates?.['SAR'] || ''}
+                placeholder="مثال: 140"
+                onChange={(e) => setStoreData(prev => {
+                  if (!prev) return null;
+                  const newRates = { ...(prev.currencySettings?.rates || { 'USD': 530 }) };
+                  newRates['SAR'] = parseFloat(e.target.value);
+                  return {
+                    ...prev,
+                    currencySettings: {
+                      default: prev.currencySettings?.default || 'YER',
+                      rates: newRates
+                    }
+                  };
+                })}
+              />
+            </div>
+
+            <div className={styles.inputGroup}>
+              <label>سعر صرف الدولار (مقابل اليمني)</label>
+              <input 
+                type="number"
+                className={styles.input}
+                value={storeData?.currencySettings?.rates?.['USD'] || ''}
+                placeholder="مثال: 535"
+                onChange={(e) => setStoreData(prev => {
+                  if (!prev) return null;
+                  const newRates = { ...(prev.currencySettings?.rates || { 'SAR': 140 }) };
+                  newRates['USD'] = parseFloat(e.target.value);
+                  return {
+                    ...prev,
+                    currencySettings: {
+                      default: prev.currencySettings?.default || 'YER',
+                      rates: newRates
+                    }
+                  };
+                })}
+              />
+            </div>
+          </div>
+          <p style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '0.5rem' }}>
+            ملاحظة: يتم استخدام هذه الأسعار لتحويل قيمة المنتجات تلقائياً عند تغيير العميل للعملة.
+          </p>
+        </div>
+
+        {/* قسم الـ SEO */}
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>تحسين محركات البحث (SEO)</h3>
+          <div className={styles.formGrid}>
+            <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
+              <label>قالب عنوان المتجر (مثال: %s | متجري)</label>
+              <input 
+                className={styles.input}
+                placeholder="%s | أسم المتجر"
+                value={storeData?.seo?.titleTemplate || ''}
+                onChange={(e) => setStoreData(prev => prev ? {
+                  ...prev,
+                  seo: { ...(prev.seo || {}), titleTemplate: e.target.value }
+                } : null)}
+              />
+            </div>
+
+            <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
+              <label>وصف المتجر لمحركات البحث</label>
+              <textarea 
+                className={styles.textarea}
+                placeholder="وصف مختصر وجذاب لمحركات البحث..."
+                value={storeData?.seo?.description || ''}
+                onChange={(e) => setStoreData(prev => prev ? {
+                  ...prev,
+                  seo: { ...(prev.seo || {}), description: e.target.value }
+                } : null)}
+              />
+            </div>
+
+            <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
+              <label>الكلمات المفتاحية (SEO Keywords)</label>
+              <input 
+                className={styles.input}
+                placeholder="جوالات, إلكترونيات, تسوق (افصل بينها بفاصلة)"
+                value={storeData?.seo?.keywords?.join(', ') || ''}
+                onChange={(e) => setStoreData(prev => prev ? {
+                  ...prev,
+                  seo: { 
+                    ...(prev.seo || {}), 
+                    keywords: e.target.value.split(',').map(k => k.trim()) 
+                  }
+                } : null)}
+              />
+            </div>
+          </div>
+        </div>
+
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
           <button type="submit" className={styles.saveBtn} disabled={saving}>
             {saving ? 'جاري الحفظ...' : (
