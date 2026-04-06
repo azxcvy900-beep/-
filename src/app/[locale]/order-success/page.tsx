@@ -4,19 +4,25 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
 import { motion } from 'framer-motion';
+import { useCartStore } from '@/lib/store';
 import { CheckCircle, Home, ShoppingBag, ArrowRight } from 'lucide-react';
 import styles from './success.module.css';
 
 export default function OrderSuccessPage() {
   const t = useTranslations('Success');
   const locale = useLocale();
+  const { orders } = useCartStore();
   const [orderNumber, setOrderNumber] = useState('');
 
   useEffect(() => {
-    // Generate a random order number
-    const num = Math.floor(100000 + Math.random() * 900000);
-    setOrderNumber(`ORD-${num}`);
-  }, []);
+    if (orders.length > 0) {
+      setOrderNumber(orders[0].id);
+    } else {
+      // Fallback in case store is cleared
+      const num = Math.floor(100000 + Math.random() * 900000);
+      setOrderNumber(`ORD-${num}`);
+    }
+  }, [orders]);
 
   return (
     <div className={styles.container}>

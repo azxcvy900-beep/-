@@ -1,6 +1,8 @@
 {
   "Header": {
-    "cart": "السلة"
+    "cart": "السلة",
+    "trackOrder": "تتبع الطلب",
+    "myOrders": "طلباتي"
   },
   "Cart": {
     "title": "سلة المشتريات",

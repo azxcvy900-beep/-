@@ -64,7 +64,7 @@ const Header: React.FC<HeaderProps> = ({ storeName }) => {
 
           <Link href={`/${locale}/orders`} className={styles.navLink}>
             <ShoppingBag size={18} style={{ margin: '0 4px', verticalAlign: 'middle' }} />
-            <span className={styles.hideOnMobile}>{ot('title')}</span>
+            <span className={styles.hideOnMobile}>{t('myOrders')}</span>
           </Link>
           
           <Link href={`/${locale}/track`} className={styles.navLink}>
