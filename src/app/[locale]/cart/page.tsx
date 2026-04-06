@@ -7,6 +7,7 @@ import { useTranslations, useLocale } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trash2, Plus, Minus, ArrowRight, ShoppingBag } from 'lucide-react';
 import { useCartStore } from '@/lib/store';
+import BackButton from '@/components/shared/BackButton/BackButton';
 import styles from './cart.module.css';
 
 export default function CartPage() {
@@ -24,6 +25,7 @@ export default function CartPage() {
 
   return (
     <div className={styles.container}>
+      <BackButton />
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

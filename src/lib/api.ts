@@ -11,89 +11,93 @@ export interface Product {
   storeSlug: string;
 }
 
-const DUMMY_PRODUCTS = [
+const DUMMY_PRODUCTS: Product[] = [
   {
-    id: '1',
-    name: 'ساعة آبل الذكية الجيل الثامن',
-    price: 150000,
+    id: 'iphone-15-pro',
+    name: 'iPhone 15 Pro Max - 256GB',
+    price: 1250000,
     category: 'إلكترونيات',
-    image: 'https://images.unsplash.com/photo-1546868889-4e0ca0492cb4?w=800&q=80',
-    description: 'تتميز ساعة Apple Watch Series 8 بمستشعرات وتطبيقات صحية متطورة، تتيح لك إجراء مخطط كهربائية القلب، وقياس معدل نبضات القلب، والأكسجين في الدم، وتتبع التغيرات في درجة الحرارة للحصول على رؤى متقدمة حول الدورة الشهرية.',
+    image: 'https://images.unsplash.com/photo-1696446701796-da61225697cc?w=800&q=80',
+    description: 'يتميز iPhone 15 Pro بتصميم من التيتانيوم القوي والخفيف، مع زر الإجراءات القابل للتخصيص، ونظام الكاميرا الأكثر تقدماً في iPhone حتى الآن.',
     storeSlug: 'demo'
   },
   {
-    id: '2',
-    name: 'سماعات سوني لاسلكية عازلة للضوضاء',
-    price: 120000,
+    id: 'sony-xm5',
+    name: 'Sony WH-1000XM5 Headphones',
+    price: 380000,
     category: 'إلكترونيات',
-    image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80',
-    description: 'سماعات رأس لاسلكية بخاصية إلغاء الضوضاء الرائدة في الصناعة، توفر صوتاً نقياً وتجربة استماع ممتازة.',
+    image: 'https://images.unsplash.com/photo-1675243048035-9051873b624d?w=800&q=80',
+    description: 'سماعات الرأس الرائدة عالمياً في إلغاء الضوضاء، تمنحك تجربة استماع غامرة ونقاء صوت لا يضاهى مع عمر بطارية يصل لـ 30 ساعة.',
     storeSlug: 'demo'
   },
   {
-    id: '3',
-    name: 'كاميرا كانون EOS R6 الاحترافية',
-    price: 850000,
-    category: 'تصوير',
-    image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800&q=80',
-    description: 'كاميرا احترافية بدون مرآة مع مستشعر عالي الدقة وتركيز تلقائي فائق السرعة، مثالية للمصورين ومصوري الفيديو.',
-    storeSlug: 'demo'
-  },
-  {
-    id: '4',
-    name: 'لابتوب أبل ماك بوك برو M3',
-    price: 1200000,
+    id: 'macbook-m3',
+    name: 'MacBook Air M3 - 13 inch',
+    price: 1100000,
     category: 'حواسيب',
     image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&q=80',
-    description: 'لابتوب ماك بوك برو المتطور بشريحة M3 الجديدة كلياً التي تمنحك قوة وسرعة لا تصدق في إنجاز المهام الثقيلة.',
+    description: 'لابتوب نحيف وخفيف الوزن بشكل مذهل، وبقوة شريحة M3 الجديدة كلياً التي تمنحك سرعة فائقة وكفاءة عالية في إنجاز المهام.',
     storeSlug: 'demo'
   },
   {
-    id: '5',
-    name: 'جهاز تحكم بلايستيشن 5 برو',
+    id: 'yemeni-honey',
+    name: 'عسل سدر ملكي فاخر دوعني',
     price: 45000,
-    category: 'ألعاب',
-    image: 'https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=800&q=80',
-    description: 'جهاز تحكم DualSense المبتكر لجهاز الألعاب بلايستيشن 5، يوفر استجابة لمسية ومؤثرات زناد ديناميكية.',
+    category: 'منتجات محلية',
+    image: 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=800&q=80',
+    description: 'عسل سدر يمني طبيعي 100% من وادي دوعن، يتميز بطعمه الفريد وخصائصه العلاجية النادرة وجودته العالية جداً.',
     storeSlug: 'demo'
   },
   {
-    id: '6',
-    name: 'إضاءة مكتبية ذكية RGB',
-    price: 15000,
-    category: 'ديكور مكتب',
-    image: 'https://images.unsplash.com/photo-1534073828943-f801091bb18c?w=800&q=80',
-    description: 'إضاءة ذكية وقابلة للتخصيص بملايين الألوان، تضيف لمسة جمالية وعصرية لمكتبك مع إمكانية التحكم بها عبر التطبيق.',
+    id: 'playstation-5',
+    name: 'PlayStation 5 Console',
+    price: 550000,
+    category: 'ألعاب',
+    image: 'https://images.unsplash.com/photo-1606813907291-d86efa9b94db?w=800&q=80',
+    description: 'انطلق في مغامرات لا حدود لها مع منصة الألعاب الأقوى في العالم، والتي توفر تجربة لعب بدقة 4K وسرعات تحميل فائقة.',
     storeSlug: 'demo'
   },
+  {
+    id: 'al-kbous-coffee',
+    name: 'قهوة الكبوس - خلطة عربية',
+    price: 1500,
+    category: 'منتجات محلية',
+    image: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=800&q=80',
+    description: 'قهوة الكبوس الشهيرة بعبقها الأصيل ونكهتها الغنية التي تعكس تراث القهوة اليمنية وتمنحك بداية يوم مثالية.',
+    storeSlug: 'demo'
+  }
 ];
 
 // Fetch all products for a specific store
 export async function getStoreProducts(storeSlug: string): Promise<Product[]> {
+  // Optimization: Instant dummy data for 'demo' store to solve delay issues
+  if (storeSlug === 'demo') {
+    return DUMMY_PRODUCTS;
+  }
+
   try {
     const productsCol = collection(db, 'products');
     const productSnapshot = await getDocs(productsCol);
     const productList = productSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
     
-    // Filter client side for now, ideally this would be a queried index:
-    // query(productsCol, where("storeSlug", "==", storeSlug)) 
-    // but requires setting up indexes if compound.
     const storeProducts = productList.filter(p => p.storeSlug === storeSlug);
     
     if (storeProducts.length === 0) {
-      // Return dummy data if DB is empty to avoid blank screen
       return DUMMY_PRODUCTS;
     }
     
     return storeProducts;
   } catch (error) {
     console.error("Error fetching products:", error);
-    return DUMMY_PRODUCTS; // Fallback to dummy data
+    return DUMMY_PRODUCTS;
   }
 }
 
 // Fetch single product by ID
 export async function getProductById(id: string): Promise<Product | null> {
+  // Optimization: Instant search in dummy data first for demo/fallback speed
+  const dummyProduct = DUMMY_PRODUCTS.find(p => p.id === id);
+  
   try {
     const productDoc = doc(db, 'products', id);
     const productSnap = await getDoc(productDoc);
@@ -101,12 +105,11 @@ export async function getProductById(id: string): Promise<Product | null> {
     if (productSnap.exists()) {
       return { id: productSnap.id, ...productSnap.data() } as Product;
     } else {
-      // Fallback
-      return DUMMY_PRODUCTS.find(p => p.id === id) || null;
+      return dummyProduct || null;
     }
   } catch (error) {
     console.error("Error fetching product:", error);
-    return DUMMY_PRODUCTS.find(p => p.id === id) || null;
+    return dummyProduct || null;
   }
 }
 

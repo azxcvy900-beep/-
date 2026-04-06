@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
+import BackButton from '@/components/shared/BackButton/BackButton';
 import { getProductById, Product } from '@/lib/api';
 import { useCartStore } from '@/lib/store';
 import styles from './page.module.css';
@@ -28,8 +29,6 @@ export default function ProductDetails({ params }: { params: Promise<{ slug: str
 
   const handleAddToCart = () => {
     if (product) {
-      // Add the item N times or just use our store. Wait, our store addItem adds 1. 
-      // Let's adapt addItem to accept quantity or we just loop.
       for (let i = 0; i < quantity; i++) {
         addItem({
           id: product.id,
@@ -52,9 +51,7 @@ export default function ProductDetails({ params }: { params: Promise<{ slug: str
 
   return (
     <div className={styles.container}>
-      <Link href={`/${locale}/store/${resolvedParams.slug}`} className={styles.backButton}>
-        {t('back')}
-      </Link>
+      <BackButton fallbackPath={`/${locale}/store/${resolvedParams.slug}`} />
       
       <div className={styles.wrapper}>
         <div className={styles.imageSection}>

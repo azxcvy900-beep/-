@@ -6,6 +6,7 @@ import { useTranslations, useLocale } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CreditCard, Landmark, Upload, CheckCircle2, AlertCircle, ChevronRight } from 'lucide-react';
 import { useCartStore } from '@/lib/store';
+import BackButton from '@/components/shared/BackButton/BackButton';
 import styles from './checkout.module.css';
 
 type PaymentMethod = 'electronic' | 'transfer';
@@ -76,6 +77,7 @@ export default function CheckoutPage() {
 
   return (
     <div className={styles.container}>
+      <BackButton fallbackPath={`/${locale}/cart`} />
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
