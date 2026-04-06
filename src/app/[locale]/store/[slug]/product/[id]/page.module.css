@@ -129,6 +129,12 @@
   transform: translateY(-2px);
 }
 
+.added {
+  background: #22c55e !important;
+  cursor: default;
+  transform: none !important;
+}
+
 @media (max-width: 1024px) {
   .wrapper {
     flex-direction: column;

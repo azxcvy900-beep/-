@@ -25,8 +25,8 @@
 
 .circleWrapper {
   position: relative;
-  width: 72px;
-  height: 72px;
+  width: 88px;
+  height: 88px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -34,8 +34,8 @@
 
 .circle {
   position: relative;
-  width: 64px;
-  height: 64px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   overflow: hidden;
   border: 2px solid var(--bg-card);
@@ -88,13 +88,13 @@
 
 @media (max-width: 768px) {
   .circleWrapper {
-    width: 64px;
-    height: 64px;
+    width: 72px;
+    height: 72px;
   }
   
   .circle {
-    width: 56px;
-    height: 56px;
+    width: 64px;
+    height: 64px;
   }
   
   .label {

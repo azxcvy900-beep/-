@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
 import { motion } from 'framer-motion';
 import { Plus } from 'lucide-react';
+import { useCartStore } from '@/lib/store';
 import styles from './ProductCard.module.css';
 
 interface ProductCardProps {
@@ -18,6 +19,13 @@ interface ProductCardProps {
 const ProductCard: React.FC<ProductCardProps> = ({ id, slug, name, price, image, category }) => {
   const t = useTranslations('Product');
   const locale = useLocale();
+  const addItem = useCartStore((state) => state.addItem);
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addItem({ id, name, price, image });
+  };
 
   return (
     <motion.div 
@@ -49,6 +57,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, slug, name, price, image,
           </span>
           <motion.button 
             className={styles.addButton}
+            onClick={handleAddToCart}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >

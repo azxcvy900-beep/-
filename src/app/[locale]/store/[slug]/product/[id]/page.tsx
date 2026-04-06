@@ -16,6 +16,7 @@ export default function ProductDetails({ params }: { params: Promise<{ slug: str
   const [quantity, setQuantity] = useState(1);
   const t = useTranslations('Product');
   const locale = useLocale();
+  const [isAdded, setIsAdded] = useState(false);
   const addItem = useCartStore((state) => state.addItem);
   
   useEffect(() => {
@@ -37,7 +38,8 @@ export default function ProductDetails({ params }: { params: Promise<{ slug: str
           image: product.image
         });
       }
-      alert('تم إضافة المنتج بنجاح');
+      setIsAdded(true);
+      setTimeout(() => setIsAdded(false), 2000);
     }
   };
 
@@ -84,8 +86,8 @@ export default function ProductDetails({ params }: { params: Promise<{ slug: str
                <span>{quantity}</span>
                <button onClick={() => setQuantity(quantity + 1)}>+</button>
             </div>
-            <button className={styles.addToCart} onClick={handleAddToCart}>
-              {t('addToCart')}
+            <button className={`${styles.addToCart} ${isAdded ? styles.added : ''}`} onClick={handleAddToCart} disabled={isAdded}>
+              {isAdded ? 'تمت الإضافة ✓' : t('addToCart')}
             </button>
           </div>
         </div>

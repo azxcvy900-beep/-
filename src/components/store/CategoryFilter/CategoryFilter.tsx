@@ -78,7 +78,7 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
               alt={label} 
               fill 
               className={styles.image}
-              sizes="80px"
+              sizes="120px"
             />
           </div>
           {isActive && (
