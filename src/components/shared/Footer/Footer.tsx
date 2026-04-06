@@ -103,6 +103,7 @@ const Footer = () => {
                 <li><Link href={`/${locale}`}>{t('home')}</Link></li>
                 <li><Link href={`/${locale}/orders`}>{t('myOrders')}</Link></li>
                 <li><Link href={`/${locale}/track`}>{t('trackOrder')}</Link></li>
+                <li><Link href={`/${locale}/admin`} className={styles.adminLink}>{t('merchantLogin')}</Link></li>
               </ul>
             </div>
 

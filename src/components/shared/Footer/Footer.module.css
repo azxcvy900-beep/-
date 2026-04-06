@@ -142,6 +142,32 @@
   padding-right: 0.5rem;
 }
 
+.adminLink {
+  font-weight: 700;
+  border-right: 2px solid var(--primary);
+  padding-right: 0.5rem;
+  margin-top: 0.5rem;
+  display: inline-block;
+  color: var(--primary) !important;
+}
+
+[dir='ltr'] .adminLink {
+  border-right: none;
+  border-left: 2px solid var(--primary);
+  padding-right: 0;
+  padding-left: 0.5rem;
+}
+
+.adminLink:hover {
+  padding-right: 1rem !important;
+  opacity: 0.8;
+}
+
+[dir='ltr'] .adminLink:hover {
+  padding-left: 1rem !important;
+  padding-right: 0 !important;
+}
+
 .bottomSection {
   padding: 2rem 0;
   border-top: 1px solid var(--card-border);
