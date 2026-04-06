@@ -13,7 +13,7 @@ import {
   Image as ImageIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getStoreProducts, addProduct, updateProduct, deleteProduct, Product } from '@/lib/api';
+import { getStoreProducts, addProduct, updateProduct, deleteProduct, uploadProductImage, Product } from '@/lib/api';
 import styles from './products.module.css';
 
 export default function MerchantProducts() {
@@ -29,6 +29,10 @@ export default function MerchantProducts() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // New States for File Upload
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -56,6 +60,9 @@ export default function MerchantProducts() {
   }
 
   const handleOpenModal = (product: Product | null = null) => {
+    setSelectedFile(null);
+    setImagePreview(product?.image || null);
+
     if (product) {
       setEditingProduct(product);
       setFormData({
@@ -83,18 +90,41 @@ export default function MerchantProducts() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingProduct(null);
+    setSelectedFile(null);
+    setImagePreview(null);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    const productData = {
-      ...formData,
-      price: parseFloat(formData.price),
-    };
-
     try {
+      let finalImageUrl = formData.image;
+
+      // 1. Upload image if a new file is selected
+      if (selectedFile) {
+        finalImageUrl = await uploadProductImage(selectedFile, formData.storeSlug);
+      }
+
+      const productData = {
+        ...formData,
+        image: finalImageUrl,
+        price: parseFloat(formData.price),
+      };
+
       if (editingProduct) {
         await updateProduct(editingProduct.id, productData);
       } else {
@@ -103,6 +133,7 @@ export default function MerchantProducts() {
       await loadProducts();
       handleCloseModal();
     } catch (error) {
+      console.error("Submit error:", error);
       alert("حدث خطأ أثناء حفظ المنتج.");
     } finally {
       setIsSubmitting(false);
@@ -247,14 +278,50 @@ export default function MerchantProducts() {
                   </div>
 
                   <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
-                    <label>رابط الصورة</label>
-                    <input 
-                      className={styles.input}
-                      placeholder="https://..."
-                      value={formData.image}
-                      onChange={(e) => setFormData({...formData, image: e.target.value})}
-                      required
-                    />
+                    <label>صورة المنتج</label>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center', padding: '1rem', border: '1px dashed rgba(128,128,128,0.3)', borderRadius: '12px' }}>
+                      {imagePreview ? (
+                        <div style={{ position: 'relative', width: '120px', height: '120px' }}>
+                          <img 
+                            src={imagePreview} 
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '12px' }} 
+                            alt="Preview" 
+                          />
+                          <button 
+                            type="button"
+                            onClick={() => {setSelectedFile(null); setImagePreview(null); setFormData({...formData, image: ''});}}
+                            style={{ position: 'absolute', top: '-10px', right: '-10px', background: '#ef4444', color: 'white', borderRadius: '50%', width: '24px', height: '24px', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyItems: 'center' }}
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ) : (
+                        <div style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
+                          <ImageIcon size={48} style={{ opacity: 0.3 }} />
+                          <p style={{ fontSize: '0.8rem', marginTop: '0.5rem' }}>اختر صورة للمنتج</p>
+                        </div>
+                      )}
+                      <input 
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        style={{ display: 'none' }}
+                        id="image-upload"
+                      />
+                      <label 
+                        htmlFor="image-upload" 
+                        style={{ 
+                          padding: '0.5rem 1.5rem', 
+                          background: 'rgba(var(--primary-rgb), 0.1)', 
+                          borderRadius: '8px', 
+                          fontWeight: 700, 
+                          cursor: 'pointer',
+                          color: '#3b82f6'
+                        }}
+                      >
+                        {imagePreview ? 'تغيير الصورة' : 'اختر ملف'}
+                      </label>
+                    </div>
                   </div>
 
                   <div className={`${styles.inputGroup} ${styles.fullWidth}`}>

@@ -30,7 +30,18 @@ export default function MerchantSettings() {
     async function loadStore() {
       try {
         const data = await getStoreInfo('demo');
-        if (data) setStoreData(data);
+        if (data) {
+          setStoreData(data);
+        } else {
+          // Initialize with empty data if nothing found
+          setStoreData({
+            slug: 'demo',
+            name: '',
+            phone: '',
+            description: '',
+            social: { instagram: '', twitter: '', facebook: '' }
+          });
+        }
       } catch (error) {
         console.error("Error loading store settings:", error);
       } finally {
@@ -48,11 +59,13 @@ export default function MerchantSettings() {
     setSuccess(false);
 
     try {
+      // Ensure we are saving to the correct slug
       await updateStoreInfo('demo', storeData);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (error) {
-      alert("حدث خطأ أثناء حفظ الإعدادات.");
+      console.error("Save error:", error);
+      alert("حدث خطأ أثناء حفظ الإعدادات. يرجى المحاولة مرة أخرى.");
     } finally {
       setSaving(false);
     }

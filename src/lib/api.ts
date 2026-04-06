@@ -1,5 +1,6 @@
-import { db } from './firebase';
-import { collection, getDocs, doc, getDoc, writeBatch, updateDoc, deleteDoc, query, where } from 'firebase/firestore';
+import { db, storage } from './firebase';
+import { collection, getDocs, doc, getDoc, writeBatch, updateDoc, deleteDoc, query, where, setDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Order } from './store';
 
 export interface ProductOption {
@@ -190,13 +191,26 @@ export async function seedDatabase() {
 
 // --- MERCHANT API ---
 
+// Upload an image to Firebase Storage
+export async function uploadProductImage(file: File, storeSlug: string): Promise<string> {
+  try {
+    const fileName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
+    const storageRef = ref(storage, `stores/${storeSlug}/products/${fileName}`);
+    const snapshot = await uploadBytes(storageRef, file);
+    return await getDownloadURL(snapshot.ref);
+  } catch (error) {
+    console.error("Error uploading image:", error);
+    throw error;
+  }
+}
+
 // Add a new product
 export async function addProduct(product: Omit<Product, 'id'>): Promise<string> {
   try {
     const productsCol = collection(db, 'products');
     const docRef = doc(productsCol);
     const newProduct = { ...product, id: docRef.id };
-    await writeBatch(db).set(doc(db, 'products', newProduct.id), newProduct).commit();
+    await setDoc(doc(db, 'products', newProduct.id), newProduct);
     return newProduct.id;
   } catch (error) {
     console.error("Error adding product:", error);
@@ -208,7 +222,7 @@ export async function addProduct(product: Omit<Product, 'id'>): Promise<string> 
 export async function updateProduct(id: string, updates: Partial<Product>): Promise<void> {
   try {
     const productRef = doc(db, 'products', id);
-    await writeBatch(db).update(productRef, updates as any).commit();
+    await updateDoc(productRef, updates as any);
   } catch (error) {
     console.error("Error updating product:", error);
     throw error;
@@ -219,7 +233,7 @@ export async function updateProduct(id: string, updates: Partial<Product>): Prom
 export async function deleteProduct(id: string): Promise<void> {
   try {
     const productRef = doc(db, 'products', id);
-    await writeBatch(db).delete(productRef).commit();
+    await deleteDoc(productRef);
   } catch (error) {
     console.error("Error deleting product:", error);
     throw error;
@@ -245,7 +259,7 @@ export async function getStoreOrders(storeSlug: string): Promise<Order[]> {
 export async function updateOrderStatus(orderId: string, status: Order['status']): Promise<void> {
   try {
     const orderRef = doc(db, 'orders', orderId);
-    await writeBatch(db).update(orderRef, { status }).commit();
+    await updateDoc(orderRef, { status });
   } catch (error) {
     console.error("Error updating order status:", error);
     throw error;
@@ -256,7 +270,8 @@ export async function updateOrderStatus(orderId: string, status: Order['status']
 export async function updateStoreInfo(slug: string, updates: Partial<StoreInfo>): Promise<void> {
   try {
     const storeRef = doc(db, 'stores', slug);
-    await writeBatch(db).update(storeRef, updates as any).commit();
+    // Use setDoc with merge to ensure it creates the doc if it doesn't exist
+    await setDoc(storeRef, updates, { merge: true });
   } catch (error) {
     console.error("Error updating store info:", error);
     throw error;

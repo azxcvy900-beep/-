@@ -16,6 +16,7 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
+import { getStorage } from "firebase/storage";
 
 // Initialize Analytics client-side only
 let analytics: ReturnType<typeof getAnalytics> | null = null;
@@ -33,4 +34,7 @@ const db = getFirestore(app);
 // Initialize Auth
 const auth = getAuth(app);
 
-export { app, analytics, db, auth };
+// Initialize Storage
+const storage = getStorage(app);
+
+export { app, analytics, db, auth, storage };
