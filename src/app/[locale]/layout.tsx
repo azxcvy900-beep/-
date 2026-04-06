@@ -1,10 +1,11 @@
-import type { Metadata } from "next";
-import { Cairo, Inter } from "next/font/google";
+import "../globals.css";
+import { Inter, Cairo } from "next/font/google";
+import { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
-import "../globals.css";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import WhatsAppSupport from "@/components/shared/WhatsAppSupport/WhatsAppSupport";
+import Footer from "@/components/shared/Footer/Footer";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -54,8 +55,11 @@ export default async function RootLayout({
        <body>
         <NextIntlClientProvider messages={messages} locale={locale}>
           <ThemeProvider>
-            {children}
+            <main style={{ minHeight: 'calc(100vh - 400px)' }}>
+              {children}
+            </main>
             <WhatsAppSupport />
+            <Footer />
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>

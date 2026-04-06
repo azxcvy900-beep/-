@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useTranslations, useLocale } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { Heart, Share2, MessageCircle, ShoppingCart, Zap, CheckCircle2 } from 'lucide-react';
+import { Heart, Share2, MessageCircle, ShoppingCart, Zap, CheckCircle2, RotateCcw, Trash2 } from 'lucide-react';
 import BackButton from '@/components/shared/BackButton/BackButton';
 import { getProductById, getRelatedProducts, Product } from '@/lib/api';
 import { useCartStore } from '@/lib/store';
@@ -17,6 +17,7 @@ export default function ProductDetails({ params }: { params: Promise<{ slug: str
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
+  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
   const t = useTranslations('Product');
   const locale = useLocale();
   const { addItem, wishlist, toggleWishlist, clearCart } = useCartStore();
@@ -43,14 +44,14 @@ export default function ProductDetails({ params }: { params: Promise<{ slug: str
 
   const handleAddToCart = () => {
     if (product) {
-      for (let i = 0; i < quantity; i++) {
-        addItem({
-          id: product.id,
-          name: product.name,
-          price: product.price,
-          image: product.image
-        });
-      }
+      addItem({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.image,
+        quantity: quantity,
+        selectedOptions: Object.keys(selectedOptions).length > 0 ? selectedOptions : undefined
+      });
       setIsAdded(true);
       setTimeout(() => setIsAdded(false), 2000);
     }
@@ -63,7 +64,9 @@ export default function ProductDetails({ params }: { params: Promise<{ slug: str
         id: product.id,
         name: product.name,
         price: product.price,
-        image: product.image
+        image: product.image,
+        quantity: quantity,
+        selectedOptions: Object.keys(selectedOptions).length > 0 ? selectedOptions : undefined
       });
       router.push(`/${locale}/checkout`);
     }
@@ -134,6 +137,23 @@ export default function ProductDetails({ params }: { params: Promise<{ slug: str
           <div className={styles.description}>
             <p>{product.description}</p>
           </div>
+
+          {product.options && product.options.map((option) => (
+            <div key={option.name} className={styles.optionGroup}>
+              <h3 className={styles.optionTitle}>{option.name}</h3>
+              <div className={styles.optionValues}>
+                {option.values.map((value) => (
+                  <button
+                    key={value}
+                    className={`${styles.optionBtn} ${selectedOptions[option.name] === value ? styles.activeOption : ''}`}
+                    onClick={() => setSelectedOptions(prev => ({ ...prev, [option.name]: value }))}
+                  >
+                    {value}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
           
           <div className={styles.quantitySection}>
             <label>{t('quantity') || 'الكمية'}</label>

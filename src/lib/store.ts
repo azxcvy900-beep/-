@@ -7,6 +7,7 @@ export interface CartItem {
   price: number;
   image: string;
   quantity: number;
+  selectedOptions?: Record<string, string>;
 }
 
 export interface UserInfo {
@@ -34,14 +35,15 @@ interface CartStore {
   selectedAddressId: string | null;
   orders: Order[];
   wishlist: string[];
-  addItem: (item: Omit<CartItem, 'quantity'>) => void;
-  removeItem: (id: string) => void;
-  updateQuantity: (id: string, quantity: number) => void;
+  addItem: (item: CartItem) => void;
+  removeItem: (id: string, selectedOptions?: Record<string, string>) => void;
+  updateQuantity: (id: string, quantity: number, selectedOptions?: Record<string, string>) => void;
   clearCart: () => void;
   addAddress: (address: UserInfo) => void;
   removeAddress: (id: string) => void;
   setSelectedAddress: (id: string) => void;
   addOrder: (order: Order) => void;
+  cancelOrder: (orderId: string) => void;
   toggleWishlist: (id: string) => void;
   getTotalItems: () => number;
   getTotalPrice: () => number;
@@ -58,32 +60,35 @@ export const useCartStore = create<CartStore>()(
       
       addItem: (item) => {
         set((state) => {
-          const existingItem = state.items.find((i) => i.id === item.id);
+          const existingItem = state.items.find((i) => 
+            i.id === item.id && JSON.stringify(i.selectedOptions) === JSON.stringify(item.selectedOptions)
+          );
           if (existingItem) {
             return {
               items: state.items.map((i) =>
-                i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
+                (i.id === item.id && JSON.stringify(i.selectedOptions) === JSON.stringify(item.selectedOptions)) 
+                  ? { ...i, quantity: i.quantity + item.quantity } : i
               ),
             };
           }
-          return { items: [...state.items, { ...item, quantity: 1 }] };
+          return { items: [...state.items, item] };
         });
       },
       
-      removeItem: (id) => {
+      removeItem: (id, selectedOptions) => {
         set((state) => ({
-          items: state.items.filter((i) => i.id !== id),
+          items: state.items.filter((i) => !(i.id === id && JSON.stringify(i.selectedOptions) === JSON.stringify(selectedOptions))),
         }));
       },
       
-      updateQuantity: (id, quantity) => {
+      updateQuantity: (id, quantity, selectedOptions) => {
         if (quantity <= 0) {
-          get().removeItem(id);
+          get().removeItem(id, selectedOptions);
           return;
         }
         set((state) => ({
           items: state.items.map((i) =>
-            i.id === id ? { ...i, quantity } : i
+            (i.id === id && JSON.stringify(i.selectedOptions) === JSON.stringify(selectedOptions)) ? { ...i, quantity } : i
           ),
         }));
       },
@@ -111,6 +116,14 @@ export const useCartStore = create<CartStore>()(
       addOrder: (order) => {
         set((state) => ({
           orders: [order, ...state.orders]
+        }));
+      },
+
+      cancelOrder: (id) => {
+        set((state) => ({
+          orders: state.orders.map(o => 
+            o.id === id ? { ...o, status: 'cancelled' as const } : o
+          )
         }));
       },
 

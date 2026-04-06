@@ -1,6 +1,11 @@
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, writeBatch } from 'firebase/firestore';
 
+export interface ProductOption {
+  name: string;
+  values: string[];
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -9,6 +14,20 @@ export interface Product {
   image: string;
   description?: string;
   storeSlug: string;
+  options?: ProductOption[];
+}
+
+export interface StoreInfo {
+  slug: string;
+  name: string;
+  logo?: string;
+  description?: string;
+  phone: string;
+  social?: {
+    instagram?: string;
+    twitter?: string;
+    facebook?: string;
+  };
 }
 
 const DUMMY_PRODUCTS: Product[] = [
@@ -19,7 +38,10 @@ const DUMMY_PRODUCTS: Product[] = [
     category: 'إلكترونيات',
     image: 'https://images.unsplash.com/photo-1696446701796-da61225697cc?w=800&q=80',
     description: 'يتميز iPhone 15 Pro بتصميم من التيتانيوم القوي والخفيف، مع زر الإجراءات القابل للتخصيص، ونظام الكاميرا الأكثر تقدماً في iPhone حتى الآن.',
-    storeSlug: 'demo'
+    storeSlug: 'demo',
+    options: [
+      { name: 'اللون', values: ['تيتانيوم طبيعي', 'تيتانيوم أزرق', 'تيتانيوم أسود'] }
+    ]
   },
   {
     id: 'sony-xm5',
@@ -37,7 +59,10 @@ const DUMMY_PRODUCTS: Product[] = [
     category: 'حواسيب',
     image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&q=80',
     description: 'لابتوب نحيف وخفيف الوزن بشكل مذهل، وبقوة شريحة M3 الجديدة كلياً التي تمنحك سرعة فائقة وكفاءة عالية في إنجاز المهام.',
-    storeSlug: 'demo'
+    storeSlug: 'demo',
+    options: [
+      { name: 'الذاكرة', values: ['8GB', '16GB', '24GB'] }
+    ]
   },
   {
     id: 'yemeni-honey',
@@ -46,7 +71,10 @@ const DUMMY_PRODUCTS: Product[] = [
     category: 'منتجات محلية',
     image: 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=800&q=80',
     description: 'عسل سدر يمني طبيعي 100% من وادي دوعن، يتميز بطعمه الفريد وخصائصه العلاجية النادرة وجودته العالية جداً.',
-    storeSlug: 'demo'
+    storeSlug: 'demo',
+    options: [
+      { name: 'الحجم', values: ['500 جرام', '1 كيلوجرام'] }
+    ]
   },
   {
     id: 'playstation-5',
@@ -65,6 +93,20 @@ const DUMMY_PRODUCTS: Product[] = [
     image: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=800&q=80',
     description: 'قهوة الكبوس الشهيرة بعبقها الأصيل ونكهتها الغنية التي تعكس تراث القهوة اليمنية وتمنحك بداية يوم مثالية.',
     storeSlug: 'demo'
+  }
+];
+
+const DUMMY_STORES: StoreInfo[] = [
+  {
+    slug: 'demo',
+    name: 'متجر بايرز التجريبي',
+    phone: '967770000000',
+    description: 'أفضل المنتجات العالمية والمحلية في مكان واحد.',
+    social: {
+      instagram: 'buyers_ye',
+      twitter: 'buyers_ye',
+      facebook: 'buyers_ye'
+    }
   }
 ];
 
@@ -103,6 +145,22 @@ export async function getProductById(id: string): Promise<Product | null> {
   } catch (error) {
     console.error("Error fetching product:", error);
     return null;
+  }
+}
+
+// Fetch store metadata
+export async function getStoreInfo(slug: string): Promise<StoreInfo | null> {
+  const dummyStore = DUMMY_STORES.find(s => s.slug === slug);
+  try {
+    const storeDoc = doc(db, 'stores', slug);
+    const storeSnap = await getDoc(storeDoc);
+    if (storeSnap.exists()) {
+      return { slug: storeSnap.id, ...storeSnap.data() } as StoreInfo;
+    }
+    return dummyStore || null;
+  } catch (error) {
+    console.error("Error fetching store info:", error);
+    return dummyStore || null;
   }
 }
 

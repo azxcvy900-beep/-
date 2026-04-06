@@ -1,0 +1,168 @@
+.footer {
+  background: var(--bg-card);
+  border-top: 1px solid var(--card-border);
+  margin-top: 5rem;
+  color: var(--foreground);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.topSection {
+  background: rgba(var(--primary-rgb), 0.03);
+  padding: 3rem 0;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 2rem;
+}
+
+.featureItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.featureIcon {
+  color: var(--primary);
+  background: rgba(var(--primary-rgb), 0.1);
+  padding: 0.75rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.featureInfo h4 {
+  margin-bottom: 0.25rem;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.featureInfo p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.mainSection {
+  padding: 5rem 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr;
+  gap: 4rem;
+}
+
+.brandCol .logo {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--foreground);
+  margin-bottom: 1.5rem;
+  display: block;
+}
+
+.brandCol .logo span {
+  color: var(--primary);
+}
+
+.brandCol .description {
+  color: var(--text-secondary);
+  line-height: 1.7;
+  font-size: 0.95rem;
+  margin-bottom: 2rem;
+  max-width: 320px;
+}
+
+.socials {
+  display: flex;
+  gap: 1rem;
+}
+
+.socials a {
+  background: var(--muted);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--foreground);
+  transition: all 0.2s ease;
+}
+
+.socials a:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.linksCol h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  position: relative;
+  display: inline-block;
+}
+
+.linksCol h3::after {
+  content: '';
+  position: absolute;
+  bottom: -0.5rem;
+  right: 0;
+  width: 30px;
+  height: 2px;
+  background: var(--primary);
+}
+
+.linksCol ul {
+  list-style: none;
+  padding: 0;
+}
+
+.linksCol ul li {
+  margin-bottom: 0.75rem;
+}
+
+.linksCol ul li a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.linksCol ul li a:hover {
+  color: var(--primary);
+  padding-right: 0.5rem;
+}
+
+.bottomSection {
+  padding: 2rem 0;
+  border-top: 1px solid var(--card-border);
+  text-align: center;
+  background: rgba(0,0,0,0.02);
+}
+
+.bottomSection p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .features {
+    grid-template-columns: 1fr;
+  }
+}

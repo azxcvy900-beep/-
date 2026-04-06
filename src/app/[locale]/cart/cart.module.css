@@ -141,6 +141,29 @@
   text-align: right;
 }
 
+.itemOptions {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  background: rgba(var(--primary-rgb), 0.05);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  width: fit-content;
+  margin: 0.25rem 0;
+}
+
+.itemOptions span {
+  display: flex;
+  align-items: center;
+}
+
+.itemOptions span:not(:last-child)::after {
+  content: ' | ';
+  margin: 0 0.4rem;
+  opacity: 0.3;
+}
+
 .removeBtn {
   background: none;
   border: none;

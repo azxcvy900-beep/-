@@ -4,16 +4,16 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, Box, ChevronRight, RefreshCw, Clock, CheckCircle2 } from 'lucide-react';
+import { ShoppingBag, Calendar, Package, RotateCcw, ArrowRight, Trash2, Clock } from 'lucide-react';
 import { useCartStore, Order } from '@/lib/store';
 import BackButton from '@/components/shared/BackButton/BackButton';
 import styles from './orders.module.css';
 
-export default function OrdersPage() {
+export default function MyOrdersPage() {
   const t = useTranslations('Orders');
   const pt = useTranslations('Product');
   const locale = useLocale();
-  const { orders, addItem } = useCartStore();
+  const { orders, addItem, cancelOrder } = useCartStore();
   
   const [mounted, setMounted] = useState(false);
 
@@ -27,7 +27,8 @@ export default function OrdersPage() {
         id: item.id,
         name: item.name,
         price: item.price,
-        image: item.image
+        image: item.image,
+        quantity: item.quantity
       });
     });
   };
@@ -103,15 +104,28 @@ export default function OrdersPage() {
                   </span>
                 </div>
                 
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => handleReorder(order)}
-                  className={styles.reorderBtn}
-                >
-                  <RefreshCw size={16} />
-                  {t('reorder')}
-                </motion.button>
+                <div className={styles.orderActions}>
+                  <button 
+                    className={styles.reorderBtn}
+                    onClick={() => handleReorder(order)}
+                  >
+                    <RotateCcw size={16} />
+                    {t('reorder')}
+                  </button>
+                  {order.status === 'pending' && (
+                    <button 
+                      className={styles.cancelBtn}
+                      onClick={() => {
+                        if (confirm(t('confirmCancel'))) {
+                          cancelOrder(order.id);
+                        }
+                      }}
+                    >
+                      <Trash2 size={16} />
+                      {t('cancelOrder')}
+                    </button>
+                  )}
+                </div>
               </div>
             </motion.div>
           ))
