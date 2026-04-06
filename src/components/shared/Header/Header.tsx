@@ -61,6 +61,10 @@ const Header: React.FC<HeaderProps> = ({ storeName }) => {
             </AnimatePresence>
           </motion.button>
           
+          <Link href={`/${locale}/track`} className={styles.navLink}>
+            {t('trackOrder')}
+          </Link>
+
           <Link href={`/${nextLocale}`} className={styles.localeLink}>
             <Globe size={16} />
             <span className={styles.hideOnMobile}>{locale === 'ar' ? 'English' : 'العربية'}</span>

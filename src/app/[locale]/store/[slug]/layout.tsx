@@ -1,4 +1,4 @@
-import React from 'react';
+import { Metadata } from 'next';
 import Header from '@/components/shared/Header/Header';
 
 interface StoreLayoutProps {
@@ -6,10 +6,24 @@ interface StoreLayoutProps {
   params: Promise<{ slug: string }>;
 }
 
-export default function StoreLayout({ children, params }: StoreLayoutProps) {
-  const resolvedParams = React.use(params);
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const storeName = slug === 'demo' ? 'متجر بايرز التجريبي' : slug.toUpperCase();
+  
+  return {
+    title: storeName,
+    description: `تسوق من ${storeName} عبر منصة بايرز. أفضل المنتجات بأسعار منافسة في اليمن.`,
+    openGraph: {
+      title: storeName,
+      description: `تسوق أونلاين من ${storeName}`,
+    }
+  };
+}
+
+export default async function StoreLayout({ children, params }: StoreLayoutProps) {
+  const { slug } = await params;
   // In a real app, fetch store info based on slug
-  const storeName = resolvedParams.slug === 'tech' ? 'تيك ستور' : 'متجر بايرز';
+  const storeName = slug === 'demo' ? 'بايرز ستور' : slug.toUpperCase();
   
   return (
     <>

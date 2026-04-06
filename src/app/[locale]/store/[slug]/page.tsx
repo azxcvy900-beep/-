@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
 import ProductCard from '@/components/store/ProductCard/ProductCard';
 import CategoryFilter from '@/components/store/CategoryFilter/CategoryFilter';
+import SearchBar from '@/components/shared/SearchBar/SearchBar';
 import { getStoreProducts, Product } from '@/lib/api';
 import styles from './page.module.css';
 
@@ -31,6 +32,7 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
   const t = useTranslations('StoreHome');
   const [products, setProducts] = useState<Product[]>([]);
   const [activeCategory, setActiveCategory] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -48,9 +50,13 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
   }, [products]);
 
   const filteredProducts = useMemo(() => {
-    if (activeCategory === 'all') return products;
-    return products.filter(p => p.category === activeCategory);
-  }, [products, activeCategory]);
+    return products.filter(p => {
+      const matchesCategory = activeCategory === 'all' || p.category === activeCategory;
+      const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                           (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase()));
+      return matchesCategory && matchesSearch;
+    });
+  }, [products, activeCategory, searchQuery]);
 
   return (
     <div className={styles.container}>
@@ -87,6 +93,12 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
             activeCategory={activeCategory}
             onSelectCategory={setActiveCategory}
             allLabel={t('allCategories')}
+          />
+
+          <SearchBar 
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder={t('searchPlaceholder')}
           />
 
           <motion.div 

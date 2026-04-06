@@ -17,8 +17,20 @@ const cairo = Cairo({
 });
 
 export const metadata: Metadata = {
-  title: "بايرز - منصة التجارة الإلكترونية",
-  description: "خدمات متكاملة للتجار في اليمن",
+  title: {
+    default: "بايرز - منصة التجارة الإلكترونية الشاملة",
+    template: "%s | بايرز"
+  },
+  description: "المنصة الرائدة لإنشاء وإدارة المتاجر الإلكترونية في اليمن. ابدأ تجارتك الآن بكل سهولة واحترافية.",
+  keywords: ["تجارة إلكترونية", "اليمن", "متاجر", "بيع أونلاين", "بايرز", "Buyers", "E-commerce Yemen"],
+  authors: [{ name: "Buyers Team" }],
+  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
+  openGraph: {
+    type: "website",
+    locale: "ar_YE",
+    url: "https://buyers.ye",
+    siteName: "Buyers",
+  },
 };
 
 export function generateStaticParams() {

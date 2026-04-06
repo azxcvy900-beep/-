@@ -50,14 +50,34 @@
     "step2": "You will receive a confirmation message once the order is accepted.",
     "step3": "Preparation and shipping of your order will begin promptly.",
     "backToHome": "Back to Home",
-    "browseMore": "Browse More Products"
+    "browseMore": "Browse More Products",
+    "trackOrder": "Track Order",
+    "search": "Search",
+    "searchPlaceholder": "Search for a product..."
   },
   "StoreHome": {
-    "title": "All Products",
-    "subtitle": "Discover the best offers and exclusive products",
-    "allCategories": "All Categories",
-    "noProducts": "No products in this category yet",
-    "loading": "Loading products..."
+    "title": "Welcome to our store",
+    "subtitle": "Discover the best products carefully selected for you",
+    "allCategories": "All",
+    "loading": "Loading products...",
+    "noProducts": "Sorry, no products match your search.",
+    "searchPlaceholder": "Search for a product..."
+  },
+  "Tracking": {
+    "title": "Track Order",
+    "subtitle": "Enter your order ID to see its current status",
+    "placeholder": "Example: OD-12345",
+    "button": "Track Now",
+    "errorNotFound": "Sorry, we could not find this order.",
+    "status": {
+      "pending": "Pending",
+      "processing": "Processing",
+      "shipped": "Shipped",
+      "delivered": "Delivered"
+    },
+    "orderInfo": "Order Information",
+    "orderId": "Order ID",
+    "date": "Date"
   },
   "Product": {
     "addToCart": "Add to Cart",
