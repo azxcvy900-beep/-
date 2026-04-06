@@ -30,6 +30,8 @@ export interface Order {
   address: UserInfo;
   paymentMethod: string;
   paymentProof?: string;
+  lockedExRate?: number; // The rate at the time of proof upload
+  isPriceLocked?: boolean;
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   date: string;
 }
@@ -42,8 +44,11 @@ interface CartStore {
   wishlist: string[];
   currency: string;
   rates: { [key: string]: number };
+  useManualSARRate: boolean;
+  manualSARRate: number;
   setCurrency: (currency: string) => void;
   setRates: (rates: { [key: string]: number }) => void;
+  setManualRate: (useManual: boolean, rate: number) => void;
   addItem: (item: CartItem) => void;
   removeItem: (id: string, selectedOptions?: Record<string, string>) => void;
   updateQuantity: (id: string, quantity: number, selectedOptions?: Record<string, string>) => void;
@@ -68,8 +73,11 @@ export const useCartStore = create<CartStore>()(
       wishlist: [],
       currency: 'YER',
       rates: { 'SAR': 140, 'USD': 530 },
+      useManualSARRate: false,
+      manualSARRate: 140,
       setCurrency: (currency) => set({ currency }),
       setRates: (rates) => set({ rates }),
+      setManualRate: (useManual, rate) => set({ useManualSARRate: useManual, manualSARRate: rate }),
       
       addItem: (item) => {
         set((state) => {

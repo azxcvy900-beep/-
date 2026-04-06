@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { Heart, Share2, MessageCircle, ShoppingCart, Zap, CheckCircle2, RotateCcw, Trash2, Store, Star, User } from 'lucide-react';
+import { formatPrice } from '@/lib/utils';
 import BackButton from '@/components/shared/BackButton/BackButton';
 import { getProductById, getRelatedProducts, getStoreInfo, getProductReviews, addReview, Product, StoreInfo, Review } from '@/lib/api';
 import { useCartStore } from '@/lib/store';
@@ -22,16 +23,16 @@ export default function ProductDetails({ params }: { params: Promise<{ slug: str
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
   const t = useTranslations('Product');
   const locale = useLocale();
-  const { addItem, wishlist, toggleWishlist, clearCart, currency, rates } = useCartStore();
+  const { addItem, wishlist, toggleWishlist, clearCart } = useCartStore();
+  const currency = useCartStore(state => state.currency);
+  const rates = useCartStore(state => state.rates);
+  const useManual = useCartStore(state => state.useManualSARRate);
+  const manualRate = useCartStore(state => state.manualSARRate);
   const [isAdded, setIsAdded] = useState(false);
 
-  const formatPrice = (amount: number) => {
-    if (currency === 'YER') return `${amount.toLocaleString()} ${t('currency')}`;
-    const rate = rates[currency] || 1;
-    const converted = amount / rate;
-    const symbols: { [key: string]: string } = { 'SAR': 'ر.س', 'USD': '$' };
-    return `${converted.toFixed(2)} ${symbols[currency] || currency}`;
-  };
+  const renderedPrice = product ? formatPrice(product.price, currency, rates, useManual, manualRate, t('currency')) : '';
+  const renderedOriginalPrice = product?.originalPrice ? formatPrice(product.originalPrice, currency, rates, useManual, manualRate, t('currency')) : null;
+  
   const [reviews, setReviews] = useState<Review[]>([]);
   const [userReview, setUserReview] = useState({ rating: 5, comment: '', name: '' });
   const [isReviewing, setIsReviewing] = useState(false);
@@ -121,7 +122,7 @@ export default function ProductDetails({ params }: { params: Promise<{ slug: str
 
   const getWhatsAppLink = () => {
     if (!product) return '#';
-    const message = `مرحباً، أود الاستفسار عن منتج: ${product.name}\nالسعر: ${formatPrice(product.price)}\n${window.location.href}`;
+    const message = `مرحباً، أود الاستفسار عن منتج: ${product.name}\nالسعر: ${formatPrice(product.price, currency, rates, useManual, manualRate, t('currency'))}\n${window.location.href}`;
     return `https://wa.me/967770000000?text=${encodeURIComponent(message)}`;
   };
 
@@ -171,14 +172,11 @@ export default function ProductDetails({ params }: { params: Promise<{ slug: str
           </div>
           
           <h1 className={styles.title}>{product.name}</h1>
-          <div className={styles.priceRow}>
-            <p className={styles.price}>
-              {formatPrice(product.price)}
-            </p>
-            <div className={styles.stockBadge}>
-              <CheckCircle2 size={14} />
-              متوفر في المخزون
-            </div>
+          <div className={styles.priceSection}>
+            <span className={styles.currentPrice}>{renderedPrice}</span>
+            {renderedOriginalPrice && (
+              <span className={styles.oldPrice}>{renderedOriginalPrice}</span>
+            )}
           </div>
           
           <div className={styles.description}>

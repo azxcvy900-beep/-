@@ -4,20 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  CreditCard, 
-  Landmark, 
-  Upload, 
-  CheckCircle2, 
-  AlertCircle, 
-  ChevronRight,
-  Home,
-  Briefcase,
-  MapPin,
-  Plus,
-  Trash2
-} from 'lucide-react';
+import { CheckCircle2, AlertCircle, ChevronRight, MapPin, Plus, Landmark, CreditCard, Upload } from 'lucide-react';
 import { useCartStore, UserInfo, Order } from '@/lib/store';
+import { formatPrice } from '@/lib/utils';
 import BackButton from '@/components/shared/BackButton/BackButton';
 import { validateCoupon, Coupon } from '@/lib/api';
 import styles from './checkout.module.css';
@@ -43,13 +32,16 @@ export default function CheckoutPage() {
 
   const currency = useCartStore(state => state.currency);
   const rates = useCartStore(state => state.rates);
+  const useManual = useCartStore(state => state.useManualSARRate);
+  const manualRate = useCartStore(state => state.manualSARRate);
 
-  const formatPrice = (amount: number) => {
-    if (currency === 'YER') return `${amount.toLocaleString()} ${pt('currency')}`;
-    const rate = rates[currency] || 1;
-    const converted = amount / rate;
-    const symbols: { [key: string]: string } = { 'SAR': 'ر.س', 'USD': '$' };
-    return `${converted.toFixed(2)} ${symbols[currency] || currency}`;
+  const getCurrentSARRate = () => {
+    if (currency === 'SAR' && useManual) return manualRate;
+    return rates['SAR'] || 140;
+  };
+
+  const formatPriceLocal = (amount: number) => {
+    return formatPrice(amount, currency, rates, useManual, manualRate, pt('currency'));
   };
   
   const [mounted, setMounted] = useState(false);
@@ -231,7 +223,9 @@ export default function CheckoutPage() {
       status: 'pending',
       date: new Date().toISOString(),
       address: selectedAddress as any,
-      paymentMethod: paymentMethod
+      paymentMethod: paymentMethod,
+      lockedExRate: receipt ? getCurrentSARRate() : undefined,
+      isPriceLocked: !!receipt
     };
 
     // Simulate API call
@@ -514,7 +508,7 @@ export default function CheckoutPage() {
               {items.map(item => (
                 <div key={item.id} className={styles.miniItem}>
                   <span>{item.name} × {item.quantity}</span>
-                  <span>{formatPrice(item.price * item.quantity)}</span>
+                  <span>{formatPriceLocal(item.price * item.quantity)}</span>
                 </div>
               ))}
             </div>
@@ -522,20 +516,20 @@ export default function CheckoutPage() {
             <div className={styles.summaryTotal}>
               <div className={styles.summaryRow}>
                 <span>المجموع الفرعي</span>
-                <span>{formatPrice(getTotalPrice())}</span>
+                <span>{formatPriceLocal(getTotalPrice())}</span>
               </div>
               
               {appliedCoupon && (
                 <div className={`${styles.summaryRow} ${styles.discountRow}`}>
                   <span>الخصم ({appliedCoupon.code})</span>
-                  <span>-{formatPrice(calculateDiscount())}</span>
+                  <span>-{formatPriceLocal(calculateDiscount())}</span>
                 </div>
               )}
 
               <div className={styles.totalRow}>
                 <span>{t('total')}</span>
                 <span className={styles.totalPrice}>
-                  {formatPrice(getTotalPrice() - calculateDiscount())}
+                  {formatPriceLocal(getTotalPrice() - calculateDiscount())}
                 </span>
               </div>
             </div>

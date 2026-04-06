@@ -268,6 +268,7 @@ export default function MerchantSettings() {
                 onChange={(e) => setStoreData(prev => prev ? {
                   ...prev,
                   currencySettings: {
+                    ...prev.currencySettings,
                     default: e.target.value,
                     rates: prev.currencySettings?.rates || { 'SAR': 140, 'USD': 530 }
                   }
@@ -278,28 +279,68 @@ export default function MerchantSettings() {
                 <option value="USD">دولار أمريكي (USD)</option>
               </select>
             </div>
+
+            {storeData?.currencySettings?.default === 'YER' && (
+              <div className={`${styles.inputGroup} ${styles.fullWidth}`} style={{ marginTop: '0.5rem' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                  <input 
+                    type="checkbox" 
+                    checked={storeData?.currencySettings?.useManualSARRate || false}
+                    onChange={(e) => setStoreData(prev => prev ? {
+                      ...prev,
+                      currencySettings: {
+                        ...(prev.currencySettings || { default: 'YER', rates: { 'SAR': 140, 'USD': 530 } }),
+                        useManualSARRate: e.target.checked
+                      }
+                    } : null)}
+                  />
+                  <span>استخدام سعر صرف يدوي للريال السعودي (ثابت)</span>
+                </label>
+              </div>
+            )}
             
-            <div className={styles.inputGroup}>
-              <label>سعر صرف الريال السعودي (مقابل اليمني)</label>
-              <input 
-                type="number"
-                className={styles.input}
-                value={storeData?.currencySettings?.rates?.['SAR'] || ''}
-                placeholder="مثال: 140"
-                onChange={(e) => setStoreData(prev => {
-                  if (!prev) return null;
-                  const newRates = { ...(prev.currencySettings?.rates || { 'USD': 530 }) };
-                  newRates['SAR'] = parseFloat(e.target.value);
-                  return {
+            {(!storeData?.currencySettings?.useManualSARRate || storeData?.currencySettings?.default !== 'YER') ? (
+              <>
+                <div className={styles.inputGroup}>
+                  <label>سعر صرف الريال السعودي (تلقائي)</label>
+                  <input 
+                    type="number"
+                    className={styles.input}
+                    value={storeData?.currencySettings?.rates?.['SAR'] || ''}
+                    placeholder="مثال: 140"
+                    onChange={(e) => setStoreData(prev => {
+                      if (!prev) return null;
+                      const newRates = { ...(prev.currencySettings?.rates || { 'USD': 530 }) };
+                      newRates['SAR'] = parseFloat(e.target.value);
+                      return {
+                        ...prev,
+                        currencySettings: {
+                          ...(prev.currencySettings || { default: 'YER' }),
+                          rates: newRates
+                        }
+                      };
+                    })}
+                  />
+                </div>
+              </>
+            ) : (
+              <div className={styles.inputGroup}>
+                <label>سعر صرف الريال السعودي (يدوي)</label>
+                <input 
+                  type="number"
+                  className={styles.input}
+                  value={storeData?.currencySettings?.manualSARRate || ''}
+                  placeholder="مثال: 400"
+                  onChange={(e) => setStoreData(prev => prev ? {
                     ...prev,
                     currencySettings: {
-                      default: prev.currencySettings?.default || 'YER',
-                      rates: newRates
+                      ...(prev.currencySettings || { default: 'YER', rates: { 'SAR': 140, 'USD': 530 } }),
+                      manualSARRate: parseFloat(e.target.value)
                     }
-                  };
-                })}
-              />
-            </div>
+                  } : null)}
+                />
+              </div>
+            )}
 
             <div className={styles.inputGroup}>
               <label>سعر صرف الدولار (مقابل اليمني)</label>
@@ -315,7 +356,7 @@ export default function MerchantSettings() {
                   return {
                     ...prev,
                     currencySettings: {
-                      default: prev.currencySettings?.default || 'YER',
+                      ...(prev.currencySettings || { default: 'YER' }),
                       rates: newRates
                     }
                   };

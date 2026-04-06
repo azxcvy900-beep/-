@@ -7,6 +7,7 @@ import { useTranslations, useLocale } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trash2, Plus, Minus, ArrowRight, ShoppingBag } from 'lucide-react';
 import { useCartStore } from '@/lib/store';
+import { formatPrice } from '@/lib/utils';
 import BackButton from '@/components/shared/BackButton/BackButton';
 import styles from './cart.module.css';
 
@@ -15,7 +16,15 @@ export default function CartPage() {
   const pt = useTranslations('Product');
   const locale = useLocale();
   const { items, updateQuantity, removeItem, getTotalPrice } = useCartStore();
+  const currency = useCartStore(state => state.currency);
+  const rates = useCartStore(state => state.rates);
+  const useManual = useCartStore(state => state.useManualSARRate);
+  const manualRate = useCartStore(state => state.manualSARRate);
   const [mounted, setMounted] = useState(false);
+
+  const formatPriceLocal = (amount: number) => {
+    return formatPrice(amount, currency, rates, useManual, manualRate, pt('currency'));
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -75,7 +84,7 @@ export default function CartPage() {
                   <div className={styles.itemInfo}>
                     <h3>{item.name}</h3>
                     <p className={styles.itemPrice}>
-                      {item.price.toLocaleString()} {pt('currency')}
+                      {formatPriceLocal(item.price)}
                     </p>
                   </div>
 
@@ -96,7 +105,7 @@ export default function CartPage() {
                   </div>
 
                   <div className={styles.itemTotal}>
-                    {(item.price * item.quantity).toLocaleString()} {pt('currency')}
+                    {formatPriceLocal(item.price * item.quantity)}
                   </div>
 
                   <button 
@@ -118,7 +127,7 @@ export default function CartPage() {
             <h3>{t('orderSummary')}</h3>
             <div className={styles.summaryRow}>
               <span>{t('subtotal')}</span>
-              <span>{getTotalPrice().toLocaleString()} {pt('currency')}</span>
+              <span>{formatPriceLocal(getTotalPrice())}</span>
             </div>
             <div className={styles.summaryRow}>
               <span>{t('shipping')}</span>
@@ -126,7 +135,7 @@ export default function CartPage() {
             </div>
             <div className={`${styles.summaryRow} ${styles.total}`}>
               <span>{t('total')}</span>
-              <span>{getTotalPrice().toLocaleString()} {pt('currency')}</span>
+              <span>{formatPriceLocal(getTotalPrice())}</span>
             </div>
             
             <Link href={`/${locale}/checkout`} className={styles.checkoutBtn}>

@@ -46,6 +46,8 @@ export interface StoreInfo {
   currencySettings?: {
     default: string; // 'YER', 'SAR', 'USD'
     rates: { [key: string]: number }; // e.g. { 'USD': 530, 'SAR': 140 }
+    useManualSARRate?: boolean;
+    manualSARRate?: number;
   };
   seo?: {
     titleTemplate?: string;

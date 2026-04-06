@@ -52,6 +52,8 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
       <StoreInitializer 
         rates={store?.currencySettings?.rates} 
         defaultCurrency={store?.currencySettings?.default} 
+        useManualSARRate={store?.currencySettings?.useManualSARRate}
+        manualSARRate={store?.currencySettings?.manualSARRate}
       />
       <Header 
         storeName={store?.name || slug.toUpperCase()} 
