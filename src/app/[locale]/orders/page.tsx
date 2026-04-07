@@ -28,7 +28,8 @@ export default function MyOrdersPage() {
         name: item.name,
         price: item.price,
         image: item.image,
-        quantity: item.quantity
+        quantity: item.quantity,
+        currency: item.currency || 'YER'
       });
     });
   };
@@ -90,7 +91,10 @@ export default function MyOrdersPage() {
               <div className={styles.itemsPreview}>
                 {order.items.map((item, idx) => (
                   <div key={`${order.id}-${item.id}-${idx}`} className={styles.itemRow}>
-                    <span className={styles.itemName}>{item.name}</span>
+                    <span className={styles.itemName}>
+                      {item.name} 
+                      {item.currency && item.currency !== 'YER' && <small style={{ color: 'var(--text-secondary)', marginRight: '4px' }}>({item.currency})</small>}
+                    </span>
                     <span className={styles.itemQuantity}>× {item.quantity}</span>
                   </div>
                 ))}
