@@ -369,6 +369,29 @@ export default function MerchantSettings() {
           </p>
         </div>
 
+        {/* قسم اللوجستيات والشحن */}
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>اللوجستيات والشحن</h3>
+          <div className={styles.formGrid}>
+            <div className={styles.inputGroup}>
+              <label>رسوم التوصيل الثابتة (ر.ي)</label>
+              <input 
+                type="number"
+                className={styles.input}
+                value={storeData?.shippingFee || 0}
+                placeholder="مثال: 2000"
+                onChange={(e) => setStoreData(prev => prev ? {
+                  ...prev,
+                  shippingFee: parseFloat(e.target.value) || 0
+                } : null)}
+              />
+              <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '0.4rem' }}>
+                سيتم إضافة هذا المبلغ تلقائياً إلى إجمالي الطلب عند الدفع.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* قسم الـ SEO */}
         <div className={styles.section}>
           <h3 className={styles.sectionTitle}>تحسين محركات البحث (SEO)</h3>

@@ -16,24 +16,27 @@ interface ProductCardProps {
   originalPrice?: number;
   image: string;
   category: string;
+  currency?: 'YER' | 'SAR' | 'USD';
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ id, slug, name, price, originalPrice, image, category }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ id, slug, name, price, originalPrice, image, category, currency = 'YER' }) => {
   const t = useTranslations('Product');
   const locale = useLocale();
-  const currency = useCartStore(state => state.currency);
+  const displayCurrency = useCartStore(state => state.currency);
   const rates = useCartStore(state => state.rates);
   const useManual = useCartStore(state => state.useManualSARRate);
   const manualRate = useCartStore(state => state.manualSARRate);
   const { addItem } = useCartStore();
 
-  const renderedPrice = formatPrice(price, currency, rates, useManual, manualRate, t('currency'));
-  const renderedOriginalPrice = originalPrice ? formatPrice(originalPrice, currency, rates, useManual, manualRate, t('currency')) : null;
+  const renderedPrice = formatPrice(price, displayCurrency, rates, useManual, manualRate, t('currency'), currency);
+  const renderedOriginalPrice = originalPrice 
+    ? formatPrice(originalPrice, displayCurrency, rates, useManual, manualRate, t('currency'), currency) 
+    : null;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    addItem({ id, name, price, image, quantity: 1 });
+    addItem({ id, name, price, image, quantity: 1, currency });
   };
 
   return (

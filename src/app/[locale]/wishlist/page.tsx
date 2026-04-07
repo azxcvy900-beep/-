@@ -54,7 +54,11 @@ export default function WishlistPage() {
                 exit={{ opacity: 0, scale: 0.9 }}
               >
                 <div className={styles.cardWrapper}>
-                   <ProductCard {...product} slug="demo" />
+                   <ProductCard 
+                     {...product} 
+                     slug="demo" 
+                     currency={product.currency}
+                   />
                    <button 
                     className={styles.removeBtn} 
                     onClick={() => toggleWishlist(product.id)}

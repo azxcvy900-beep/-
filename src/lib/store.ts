@@ -4,7 +4,8 @@ import { persist } from 'zustand/middleware';
 export interface CartItem {
   id: string;
   name: string;
-  price: number;
+  price: number; // This is the base price in the currency specified below
+  currency: 'YER' | 'SAR' | 'USD'; 
   image: string;
   quantity: number;
   selectedOptions?: Record<string, string>;
@@ -46,9 +47,13 @@ interface CartStore {
   rates: { [key: string]: number };
   useManualSARRate: boolean;
   manualSARRate: number;
+  shippingFee: number;
+  isReceiptUploaded: boolean; // For price locking UI
   setCurrency: (currency: string) => void;
   setRates: (rates: { [key: string]: number }) => void;
   setManualRate: (useManual: boolean, rate: number) => void;
+  setShippingFee: (fee: number) => void;
+  setReceiptUploaded: (uploaded: boolean) => void;
   addItem: (item: CartItem) => void;
   removeItem: (id: string, selectedOptions?: Record<string, string>) => void;
   updateQuantity: (id: string, quantity: number, selectedOptions?: Record<string, string>) => void;
@@ -75,9 +80,13 @@ export const useCartStore = create<CartStore>()(
       rates: { 'SAR': 140, 'USD': 530 },
       useManualSARRate: false,
       manualSARRate: 140,
+      shippingFee: 0,
+      isReceiptUploaded: false,
       setCurrency: (currency) => set({ currency }),
       setRates: (rates) => set({ rates }),
       setManualRate: (useManual, rate) => set({ useManualSARRate: useManual, manualSARRate: rate }),
+      setShippingFee: (fee) => set({ shippingFee: fee }),
+      setReceiptUploaded: (uploaded) => set({ isReceiptUploaded: uploaded }),
       
       addItem: (item) => {
         set((state) => {
@@ -114,7 +123,7 @@ export const useCartStore = create<CartStore>()(
         }));
       },
       
-      clearCart: () => set({ items: [] }),
+      clearCart: () => set({ items: [], isReceiptUploaded: false }),
 
       addAddress: (address) => {
         set((state) => ({
@@ -161,7 +170,21 @@ export const useCartStore = create<CartStore>()(
       },
       
       getTotalPrice: () => {
-        return get().items.reduce((total, item) => total + item.price * item.quantity, 0);
+        const { items, rates, useManualSARRate, manualSARRate } = get();
+        
+        return items.reduce((total, item) => {
+          // 1. Convert item price to YER first
+          let priceInYER = item.price;
+          if (item.currency === 'SAR') {
+            const rate = useManualSARRate ? manualSARRate : (rates['SAR'] || 140);
+            priceInYER = item.price * rate;
+          } else if (item.currency === 'USD') {
+            const rate = rates['USD'] || 530;
+            priceInYER = item.price * rate;
+          }
+          
+          return total + (priceInYER * item.quantity);
+        }, 0);
       },
     }),
     {

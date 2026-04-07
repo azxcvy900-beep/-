@@ -6,7 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ProductCard from '@/components/store/ProductCard/ProductCard';
 import CategoryFilter from '@/components/store/CategoryFilter/CategoryFilter';
 import SearchBar from '@/components/shared/SearchBar/SearchBar';
-import { getStoreProducts, getStoreCategories, Product, Category } from '@/lib/api';
+import { getStoreProducts, getStoreCategories, getStoreInfo, Product, Category } from '@/lib/api';
+import { useCartStore } from '@/lib/store';
 import { ArrowLeft, Grid } from 'lucide-react';
 import styles from './page.module.css';
 
@@ -38,15 +39,36 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
 
+  // Cart Sync Actions
+  const { setRates, setManualRate, setShippingFee } = useCartStore();
+
   useEffect(() => {
     async function loadData() {
       try {
-        const [productsData, catsData] = await Promise.all([
+        const [productsData, catsData, storeInfo] = await Promise.all([
           getStoreProducts(resolvedParams.slug),
-          getStoreCategories(resolvedParams.slug)
+          getStoreCategories(resolvedParams.slug),
+          getStoreInfo(resolvedParams.slug)
         ]);
+        
         setProducts(productsData);
         setStoreCategories(catsData);
+
+        // Sync Store Settings (Rates, Shipping, etc)
+        if (storeInfo) {
+          if (storeInfo.currencySettings?.rates) {
+            setRates(storeInfo.currencySettings.rates);
+          }
+          if (storeInfo.currencySettings?.manualSARRate !== undefined) {
+             setManualRate(
+               !!storeInfo.currencySettings.useManualSARRate, 
+               storeInfo.currencySettings.manualSARRate
+             );
+          }
+          if (storeInfo.shippingFee !== undefined) {
+            setShippingFee(storeInfo.shippingFee);
+          }
+        }
       } catch (error) {
         console.error("Error loading store data:", error);
       } finally {
@@ -54,7 +76,7 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
       }
     }
     loadData();
-  }, [resolvedParams.slug]);
+  }, [resolvedParams.slug, setRates, setManualRate, setShippingFee]);
 
   const filteredProducts = useMemo(() => {
     return products.filter(p => {
@@ -163,18 +185,6 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
                 {activeCategory !== 'all' && <span className={styles.activeTag}>القسم: {activeCategory}</span>}
               </div>
 
-              <motion.div 
-                className={styles.grid}
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-              >
-                {filteredProducts.map((product) => (
-                  <motion.div key={product.id} variants={itemVariants} layout>
-                    <ProductCard slug={resolvedParams.slug} {...product} />
-                  </motion.div>
-                ))}
-              </motion.div>
               
               {filteredProducts.length === 0 && (
                 <div className={styles.emptyState}>

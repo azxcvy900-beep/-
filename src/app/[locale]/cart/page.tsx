@@ -20,6 +20,7 @@ export default function CartPage() {
   const rates = useCartStore(state => state.rates);
   const useManual = useCartStore(state => state.useManualSARRate);
   const manualRate = useCartStore(state => state.manualSARRate);
+  const shippingFee = useCartStore(state => state.shippingFee);
   const [mounted, setMounted] = useState(false);
 
   const formatPriceLocal = (amount: number) => {
@@ -131,11 +132,11 @@ export default function CartPage() {
             </div>
             <div className={styles.summaryRow}>
               <span>{t('shipping')}</span>
-              <span className={styles.free}>{t('free')}</span>
+              <span>{shippingFee > 0 ? formatPriceLocal(shippingFee) : t('free')}</span>
             </div>
             <div className={`${styles.summaryRow} ${styles.total}`}>
               <span>{t('total')}</span>
-              <span>{formatPriceLocal(getTotalPrice())}</span>
+              <span>{formatPriceLocal(getTotalPrice() + shippingFee)}</span>
             </div>
             
             <Link href={`/${locale}/checkout`} className={styles.checkoutBtn}>

@@ -8,10 +8,18 @@ interface StoreInitializerProps {
   defaultCurrency?: string;
   useManualSARRate?: boolean;
   manualSARRate?: number;
+  shippingFee?: number;
 }
 
-export default function StoreInitializer({ rates, defaultCurrency, useManualSARRate, manualSARRate }: StoreInitializerProps) {
+export default function StoreInitializer({ 
+  rates, 
+  defaultCurrency, 
+  useManualSARRate, 
+  manualSARRate,
+  shippingFee 
+}: StoreInitializerProps) {
   const isInitialized = useRef(false);
+  const setShippingFee = useCartStore(state => state.setShippingFee);
   const setRates = useCartStore(state => state.setRates);
   const setCurrency = useCartStore(state => state.setCurrency);
   const setManualRate = useCartStore(state => state.setManualRate);
@@ -25,13 +33,16 @@ export default function StoreInitializer({ rates, defaultCurrency, useManualSARR
       if (typeof useManualSARRate === 'boolean') {
         setManualRate(useManualSARRate, manualSARRate || 140);
       }
+      if (typeof shippingFee === 'number') {
+        setShippingFee(shippingFee);
+      }
       // Only set default if user hasn't picked one yet
       if (defaultCurrency && currentCurrency === 'YER') {
         setCurrency(defaultCurrency);
       }
       isInitialized.current = true;
     }
-  }, [rates, defaultCurrency, useManualSARRate, manualSARRate, setRates, setCurrency, setManualRate, currentCurrency]);
+  }, [rates, defaultCurrency, useManualSARRate, manualSARRate, shippingFee, setRates, setCurrency, setManualRate, setShippingFee, currentCurrency]);
 
   return null;
 }

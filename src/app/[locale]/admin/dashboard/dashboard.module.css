@@ -1,79 +1,199 @@
 .dashboard {
+  padding: 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+.loading {
   display: flex;
-  flex-direction: column;
-  gap: 2rem;
+  justify-content: center;
+  align-items: center;
+  padding: 4rem;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.header {
+  margin-bottom: 2rem;
+}
+
+.title {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  color: #64748b;
+  font-size: 1rem;
 }
 
 .statGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 1.5rem;
+  margin-bottom: 2.5rem;
 }
 
 .statCard {
-  background: var(--bg-card);
-  padding: 2rem;
-  border-radius: 24px;
-  box-shadow: var(--card-shadow);
-  border: 1px solid rgba(128, 128, 128, 0.1);
+  background: white;
+  padding: 1.5rem;
+  border-radius: 20px;
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  position: relative;
-  overflow: hidden;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f1f5f9;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.statLabel {
+  color: #64748b;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+}
+
+.statValue {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 0.2rem;
+}
+
+.statSub {
+  font-size: 0.75rem;
+  color: #94a3b8;
 }
 
 .statIcon {
-  width: 50px;
-  height: 50px;
+  width: 52px;
+  height: 52px;
   border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 1rem;
 }
 
-.statIcon.sales { background: rgba(34, 197, 94, 0.1); color: #22c55e; }
-.statIcon.orders { background: rgba(59, 130, 246, 0.1); color: #2563eb; }
-.statIcon.products { background: rgba(168, 85, 247, 0.1); color: #9333ea; }
+.mainGrid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
 
-.statValue {
-  font-size: 1.75rem;
+.chartSection {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 24px;
+  border: 1px solid #f1f5f9;
+}
+
+.chartContainer {
+  margin-top: 1rem;
+  height: 180px;
+}
+
+.svgChart {
+  width: 100%;
+  height: 100%;
+}
+
+.chartLabels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+  color: #94a3b8;
+  font-size: 0.7rem;
+}
+
+.topProducts {
+  background: white;
+  padding: 1.25rem;
+  border-radius: 24px;
+  border: 1px solid #f1f5f9;
+}
+
+.productList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.productItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  border-radius: 12px;
+  transition: background 0.2s;
+}
+
+.productItem:hover {
+  background: #f8fafc;
+}
+
+.prodImg {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f1f5f9;
+}
+
+.prodImg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.prodInfo h4 {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 0.1rem;
+}
+
+.prodInfo p {
+  font-size: 0.7rem;
+  color: #64748b;
+}
+
+.prodPrice {
+  margin-right: auto;
   font-weight: 800;
-  color: var(--text-primary);
-}
-
-.statLabel {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--text-secondary);
+  font-size: 0.8rem;
+  color: #1e293b;
 }
 
 .section {
-  background: var(--bg-card);
-  padding: 2rem;
+  background: white;
+  padding: 1.5rem;
   border-radius: 24px;
-  box-shadow: var(--card-shadow);
-  border: 1px solid rgba(128, 128, 128, 0.1);
+  border: 1px solid #f1f5f9;
 }
 
 .sectionHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .sectionTitle {
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   font-weight: 800;
 }
 
 .viewAll {
-  color: var(--primary);
+  color: #3b82f6;
   font-weight: 700;
+  font-size: 0.85rem;
   text-decoration: none;
-  font-size: 0.9rem;
 }
 
 .tableWrapper {
@@ -87,44 +207,61 @@
 
 .table th {
   text-align: right;
-  padding: 1.5rem 1rem;
-  font-size: 0.85rem;
+  padding: 1rem;
+  font-size: 0.8rem;
   font-weight: 700;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  border-bottom: 1px solid rgba(128, 128, 128, 0.1);
-}
-
-[dir='ltr'] .table th {
-  text-align: left;
+  color: #64748b;
+  border-bottom: 1px solid #f1f5f9;
 }
 
 .table td {
-  padding: 1.5rem 1rem;
-  font-size: 0.95rem;
-  border-bottom: 1px solid rgba(128, 128, 128, 0.05);
+  padding: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.9rem;
 }
 
-.orderId { font-weight: 700; color: var(--primary); }
-.customer { font-weight: 600; }
-.date { color: var(--text-secondary); font-size: 0.85rem; }
-.amount { font-weight: 800; }
+.orderId {
+  font-weight: 700;
+  color: #3b82f6;
+  background: #eff6ff;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  font-family: monospace;
+}
+
+.payMethod {
+  font-size: 0.75rem;
+  color: #64748b;
+}
 
 .statusBadge {
-  padding: 0.4rem 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.6rem;
   border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.pending { background: #fff7ed; color: #c2410c; }
+.processing { background: #eff6ff; color: #1d4ed8; }
+.shipped { background: #f3e8ff; color: #7c3aed; }
+.delivered { background: #f0fdf4; color: #15803d; }
+.cancelled { background: #fef2f2; color: #b91c1c; }
+
+.amount { font-weight: 800; }
+
+.actionBtn {
+  background: #f1f5f9;
+  color: #1e293b;
+  padding: 0.3rem 0.75rem;
+  border-radius: 6px;
+  text-decoration: none;
   font-size: 0.75rem;
   font-weight: 700;
 }
 
-.pending { background: rgba(234, 179, 8, 0.1); color: #ca8a04; }
-.processing { background: rgba(59, 130, 246, 0.1); color: #2563eb; }
-.shipped { background: rgba(168, 85, 247, 0.1); color: #9333ea; }
-.delivered { background: rgba(34, 197, 94, 0.1); color: #16a34a; }
-.cancelled { background: rgba(239, 68, 68, 0.1); color: #dc2626; }
-
-@media (max-width: 768px) {
-  .section {
-    padding: 1.5rem;
-  }
+@media (max-width: 1024px) {
+  .mainGrid { grid-template-columns: 1fr; }
 }

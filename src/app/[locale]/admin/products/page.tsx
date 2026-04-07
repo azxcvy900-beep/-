@@ -53,7 +53,8 @@ export default function MerchantProducts() {
     image: '',
     description: '',
     storeSlug: 'demo',
-    stockCount: '0'
+    stockCount: '0',
+    currency: 'YER' as 'YER' | 'SAR' | 'USD'
   });
 
   useEffect(() => {
@@ -94,7 +95,8 @@ export default function MerchantProducts() {
         image: product.image,
         description: product.description || '',
         storeSlug: product.storeSlug,
-        stockCount: product.stockCount.toString()
+        stockCount: product.stockCount.toString(),
+        currency: product.currency || 'YER'
       });
     } else {
       setEditingProduct(null);
@@ -106,7 +108,8 @@ export default function MerchantProducts() {
         image: '',
         description: '',
         storeSlug: 'demo',
-        stockCount: '0'
+        stockCount: '0',
+        currency: 'YER'
       });
     }
     setIsModalOpen(true);
@@ -152,7 +155,8 @@ export default function MerchantProducts() {
         price: parseFloat(formData.price),
         originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
         stockCount: stockNum,
-        inStock: stockNum > 0
+        inStock: stockNum > 0,
+        currency: formData.currency
       };
 
       if (editingProduct) {
@@ -186,28 +190,127 @@ export default function MerchantProducts() {
     p.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // --- NEW FEATURES: Print & Export ---
+  const handlePrintInventory = (categoryName: string | null = null) => {
+    const printProducts = categoryName 
+      ? products.filter(p => p.category === categoryName)
+      : products;
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    const html = `
+      <html>
+        <head>
+          <title>تقرير المخزون - ${categoryName || 'الكل'}</title>
+          <style>
+            body { font-family: 'Arial', sans-serif; direction: rtl; padding: 20px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { border: 1px solid #ddd; padding: 12px; text-align: right; }
+            th { background-color: #f8fafc; }
+            .header { text-align: center; margin-bottom: 30px; }
+            .low-stock { color: #ef4444; font-weight: bold; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>تقرير جرد المخزون - ${new Date().toLocaleDateString('ar-YE')}</h1>
+            <p>القسم: ${categoryName || 'كافة الأقسام'}</p>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>اسم المنتج</th>
+                <th>القسم</th>
+                <th>السعر</th>
+                <th>الكمية المتوفرة</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${printProducts.map(p => `
+                <tr>
+                  <td>${p.name}</td>
+                  <td>${p.category}</td>
+                  <td>${p.price.toLocaleString()} ر.ي</td>
+                  <td class="${p.stockCount < 5 ? 'low-stock' : ''}">${p.stockCount}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </body>
+      </html>
+    `;
+    printWindow.document.write(html);
+    printWindow.document.close();
+    printWindow.print();
+  };
+
+  const handleExportCSV = () => {
+    const headers = ['ID', 'Name', 'Category', 'Price', 'Stock', 'In Stock'];
+    const rows = products.map(p => [
+      p.id,
+      p.name,
+      p.category,
+      p.price,
+      p.stockCount,
+      p.inStock ? 'Yes' : 'No'
+    ]);
+
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + headers.join(",") + "\n"
+      + rows.map(e => e.join(",")).join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `products_export_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className={styles.productsPage}>
       <div className={styles.header}>
         <h1 className={styles.title}>{t('products.title')}</h1>
-        <button className={styles.addBtn} onClick={() => handleOpenModal()}>
-          <Plus size={20} />
-          <span>{t('products.addNew')}</span>
-        </button>
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <button className={styles.exportBtn} onClick={handleExportCSV}>
+            <span>تصدير CSV</span>
+          </button>
+          <button className={styles.addBtn} onClick={() => handleOpenModal()}>
+            <Plus size={20} />
+            <span>{t('products.addNew')}</span>
+          </button>
+        </div>
       </div>
 
       <div className={styles.tableSection}>
-        <div style={{ padding: '1.5rem', borderBottom: '1px solid rgba(128,128,128,0.1)', display: 'flex', gap: '1rem' }}>
-          <div style={{ flex: 1, position: 'relative' }}>
-            <Search size={18} style={{ position: 'absolute', top: '10px', right: '12px', color: 'var(--text-secondary)' }} />
+        <div className={styles.filterBar}>
+          <div className={styles.searchWrapper}>
+            <Search size={18} className={styles.searchIcon} />
             <input 
               type="text" 
               placeholder="ابحث عن منتج..." 
               className={styles.input} 
-              style={{ paddingRight: '40px' }}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
+          </div>
+          
+          <div className={styles.printActions}>
+             <button className={styles.printBtn} onClick={() => handlePrintInventory()}>
+                طباعة كافة الكميات
+             </button>
+             <select 
+               className={styles.select}
+               onChange={(e) => e.target.value && handlePrintInventory(e.target.value)}
+               defaultValue=""
+             >
+                <option value="" disabled>طباعة حسب القسم...</option>
+                {storeCategories.map(cat => (
+                  <option key={cat.id} value={cat.name}>{cat.name}</option>
+                ))}
+             </select>
           </div>
         </div>
 
@@ -242,10 +345,12 @@ export default function MerchantProducts() {
                     <td>{p.category}</td>
                     <td>
                       <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span>{p.price.toLocaleString()} ر.ي</span>
+                        <span style={{ fontWeight: 700 }}>
+                          {p.price.toLocaleString()} {p.currency === 'SAR' ? 'ر.س' : p.currency === 'USD' ? '$' : 'ر.ي'}
+                        </span>
                         {p.originalPrice && (
                           <span style={{ fontSize: '0.8rem', color: '#9ca3af', textDecoration: 'line-through' }}>
-                            {p.originalPrice.toLocaleString()} ر.ي
+                            {p.originalPrice.toLocaleString()} {p.currency === 'SAR' ? 'ر.س' : p.currency === 'USD' ? '$' : 'ر.ي'}
                           </span>
                         )}
                       </div>
@@ -309,25 +414,44 @@ export default function MerchantProducts() {
                   </div>
                   
                    <div className={styles.inputGroup}>
-                    <label>السعر الحالي (ر.ي)</label>
-                    <input 
-                      type="number"
-                      className={styles.input}
-                      value={formData.price}
-                      onChange={(e) => setFormData({...formData, price: e.target.value})}
-                      required
-                    />
+                    <label>السعر الحالي</label>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <input 
+                        type="number"
+                        className={styles.input}
+                        style={{ flex: 1 }}
+                        value={formData.price}
+                        onChange={(e) => setFormData({...formData, price: e.target.value})}
+                        required
+                      />
+                      <select 
+                        className={styles.input}
+                        style={{ width: '80px' }}
+                        value={formData.currency}
+                        onChange={(e) => setFormData({...formData, currency: e.target.value as any})}
+                      >
+                        <option value="YER">ر.ي</option>
+                        <option value="SAR">ر.س</option>
+                        <option value="USD">$</option>
+                      </select>
+                    </div>
                   </div>
 
                   <div className={styles.inputGroup}>
                     <label>السعر السابق (اختياري)</label>
-                    <input 
-                      type="number"
-                      className={styles.input}
-                      placeholder="لإظهار خصم..."
-                      value={formData.originalPrice}
-                      onChange={(e) => setFormData({...formData, originalPrice: e.target.value})}
-                    />
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      <input 
+                        type="number"
+                        className={styles.input}
+                        style={{ flex: 1 }}
+                        placeholder="لإظهار خصم..."
+                        value={formData.originalPrice}
+                        onChange={(e) => setFormData({...formData, originalPrice: e.target.value})}
+                      />
+                      <span style={{ fontSize: '0.85rem', color: '#64748b', minWidth: '40px' }}>
+                        {formData.currency === 'SAR' ? 'ر.س' : formData.currency === 'USD' ? '$' : 'ر.ي'}
+                      </span>
+                    </div>
                   </div>
 
                   <div className={styles.inputGroup}>

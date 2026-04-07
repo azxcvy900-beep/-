@@ -34,6 +34,7 @@ export default function CheckoutPage() {
   const rates = useCartStore(state => state.rates);
   const useManual = useCartStore(state => state.useManualSARRate);
   const manualRate = useCartStore(state => state.manualSARRate);
+  const shippingFee = useCartStore(state => state.shippingFee);
 
   const getCurrentSARRate = () => {
     if (currency === 'SAR' && useManual) return manualRate;
@@ -51,12 +52,7 @@ export default function CheckoutPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAddingNew, setIsAddingNew] = useState(false);
   
-  // Coupon State
-  const [couponCode, setCouponCode] = useState('');
-  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
-  const [couponError, setCouponError] = useState<string | null>(null);
-  const [isCheckingCoupon, setIsCheckingCoupon] = useState(false);
-
+  // Form Data State
   const [formData, setFormData] = useState({
     fullName: '',
     phone: '',
@@ -66,21 +62,37 @@ export default function CheckoutPage() {
     label: 'home' as 'home' | 'work' | 'other'
   });
 
+  // Long press for address deletion
   const [longPressId, setLongPressId] = useState<string | null>(null);
   const longPressTimer = React.useRef<NodeJS.Timeout | null>(null);
 
+  // Price Locking State (Frozen when receipt uploaded)
+  const [lockedPrice, setLockedPrice] = useState<number | null>(null);
+  const [lockedRate, setLockedRate] = useState<number | null>(null);
+
+  // Coupon State
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [isCheckingCoupon, setIsCheckingCoupon] = useState(false);
+
   useEffect(() => {
     setMounted(true);
-    
     if (mounted && items.length === 0) {
       router.push(`/${locale}/cart`);
     }
 
-    // Default to first address if available
     if (mounted && addresses.length > 0 && !selectedAddressId) {
       const first = addresses[0];
       setSelectedAddress(first.id);
-      setFormData(first);
+      setFormData({
+        fullName: first.fullName,
+        phone: first.phone,
+        city: first.city,
+        region: first.region,
+        details: first.details,
+        label: first.label
+      });
     } else if (mounted && addresses.length === 0) {
       setIsAddingNew(true);
     }
@@ -89,7 +101,6 @@ export default function CheckoutPage() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    // Clear selection if user modifies data (optional, but safer)
     if (selectedAddressId) {
       setSelectedAddress('');
     }
@@ -111,7 +122,7 @@ export default function CheckoutPage() {
   const startLongPress = (id: string) => {
     setLongPressId(id);
     longPressTimer.current = setTimeout(() => {
-      if (confirm(t('confirmDeleteAddress') || 'Delete this address?')) {
+      if (confirm(t('confirmDeleteAddress') || 'حذف هذا العنوان؟')) {
         removeAddress(id);
         if (selectedAddressId === id) {
           setFormData({ fullName: '', phone: '', city: '', region: '', details: '', label: 'home' });
@@ -133,7 +144,7 @@ export default function CheckoutPage() {
   const handleAddAddress = (e: React.MouseEvent) => {
     e.preventDefault();
     if (!formData.fullName || !formData.phone || !formData.city || !formData.region) {
-      alert('Please fill all required fields');
+      alert('الرجاء ملء جميع الحقول المطلوبة');
       return;
     }
 
@@ -147,18 +158,6 @@ export default function CheckoutPage() {
     setSelectedAddress(newAddress.id);
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setReceipt(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setReceiptPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   const handleApplyCoupon = async () => {
     if (!couponCode) return;
     setIsCheckingCoupon(true);
@@ -169,7 +168,7 @@ export default function CheckoutPage() {
         setAppliedCoupon(coupon);
         setCouponError(null);
       } else {
-        setCouponError(t('invalidCoupon') || 'كوبون غير صالح أو انتهت صلاحيته أو لم يصل للحد الأدنى.');
+        setCouponError(t('invalidCoupon') || 'كوبون غير صالح.');
       }
     } catch (error) {
       setCouponError('حدث خطأ أثناء التحقق من الكوبون.');
@@ -188,6 +187,30 @@ export default function CheckoutPage() {
     }
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setReceipt(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setReceiptPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+      
+      // CRITICAL: LOCK the price and exchange rate at this exact moment
+      const subtotal = getTotalPrice();
+      const discount = calculateDiscount();
+      const currentTotal = Math.max(0, subtotal - discount + shippingFee);
+      setLockedPrice(currentTotal);
+      setLockedRate(getCurrentSARRate());
+    } else {
+      setReceipt(null);
+      setReceiptPreview(null);
+      setLockedPrice(null);
+      setLockedRate(null);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -203,15 +226,12 @@ export default function CheckoutPage() {
 
     setIsSubmitting(true);
     
-    // Create new order record
-    const selectedAddress = addresses.find(a => a.id === selectedAddressId) || {
-      id: 'temp',
-      ...formData
-    };
-
     const subtotal = getTotalPrice();
     const discount = calculateDiscount();
-    const finalTotal = Math.max(0, subtotal - discount);
+    // Use the locked total if available (submitted via transfer), otherwise calculate fresh
+    const finalTotal = lockedPrice !== null ? lockedPrice : Math.max(0, subtotal - discount + shippingFee);
+
+    const autoConfirmMethod = paymentMethod === 'electronic' || (paymentMethod === 'transfer' && receipt);
 
     const newOrder: Order = {
       id: `ORD-${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
@@ -220,20 +240,18 @@ export default function CheckoutPage() {
       discountAmount: discount,
       couponCode: appliedCoupon?.code,
       total: finalTotal,
-      status: 'pending',
+      status: autoConfirmMethod ? 'processing' : 'pending',
       date: new Date().toISOString(),
-      address: selectedAddress as any,
+      address: addresses.find(a => a.id === selectedAddressId) || (formData as any),
       paymentMethod: paymentMethod,
-      lockedExRate: receipt ? getCurrentSARRate() : undefined,
+      lockedExRate: lockedRate || (receipt ? getCurrentSARRate() : undefined),
       isPriceLocked: !!receipt
     };
 
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 2000));
     
-    // Save to store
     useCartStore.getState().addOrder(newOrder);
-    
     clearCart();
     setIsSubmitting(false);
     router.push(`/${locale}/order-success`);
@@ -320,9 +338,8 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            {/* Address Form (Always Visible, Dynamic Content) */}
+            {/* Address Form */}
             <div className={styles.newAddressForm}>
-
               <div className={styles.inputGroup}>
                 <label htmlFor="fullName">{t('fullName')}</label>
                 <input
@@ -465,6 +482,17 @@ export default function CheckoutPage() {
                       </div>
                     )}
                   </label>
+                  {lockedPrice !== null && (
+                    <motion.div 
+                      key="locked"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className={styles.lockedBadge}
+                    >
+                      <CheckCircle2 size={14} />
+                      تم تجميد السعر لضمان حقوقك المالية
+                    </motion.div>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -518,6 +546,11 @@ export default function CheckoutPage() {
                 <span>المجموع الفرعي</span>
                 <span>{formatPriceLocal(getTotalPrice())}</span>
               </div>
+
+              <div className={styles.summaryRow}>
+                <span>رسوم التوصيل</span>
+                <span>{shippingFee > 0 ? formatPriceLocal(shippingFee) : 'مجاني'}</span>
+              </div>
               
               {appliedCoupon && (
                 <div className={`${styles.summaryRow} ${styles.discountRow}`}>
@@ -528,10 +561,17 @@ export default function CheckoutPage() {
 
               <div className={styles.totalRow}>
                 <span>{t('total')}</span>
-                <span className={styles.totalPrice}>
-                  {formatPriceLocal(getTotalPrice() - calculateDiscount())}
+                <span className={`${styles.totalPrice} ${lockedPrice !== null ? styles.priceLocked : ''}`}>
+                  {formatPriceLocal(lockedPrice !== null ? lockedPrice : (getTotalPrice() - calculateDiscount() + shippingFee))}
+                  {lockedPrice !== null && <CheckCircle2 size={16} title="سعر مجمد" />}
                 </span>
               </div>
+              
+              {lockedRate !== null && lockedPrice !== null && (
+                <div className={styles.exchangeRateNote}>
+                  تم اعتماد سعر صرف الريال السعودي: {lockedRate} ريال يمني
+                </div>
+              )}
             </div>
             
             <button 

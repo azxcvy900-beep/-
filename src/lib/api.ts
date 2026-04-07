@@ -33,6 +33,7 @@ export interface Product {
   options?: ProductOption[];
   stockCount: number;
   inStock: boolean;
+  currency?: 'YER' | 'SAR' | 'USD';
 }
 
 export interface StoreInfo {
@@ -59,6 +60,7 @@ export interface StoreInfo {
     twitter?: string;
     facebook?: string;
   };
+  shippingFee?: number; // Fixed shipping fee controlled by merchant
 }
 
 export interface Coupon {

@@ -23,16 +23,15 @@ export default function ProductDetails({ params }: { params: Promise<{ slug: str
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
   const t = useTranslations('Product');
   const locale = useLocale();
-  const { addItem, wishlist, toggleWishlist, clearCart } = useCartStore();
+  
+  // Cart Actions & State
+  const { addItem, wishlist, toggleWishlist, clearCart, setRates, setManualRate, setShippingFee } = useCartStore();
   const currency = useCartStore(state => state.currency);
   const rates = useCartStore(state => state.rates);
   const useManual = useCartStore(state => state.useManualSARRate);
   const manualRate = useCartStore(state => state.manualSARRate);
   const [isAdded, setIsAdded] = useState(false);
 
-  const renderedPrice = product ? formatPrice(product.price, currency, rates, useManual, manualRate, t('currency')) : '';
-  const renderedOriginalPrice = product?.originalPrice ? formatPrice(product.originalPrice, currency, rates, useManual, manualRate, t('currency')) : null;
-  
   const [reviews, setReviews] = useState<Review[]>([]);
   const [userReview, setUserReview] = useState({ rating: 5, comment: '', name: '' });
   const [isReviewing, setIsReviewing] = useState(false);
@@ -40,33 +39,53 @@ export default function ProductDetails({ params }: { params: Promise<{ slug: str
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const isWishlisted = product ? wishlist.includes(product.id) : false;
 
+  const renderedPrice = product ? formatPrice(product.price, currency, rates, useManual, manualRate, t('currency'), product.currency) : '';
+  const renderedOriginalPrice = product?.originalPrice ? formatPrice(product.originalPrice, currency, rates, useManual, manualRate, t('currency'), product.currency) : null;
+
   useEffect(() => {
     async function fetchData() {
-      // Fetching product, store info, and related products
-      const [productData, storeData, reviewsData] = await Promise.all([
-        getProductById(resolvedParams.id),
-        getStoreInfo(resolvedParams.slug),
-        getProductReviews(resolvedParams.slug, resolvedParams.id)
-      ]);
+      try {
+        const [productData, storeData, reviewsData] = await Promise.all([
+          getProductById(resolvedParams.id),
+          getStoreInfo(resolvedParams.slug),
+          getProductReviews(resolvedParams.slug, resolvedParams.id)
+        ]);
 
-      if (productData) {
-        setProduct(productData);
-        const related = await getRelatedProducts(productData.category, productData.id, resolvedParams.slug, 4);
-        setRelatedProducts(related);
-      }
-      
-      if (storeData) {
-        setStore(storeData);
-      }
+        if (productData) {
+          setProduct(productData);
+          const related = await getRelatedProducts(productData.category, productData.id, resolvedParams.slug, 4);
+          setRelatedProducts(related);
+        }
+        
+        if (storeData) {
+          setStore(storeData);
 
-      if (reviewsData) {
-        setReviews(reviewsData);
+          // Sync Store Settings (Rates, Shipping, etc)
+          if (storeData.currencySettings?.rates) {
+            setRates(storeData.currencySettings.rates);
+          }
+          if (storeData.currencySettings?.manualSARRate !== undefined) {
+             setManualRate(
+               !!storeData.currencySettings.useManualSARRate, 
+               storeData.currencySettings.manualSARRate
+             );
+          }
+          if (storeData.shippingFee !== undefined) {
+            setShippingFee(storeData.shippingFee);
+          }
+        }
+
+        if (reviewsData) {
+          setReviews(reviewsData);
+        }
+      } catch (error) {
+        console.error("Error fetching product data:", error);
+      } finally {
+        setLoading(false);
       }
-      
-      setLoading(false);
     }
     fetchData();
-  }, [resolvedParams.id, resolvedParams.slug]);
+  }, [resolvedParams.id, resolvedParams.slug, setRates, setManualRate, setShippingFee]);
 
   const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,6 +115,7 @@ export default function ProductDetails({ params }: { params: Promise<{ slug: str
         id: product.id,
         name: product.name,
         price: product.price,
+        currency: product.currency || 'YER',
         image: product.image,
         quantity: quantity,
         selectedOptions: Object.keys(selectedOptions).length > 0 ? selectedOptions : undefined
@@ -112,6 +132,7 @@ export default function ProductDetails({ params }: { params: Promise<{ slug: str
         id: product.id,
         name: product.name,
         price: product.price,
+        currency: product.currency || 'YER',
         image: product.image,
         quantity: quantity,
         selectedOptions: Object.keys(selectedOptions).length > 0 ? selectedOptions : undefined
@@ -122,7 +143,7 @@ export default function ProductDetails({ params }: { params: Promise<{ slug: str
 
   const getWhatsAppLink = () => {
     if (!product) return '#';
-    const message = `مرحباً، أود الاستفسار عن منتج: ${product.name}\nالسعر: ${formatPrice(product.price, currency, rates, useManual, manualRate, t('currency'))}\n${window.location.href}`;
+    const message = `مرحباً، أود الاستفسار عن منتج: ${product.name}\nالسعر: ${renderedPrice}\n${typeof window !== 'undefined' ? window.location.href : ''}`;
     return `https://wa.me/967770000000?text=${encodeURIComponent(message)}`;
   };
 
@@ -183,11 +204,10 @@ export default function ProductDetails({ params }: { params: Promise<{ slug: str
             <p>{product.description}</p>
           </div>
 
-          {/* معلومات البائع - مستوحى من المواقع العالمية */}
           <div style={{ margin: '1.5rem 0', padding: '1rem', background: 'rgba(var(--primary-rgb), 0.05)', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '1rem', border: '1px solid rgba(var(--primary-rgb), 0.1)' }}>
             <div style={{ background: 'white', padding: '4px', borderRadius: '12px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
               {store?.logo ? (
-                <img src={store.logo} alt={store.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src={store.logo} alt={store?.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
                 <Store size={24} color="#3b82f6" />
               )}
@@ -222,7 +242,7 @@ export default function ProductDetails({ params }: { params: Promise<{ slug: str
           ))}
           
           <div className={styles.quantitySection}>
-            <label>{t('quantity') || 'الكمية'}</label>
+            <label>الكمية</label>
             <div className={styles.quantity}>
                <button onClick={() => setQuantity(Math.max(1, quantity - 1))}>-</button>
                <span>{quantity}</span>
@@ -252,7 +272,6 @@ export default function ProductDetails({ params }: { params: Promise<{ slug: str
         <h2 className={styles.sectionTitle}>تقييمات العملاء</h2>
         
         <div className={styles.reviewsGrid}>
-          {/* Review Stats Summary */}
           <div className={styles.reviewsSummary}>
             <div className={styles.averageRating}>
               <span className={styles.ratingNum}>
@@ -268,7 +287,6 @@ export default function ProductDetails({ params }: { params: Promise<{ slug: str
               <p className={styles.reviewCount}>بناءً على {reviews.length} تقييم</p>
             </div>
 
-            {/* Add Review Form */}
             <form onSubmit={handleReviewSubmit} className={styles.reviewForm}>
               <h3 style={{ marginBottom: '1rem', fontWeight: 800 }}>أضف تقييمك</h3>
               {reviewSubmitted ? (
@@ -311,7 +329,6 @@ export default function ProductDetails({ params }: { params: Promise<{ slug: str
             </form>
           </div>
 
-          {/* Reviews List */}
           <div className={styles.reviewsList}>
             {reviews.length > 0 ? (
               reviews.map(review => (
@@ -345,7 +362,7 @@ export default function ProductDetails({ params }: { params: Promise<{ slug: str
           <h2 className={styles.sectionTitle}>منتجات قد تعجبك</h2>
           <div className={styles.relatedGrid}>
             {relatedProducts.map(p => (
-              <ProductCard key={p.id} {...p} slug={resolvedParams.slug} />
+              <ProductCard key={p.id} {...p} slug={resolvedParams.slug} currency={p.currency} />
             ))}
           </div>
         </div>

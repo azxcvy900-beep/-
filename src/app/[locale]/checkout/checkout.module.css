@@ -163,32 +163,6 @@
   color: var(--primary);
 }
 
-.deleteTooltip {
-  position: absolute;
-  top: -40px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #ef4444;
-  color: white;
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  white-space: nowrap;
-  pointer-events: none;
-  z-index: 10;
-}
-
-.deleteTooltip::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 5px solid transparent;
-  border-top-color: #ef4444;
-}
-
 .longPressPulse {
   position: absolute;
   inset: -4px;
@@ -206,90 +180,10 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-.deleteAddress {
-  position: absolute;
-  top: 0.75rem;
-  left: 0.75rem;
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: all 0.2s ease;
-  border: none;
-  cursor: pointer;
-}
-
-[dir='rtl'] .deleteAddress {
-  left: auto;
-  right: 0.75rem;
-}
-
-.addressCard:hover .deleteAddress {
-  opacity: 1;
-}
-
-.deleteAddress:hover {
-  background: #ef4444;
-  color: white;
-}
-
-.addAddressBtn {
-  border: 2px dashed rgba(128, 128, 128, 0.2);
-  background: transparent;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  color: var(--text-secondary);
-  font-weight: 600;
-  transition: all 0.2s ease;
-}
-
-.addAddressBtn:hover {
-  border-color: var(--primary);
-  color: var(--primary);
-  background: rgba(var(--primary-rgb), 0.02);
-}
-
 .formGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
-}
-
-.labelSwitcher {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.labelOption {
-  flex: 1;
-  padding: 0.6rem;
-  border: 1px solid rgba(128, 128, 128, 0.2);
-  border-radius: 10px;
-  background: transparent;
-  color: var(--text-secondary);
-  font-weight: 600;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.labelActive {
-  background: var(--primary);
-  color: white;
-  border-color: var(--primary);
 }
 
 .paymentMethods {
@@ -423,26 +317,12 @@
   margin-bottom: 1.5rem;
 }
 
-.summaryItemName {
-  font-weight: 700;
-  font-size: 1rem;
+.miniItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
   color: var(--text-primary);
-  margin-bottom: 0.25rem;
-}
-
-.summaryItemOptions {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  background: rgba(var(--primary-rgb), 0.05);
-  padding: 0.15rem 0.4rem;
-  border-radius: 4px;
-  width: fit-content;
-  margin-bottom: 0.4rem;
-}
-
-.summaryItemQty {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
 }
 
 .couponSection {
@@ -506,6 +386,10 @@
   border: none;
   cursor: pointer;
   font-size: 0.85rem;
+}
+
+.summaryTotal {
+  margin-top: 1rem;
 }
 
 .summaryRow {
@@ -579,6 +463,38 @@
   margin-top: 1.5rem;
   font-size: 0.8rem;
   color: var(--text-secondary);
+}
+
+.lockedBadge {
+  margin-top: 1rem;
+  padding: 0.6rem 1rem;
+  background: rgba(var(--primary-rgb), 0.1);
+  color: var(--primary);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid rgba(var(--primary-rgb), 0.2);
+}
+
+.priceLocked {
+  color: #10b981 !important;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.exchangeRateNote {
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  text-align: center;
+  padding: 0.5rem;
+  background: rgba(128, 128, 128, 0.05);
+  border-radius: 6px;
 }
 
 @media (max-width: 1024px) {
