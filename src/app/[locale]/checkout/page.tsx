@@ -259,10 +259,6 @@ export default function CheckoutPage() {
 
   if (!mounted || items.length === 0) return null;
 
-  const getAddressIcon = () => {
-    return <MapPin size={24} />;
-  };
-
   return (
     <div className={styles.container}>
       <BackButton fallbackPath={`/${locale}/cart`} />
@@ -284,7 +280,6 @@ export default function CheckoutPage() {
           <div className={styles.card}>
             <h3>{t('customerInfo')}</h3>
             
-            {/* Address Icon Row */}
             <div className={styles.addressRow}>
               {addresses.map((addr) => (
                 <div key={addr.id} className={styles.addressIconWrapper}>
@@ -299,7 +294,7 @@ export default function CheckoutPage() {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    {getAddressIcon()}
+                    <MapPin size={24} />
                     {selectedAddressId === addr.id && (
                       <motion.div className={styles.iconSelectionMarker} layoutId="marker">
                         <CheckCircle2 size={14} />
@@ -338,7 +333,6 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            {/* Address Form */}
             <div className={styles.newAddressForm}>
               <div className={styles.inputGroup}>
                 <label htmlFor="fullName">{t('fullName')}</label>
@@ -503,7 +497,6 @@ export default function CheckoutPage() {
           <div className={styles.card}>
             <h3>{t('orderSummary')}</h3>
             
-            {/* Coupon Section */}
             <div className={styles.couponSection}>
               <div className={styles.couponInputWrapper}>
                 <input 
@@ -534,7 +527,7 @@ export default function CheckoutPage() {
 
             <div className={styles.miniList}>
               {items.map(item => (
-                <div key={item.id} className={styles.miniItem}>
+                <div key={`${item.id}-${JSON.stringify(item.selectedOptions)}`} className={styles.miniItem}>
                   <span>{item.name} × {item.quantity}</span>
                   <span>{formatPriceLocal(item.price * item.quantity)}</span>
                 </div>
@@ -563,7 +556,7 @@ export default function CheckoutPage() {
                 <span>{t('total')}</span>
                 <span className={`${styles.totalPrice} ${lockedPrice !== null ? styles.priceLocked : ''}`}>
                   {formatPriceLocal(lockedPrice !== null ? lockedPrice : (getTotalPrice() - calculateDiscount() + shippingFee))}
-                  {lockedPrice !== null && <CheckCircle2 size={16} title="سعر مجمد" />}
+                  {lockedPrice !== null && <span title="سعر مجمد"><CheckCircle2 size={16} /></span>}
                 </span>
               </div>
               
