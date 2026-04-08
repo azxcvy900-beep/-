@@ -326,6 +326,18 @@ export async function deleteCoupon(storeSlug: string, id: string): Promise<void>
   await deleteDoc(couponRef);
 }
 
+export async function validateCoupon(storeSlug: string, code: string): Promise<Coupon | null> {
+  try {
+    const couponsRef = collection(db, 'stores', storeSlug, 'coupons');
+    const q = query(couponsRef, where('code', '==', code.toUpperCase()), where('isActive', '==', true));
+    const querySnapshot = await getDocs(q);
+    if (querySnapshot.empty) return null;
+    return querySnapshot.docs[0].data() as Coupon;
+  } catch (error) {
+    return null;
+  }
+}
+
 export async function getStoreReviews(storeSlug: string): Promise<Review[]> {
   try {
     const reviewsRef = collection(db, 'stores', storeSlug, 'reviews');
@@ -337,12 +349,50 @@ export async function getStoreReviews(storeSlug: string): Promise<Review[]> {
   }
 }
 
+export async function getProductReviews(productId: string): Promise<Review[]> {
+  // Simple implementation: fetch platform-wide and filter
+  const allReviews = await getAllPlatformReviews();
+  return allReviews.filter(r => r.productId === productId);
+}
+
+export async function addReview(review: Omit<Review, 'id' | 'date' | 'isApproved'>): Promise<string> {
+  const id = `rev_${Date.now()}`;
+  const newReview: Review = {
+    ...review,
+    id,
+    date: new Date().toISOString(),
+    isApproved: true // Auto-approve for demo
+  };
+  await setDoc(doc(db, 'stores', review.storeSlug, 'reviews', id), newReview);
+  return id;
+}
+
+export async function updateReviewStatus(storeSlug: string, id: string, isApproved: boolean): Promise<void> {
+  const reviewRef = doc(db, 'stores', storeSlug, 'reviews', id);
+  await updateDoc(reviewRef, { isApproved });
+}
+
+export async function deleteReview(storeSlug: string, id: string): Promise<void> {
+  const reviewRef = doc(db, 'stores', storeSlug, 'reviews', id);
+  await deleteDoc(reviewRef);
+}
+
 export async function addCategory(category: Omit<Category, 'id'>): Promise<string> {
   const categoriesCol = collection(db, 'stores', category.storeSlug, 'categories');
   const docRef = doc(categoriesCol);
   const newCategory = { ...category, id: docRef.id };
   await setDoc(docRef, newCategory);
   return newCategory.id;
+}
+
+export async function updateCategory(storeSlug: string, id: string, data: Partial<Category>): Promise<void> {
+  const catRef = doc(db, 'stores', storeSlug, 'categories', id);
+  await updateDoc(catRef, data);
+}
+
+export async function deleteCategory(storeSlug: string, id: string): Promise<void> {
+  const catRef = doc(db, 'stores', storeSlug, 'categories', id);
+  await deleteDoc(catRef);
 }
 
 export async function addProduct(product: Omit<Product, 'id'>): Promise<string> {
@@ -423,4 +473,22 @@ export async function getAllPlatformReviews(): Promise<Review[]> {
   } catch (error) {
     return [];
   }
+}
+
+export async function seedDatabase(): Promise<void> {
+  const batch = writeBatch(db);
+  
+  // Seed Stores
+  for (const store of DUMMY_STORES) {
+    const storeRef = doc(db, 'stores', store.slug);
+    batch.set(storeRef, store);
+  }
+  
+  // Seed Products
+  for (const product of DUMMY_PRODUCTS) {
+    const productRef = doc(db, 'products', product.id);
+    batch.set(productRef, product);
+  }
+  
+  await batch.commit();
 }
