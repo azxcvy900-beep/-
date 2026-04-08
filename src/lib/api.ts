@@ -449,6 +449,56 @@ export async function updateStoreInfo(slug: string, updates: Partial<StoreInfo>)
 
 // --- GLOBAL PLATFORM API ---
 
+export interface PlatformSettings {
+  platformFee: number;
+  maintenanceMode: boolean;
+  defaultCurrency: string;
+  currencyRates: {
+    YER: number;
+    SAR: number;
+    [key: string]: number;
+  };
+  notifications: {
+    newMerchant: boolean;
+    highComplaint: boolean;
+    systemAlert: boolean;
+  };
+}
+
+export async function getPlatformSettings(): Promise<PlatformSettings> {
+  const defaultSettings: PlatformSettings = {
+    platformFee: 2.5,
+    maintenanceMode: false,
+    defaultCurrency: 'USD',
+    currencyRates: {
+      YER: 530,
+      SAR: 140
+    },
+    notifications: {
+      newMerchant: true,
+      highComplaint: true,
+      systemAlert: true
+    }
+  };
+
+  try {
+    const settingsDoc = doc(db, 'platform', 'config');
+    const settingsSnap = await getDoc(settingsDoc);
+    if (settingsSnap.exists()) {
+      return settingsSnap.data() as PlatformSettings;
+    }
+    return defaultSettings;
+  } catch (error) {
+    console.error("Error fetching platform settings:", error);
+    return defaultSettings;
+  }
+}
+
+export async function updatePlatformSettings(settings: Partial<PlatformSettings>): Promise<void> {
+  const settingsDoc = doc(db, 'platform', 'config');
+  await setDoc(settingsDoc, settings, { merge: true });
+}
+
 export async function getAllStores(): Promise<StoreInfo[]> {
   try {
     const storesCol = collection(db, 'stores');
@@ -496,5 +546,24 @@ export async function seedDatabase(): Promise<void> {
     const productRef = doc(db, 'products', product.id);
     batch.set(productRef, product);
   }
+  
+  // Also seed initial platform settings
+  const settingsRef = doc(db, 'platform', 'config');
+  batch.set(settingsRef, {
+    platformFee: 2.5,
+    maintenanceMode: false,
+    defaultCurrency: 'USD',
+    currencyRates: {
+      YER: 530,
+      SAR: 140
+    },
+    notifications: {
+      newMerchant: true,
+      highComplaint: true,
+      systemAlert: true
+    }
+  });
+
   await batch.commit();
 }
+

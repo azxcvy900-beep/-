@@ -1,47 +1,87 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { seedDatabase } from '@/lib/api';
+import { useRouter, useLocale } from 'next/navigation';
+import { motion } from 'framer-motion';
+import { Database, CheckCircle, RefreshCw } from 'lucide-react';
 
 export default function SeedPage() {
-  const [status, setStatus] = useState('');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const router = useRouter();
+  const locale = useLocale();
 
-  const handleSeed = async () => {
-    setStatus('جاري رفع المنتجات الوهمية...');
-    try {
-      await seedDatabase();
-      setStatus('تم الرفع بنجاح! يمكنك الآن زيارة المتجر التجريبي.');
-    } catch (error: any) {
-      setStatus(`حدث خطأ: ${error.message}`);
-    }
-  };
+  useEffect(() => {
+    const runSeed = async () => {
+      setStatus('loading');
+      try {
+        await seedDatabase();
+        setStatus('success');
+        // Redirect to manager after 2 seconds
+        setTimeout(() => {
+          router.push(`/${locale}/manager`);
+        }, 2000);
+      } catch (error) {
+        console.error("Seed error:", error);
+        setStatus('error');
+      }
+    };
+
+    runSeed();
+  }, [router, locale]);
 
   return (
-    <div style={{ padding: '5rem', textAlign: 'center', minHeight: '100vh', direction: 'rtl' }}>
-      <h1>أداة تهيئة قاعدة البيانات 🚀</h1>
-      <p>ستقوم هذه الأداة برفع البيانات الوهمية للمنتجات إلى قاعدة بياناتك في Firestore لتتمكن من تجربتها.</p>
-      
-      <button 
-        onClick={handleSeed}
-        style={{
-          marginTop: '2rem',
-          padding: '1rem 2rem',
-          fontSize: '1.2rem',
-          backgroundColor: '#0070f3',
-          color: 'white',
-          border: 'none',
-          borderRadius: '8px',
-          cursor: 'pointer'
+    <div style={{ 
+      height: '100vh', 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center',
+      background: '#f8fafc',
+      fontFamily: 'var(--font-cairo)'
+    }}>
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        style={{ 
+          background: 'white', 
+          padding: '3rem', 
+          borderRadius: '24px', 
+          boxShadow: '0 20px 50px rgba(0,0,0,0.05)',
+          textAlign: 'center',
+          maxWidth: '400px'
         }}
       >
-        رفع البيانات الآن
-      </button>
+        {status === 'loading' && (
+          <>
+            <RefreshCw size={48} color="#1a73e8" style={{ animation: 'spin 2s linear infinite' }} />
+            <h2 style={{ marginTop: '1.5rem' }}>جاري ربط البيانات...</h2>
+            <p style={{ color: '#64748b' }}>نقوم الآن برفع المتاجر والمنتجات إلى قاعدة البيانات (Firestore)</p>
+          </>
+        )}
 
-      {status && (
-        <p style={{ marginTop: '2rem', fontSize: '1.1rem', fontWeight: 'bold' }}>
-          {status}
-        </p>
-      )}
+        {status === 'success' && (
+          <>
+            <CheckCircle size={48} color="#10b981" />
+            <h2 style={{ marginTop: '1.5rem', color: '#065f46' }}>تم الربط بنجاح!</h2>
+            <p style={{ color: '#64748b' }}>عالم "بايرز" أصبح الآن حياً ومستعداً للانطلاق. جاري نقلك للإدارة...</p>
+          </>
+        )}
+
+        {status === 'error' && (
+          <>
+            <Database size={48} color="#ef4444" />
+            <h2 style={{ marginTop: '1.5rem', color: '#991b1b' }}>فشل الربط!</h2>
+            <p style={{ color: '#64748b' }}>تأكد من إعدادات Firebase الخاصة بك في ملف البيئة.</p>
+          </>
+        )}
+      </motion.div>
+
+      <style jsx>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }

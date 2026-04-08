@@ -144,7 +144,7 @@ export default function AdminLoginPage() {
                 margin: '0 auto'
               }}
             >
-              <ShieldAlert size={16} /> الدخول إلى غرفة العمليات (Super Admin)
+              <ShieldAlert size={16} /> الدخول إلى الإدارة العليا (Super Admin)
             </button>
           </div>
         </form>

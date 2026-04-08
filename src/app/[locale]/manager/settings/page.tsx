@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Save, 
   RefreshCw, 
@@ -12,14 +12,16 @@ import {
   BellRing
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { getPlatformSettings, updatePlatformSettings, PlatformSettings } from '@/lib/api';
 import styles from './settings.module.css';
 
 export default function ManagerSettings() {
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
   const [activeTab, setActiveTab] = useState('general');
 
-  // Dummy global settings
-  const [settings, setSettings] = useState({
+  // Global settings state
+  const [settings, setSettings] = useState<PlatformSettings>({
     platformFee: 2.5,
     maintenanceMode: false,
     defaultCurrency: 'USD',
@@ -34,13 +36,35 @@ export default function ManagerSettings() {
     }
   });
 
-  const handleSave = () => {
+  useEffect(() => {
+    async function loadSettings() {
+      try {
+        const data = await getPlatformSettings();
+        setSettings(data);
+      } catch (error) {
+        console.error("Failed to load settings:", error);
+      } finally {
+        setFetching(false);
+      }
+    }
+    loadSettings();
+  }, []);
+
+  const handleSave = async () => {
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await updatePlatformSettings(settings);
       alert('تم حفظ الإعدادات العالمية بنجاح!');
-    }, 1500);
+    } catch (error) {
+      console.error("Save error:", error);
+      alert('حدث خطأ أثناء حفظ الإعدادات.');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  if (fetching) return <div className={styles.loading}>جاري تحميل إعدادات النظام...</div>;
+
 
   return (
     <div className={styles.settingsPage}>

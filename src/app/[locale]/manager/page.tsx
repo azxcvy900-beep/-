@@ -20,7 +20,7 @@ import { Order } from '@/lib/store';
 import { Review } from '@/lib/api';
 import styles from './manager.module.css';
 
-export default function OperationsRoom() {
+export default function AdministrationDashboard() {
   const [stores, setStores] = useState<StoreInfo[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -38,7 +38,7 @@ export default function OperationsRoom() {
         setOrders(ordersData);
         setReviews(reviewsData);
       } catch (error) {
-        console.error("Operations data load error:", error);
+        console.error("Administration data load error:", error);
       } finally {
         setLoading(false);
       }
@@ -75,7 +75,8 @@ export default function OperationsRoom() {
     { label: 'تحذيرات الرضا', value: criticalComplaints, icon: AlertTriangle, delta: 'مستقر', color: '#ef4444' },
   ];
 
-  if (loading) return <div className={styles.loading}>جاري فحص بروتوكولات المنصة...</div>;
+  if (loading) return <div className={styles.loading}>جاري فحص حالة المنصة الشاملة...</div>;
+
 
   return (
     <div className={styles.opsRoom}>
