@@ -326,13 +326,19 @@ export async function deleteCoupon(storeSlug: string, id: string): Promise<void>
   await deleteDoc(couponRef);
 }
 
-export async function validateCoupon(storeSlug: string, code: string): Promise<Coupon | null> {
+export async function validateCoupon(storeSlug: string, code: string, totalAmount?: number): Promise<Coupon | null> {
   try {
     const couponsRef = collection(db, 'stores', storeSlug, 'coupons');
     const q = query(couponsRef, where('code', '==', code.toUpperCase()), where('isActive', '==', true));
     const querySnapshot = await getDocs(q);
     if (querySnapshot.empty) return null;
-    return querySnapshot.docs[0].data() as Coupon;
+    const coupon = querySnapshot.docs[0].data() as Coupon;
+    
+    if (totalAmount !== undefined && coupon.minOrderAmount && totalAmount < coupon.minOrderAmount) {
+      return null;
+    }
+    
+    return coupon;
   } catch (error) {
     return null;
   }
@@ -350,7 +356,6 @@ export async function getStoreReviews(storeSlug: string): Promise<Review[]> {
 }
 
 export async function getProductReviews(productId: string): Promise<Review[]> {
-  // Simple implementation: fetch platform-wide and filter
   const allReviews = await getAllPlatformReviews();
   return allReviews.filter(r => r.productId === productId);
 }
@@ -361,7 +366,7 @@ export async function addReview(review: Omit<Review, 'id' | 'date' | 'isApproved
     ...review,
     id,
     date: new Date().toISOString(),
-    isApproved: true // Auto-approve for demo
+    isApproved: true
   };
   await setDoc(doc(db, 'stores', review.storeSlug, 'reviews', id), newReview);
   return id;
@@ -477,18 +482,13 @@ export async function getAllPlatformReviews(): Promise<Review[]> {
 
 export async function seedDatabase(): Promise<void> {
   const batch = writeBatch(db);
-  
-  // Seed Stores
   for (const store of DUMMY_STORES) {
     const storeRef = doc(db, 'stores', store.slug);
     batch.set(storeRef, store);
   }
-  
-  // Seed Products
   for (const product of DUMMY_PRODUCTS) {
     const productRef = doc(db, 'products', product.id);
     batch.set(productRef, product);
   }
-  
   await batch.commit();
 }
