@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { seedDatabase } from '@/lib/api';
-import { useRouter, useLocale } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { useLocale } from 'next-intl';
 import { motion } from 'framer-motion';
 import { Database, CheckCircle, RefreshCw } from 'lucide-react';
 
