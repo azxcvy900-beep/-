@@ -355,9 +355,15 @@ export async function getStoreReviews(storeSlug: string): Promise<Review[]> {
   }
 }
 
-export async function getProductReviews(productId: string): Promise<Review[]> {
-  const allReviews = await getAllPlatformReviews();
-  return allReviews.filter(r => r.productId === productId);
+export async function getProductReviews(storeSlug: string, productId: string): Promise<Review[]> {
+  try {
+    const reviewsRef = collection(db, 'stores', storeSlug, 'reviews');
+    const q = query(reviewsRef, where('productId', '==', productId), where('isApproved', '==', true));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => doc.data() as Review);
+  } catch (error) {
+    return [];
+  }
 }
 
 export async function addReview(review: Omit<Review, 'id' | 'date' | 'isApproved'>): Promise<string> {
