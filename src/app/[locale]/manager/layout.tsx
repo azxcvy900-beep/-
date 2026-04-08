@@ -17,7 +17,9 @@ import {
   Globe,
   MessageSquareWarning,
   Moon,
-  Sun
+  Sun,
+  Store,
+  Bell
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/components/providers/ThemeProvider';
@@ -43,11 +45,10 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
   };
 
   const navItems = [
-    { name: 'غرفة العمليات', href: `/${locale}/manager`, icon: Activity },
-    { name: 'إدارة المتاجر', href: `/${locale}/manager/merchants`, icon: Users },
-    { name: 'بلاغات العملاء', href: `/${locale}/manager/complaints`, icon: MessageSquareWarning },
-    { name: 'التحليل الاستراتيجي', href: `/${locale}/manager/analytics`, icon: BarChart3 },
-    { name: 'إعدادات المنصة', href: `/${locale}/manager/settings`, icon: Settings },
+    { name: 'الإدارة', href: `/${locale}/manager`, icon: ShieldAlert },
+    { name: 'إدارة المتاجر', href: `/${locale}/manager/merchants`, icon: Store },
+    { name: 'مركز البلاغات', href: `/${locale}/manager/complaints`, icon: Bell },
+    { name: 'الإعدادات العالمية', href: `/${locale}/manager/settings`, icon: Settings },
   ];
 
   if (!mounted) return null;
@@ -94,7 +95,11 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
       {/* Main Content */}
       <main className={styles.main}>
         <header className={styles.topBar}>
-          <div className={styles.topBarLeft}>
+          <div className={styles.header}>
+            <div className={styles.titleArea}>
+              <h1 className={styles.title}>لوحة الإدارة الاستراتيجية</h1>
+              <p className={styles.subtitle}>السيطرة الكاملة والرقابة العالمية على منصة بايرز</p>
+            </div>
             <button className={styles.menuBtn} onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
               {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
             </button>

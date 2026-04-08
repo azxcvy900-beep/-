@@ -107,10 +107,10 @@ export default function OperationsRoom() {
 
       <div className={styles.mainGrid}>
         {/* Merchant Radar */}
-        <div className={styles.radarSection}>
-          <div className={styles.sectionHeader}>
-            <h3>رادار أداء المتاجر</h3>
-            <button className={styles.viewMore}>عرض كافة المتاجر <ChevronRight size={16} /></button>
+        <div className={styles.header}>
+          <div className={styles.titleInfo}>
+            <h1 className={styles.title}>لوحة الإدارة الاستراتيجية</h1>
+            <p className={styles.subtitle}>الرقابة الشاملة والتحليل المتقدم لمنصة بايرز</p>
           </div>
           <div className={styles.radarList}>
              {merchantRanking.map((merchant, i) => (
