@@ -16,9 +16,12 @@ import {
   Store,
   Grid,
   Ticket,
-  MessageSquare
+  MessageSquare,
+  Moon,
+  Sun
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTheme } from '@/components/providers/ThemeProvider';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import OrderNotification from '@/components/shared/OrderNotification/OrderNotification';
@@ -29,6 +32,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const locale = useLocale();
   const pathname = usePathname();
   const router = useRouter();
+  const { theme, toggleTheme } = useTheme();
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [user, setUser] = useState<any>(null);
@@ -103,10 +107,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           })}
         </nav>
 
-        <button onClick={handleLogout} className={styles.logoutBtn}>
-          <LogOut size={20} />
-          <span>{t('sidebar.logout')}</span>
-        </button>
+        <div className={styles.sidebarFooter}>
+          <button onClick={toggleTheme} className={styles.themeToggle}>
+            {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+            <span>{theme === 'light' ? 'الوضع الليلي' : 'الوضع النهاري'}</span>
+          </button>
+          <button onClick={handleLogout} className={styles.logoutBtn}>
+            <LogOut size={20} />
+            <span>{t('sidebar.logout')}</span>
+          </button>
+        </div>
       </aside>
 
       {/* Main Area */}

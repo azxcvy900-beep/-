@@ -112,6 +112,7 @@ const Footer = () => {
                 <li><Link href={`/${locale}/orders`}>{t('myOrders')}</Link></li>
                 <li><Link href={`/${locale}/track`}>{t('trackOrder')}</Link></li>
                 <li><Link href={`/${locale}/admin`} className={styles.adminLink}>{t('merchantLogin')}</Link></li>
+                <li><Link href={`/${locale}/manager`} className={styles.managerLink} style={{ color: 'var(--primary)', fontWeight: '600' }}>{t('managerLogin')}</Link></li>
               </ul>
             </div>
 
