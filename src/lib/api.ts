@@ -10,7 +10,8 @@ import {
   query, 
   where,
   orderBy,
-  writeBatch
+  writeBatch,
+  collectionGroup
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Order } from './store';
@@ -216,9 +217,9 @@ export async function getStoreProducts(storeSlug: string): Promise<Product[]> {
 
   try {
     const productsCol = collection(db, 'products');
-    const productSnapshot = await getDocs(productsCol);
-    return productSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product))
-      .filter(p => p.storeSlug === storeSlug);
+    const q = query(productsCol, where('storeSlug', '==', storeSlug));
+    const productSnapshot = await getDocs(q);
+    return productSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
   } catch (error) {
     console.error("Error fetching products:", error);
     return DUMMY_PRODUCTS;
@@ -527,12 +528,17 @@ export async function getAllPlatformOrders(): Promise<Order[]> {
 
 export async function getAllPlatformReviews(): Promise<Review[]> {
   try {
+    const reviewsRef = collectionGroup(db, 'reviews');
+    const q = query(reviewsRef, orderBy('date', 'desc'));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => doc.data() as Review);
+  } catch (error) {
+    console.error("CollectionGroup query failed (check if index is required):", error);
+    // Fallback if index is not created yet
     const stores = await getAllStores();
     const reviewPromises = stores.map(store => getStoreReviews(store.slug));
     const reviewsArrays = await Promise.all(reviewPromises);
     return reviewsArrays.flat().sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  } catch (error) {
-    return [];
   }
 }
 
