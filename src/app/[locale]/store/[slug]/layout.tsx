@@ -24,7 +24,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       title: seoTitle,
       description: seoDesc,
       images: store?.logo ? [store.logo] : []
-    }
+    },
+    icons: {
+      icon: store?.logo || '/favicon.ico',
+      apple: store?.logo || '/apple-touch-icon.png',
+    },
+    manifest: `/api/manifest?slug=${slug}`
   };
 }
 

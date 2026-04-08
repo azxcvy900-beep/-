@@ -1,0 +1,217 @@
+.walletPage {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  color: var(--foreground);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.titleArea {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.titleArea h1 {
+  font-size: 28px;
+  font-weight: 800;
+  margin: 0;
+  background: linear-gradient(135deg, var(--primary), #6366f1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.titleArea p {
+  margin: 4px 0 0;
+  color: var(--muted-foreground);
+}
+
+.exportBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.exportBtn:hover {
+  background: var(--accent);
+}
+
+.balanceGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.balanceCard {
+  background: var(--card);
+  padding: 24px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.balanceCard.total { border-top: 4px solid var(--primary); }
+.balanceCard.available { border-top: 4px solid #10b981; }
+.balanceCard.pending { border-top: 4px solid #f59e0b; }
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted-foreground);
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.balanceCard h2 {
+  font-size: 32px;
+  font-weight: 900;
+  margin: 0 0 8px;
+}
+
+.balanceCard h2 small {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+.balanceCard p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted-foreground);
+}
+
+.ledgerSection {
+  background: var(--card);
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  padding: 24px;
+  margin-bottom: 40px;
+}
+
+.ledgerHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.ledgerTableWrapper {
+  overflow-x: auto;
+}
+
+.ledgerTable {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: right;
+}
+
+.ledgerTable th {
+  padding: 16px;
+  background: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted-foreground);
+}
+
+.ledgerTable td {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+
+.typeTag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: #10b981;
+}
+
+.customerInfo strong {
+  display: block;
+  font-size: 15px;
+}
+
+.customerInfo span {
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+
+.amount {
+  font-family: monospace;
+  font-weight: 800;
+  font-size: 16px;
+  color: #10b981;
+}
+
+.statusBadge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.statusBadge.delivered { background: #dcfce7; color: #166534; }
+.statusBadge.pending, .statusBadge.processing { background: #fef9c3; color: #854d0e; }
+.statusBadge.locked { background: #fdf2f2; color: #9b1c1c; }
+
+.viewDetails {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.withdrawalSection {
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  color: #fff;
+  border-radius: 20px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.withdrawBtn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: fit-content;
+}
+
+.withdrawBtn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+}
+
+.withdrawBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .balanceGrid { grid-template-columns: 1fr; }
+  .header { flex-direction: column; gap: 20px; align-items: flex-start; }
+}

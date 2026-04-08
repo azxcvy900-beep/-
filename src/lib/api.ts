@@ -177,8 +177,27 @@ const DUMMY_PRODUCTS: Product[] = [
 
 const DUMMY_STORES: StoreInfo[] = [
   {
+    slug: 'boun',
+    name: 'متجر بون (سعيد)',
+    logo: 'https://cdn-icons-png.flaticon.com/512/3120/3120516.png',
+    phone: '967771234567',
+    description: 'أجود أنواع القهوة المختصة لمتذوقي الطعم الأصيل.',
+    primaryColor: '#6F4E37',
+    social: { instagram: 'boun_coffee' }
+  },
+  {
+    slug: 'smart-phone',
+    name: 'سمارت فون (صالح)',
+    logo: 'https://cdn-icons-png.flaticon.com/512/2586/2586488.png',
+    phone: '967777777777',
+    description: 'عالمك المتكامل لأحدث الهواتف الذكية والإكسسوارات.',
+    primaryColor: '#007AFF',
+    social: { twitter: 'smart_tech' }
+  },
+  {
     slug: 'demo',
     name: 'متجر بايرز التجريبي',
+    logo: 'https://cdn-icons-png.flaticon.com/512/1162/1162456.png',
     phone: '967770000000',
     description: 'أفضل المنتجات العالمية والمحلية في مكان واحد.',
     social: {

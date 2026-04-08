@@ -15,11 +15,14 @@ import {
   ChevronRight,
   Printer,
   MessageSquare,
-  Lock
+  Lock,
+  Send,
+  X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getStoreOrders, updateOrderStatus } from '@/lib/api';
+import { getStoreOrders, updateOrderStatus, getStoreInfo, StoreInfo } from '@/lib/api';
 import { Order } from '@/lib/store';
+import { getWhatsAppUrl } from '@/lib/whatsapp';
 import styles from './orders.module.css';
 
 export default function MerchantOrders() {
@@ -29,9 +32,12 @@ export default function MerchantOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [storeInfo, setStoreInfo] = useState<StoreInfo | null>(null);
+  const [waOrder, setWaOrder] = useState<Order | null>(null);
 
   useEffect(() => {
     loadOrders();
+    loadStoreInfo();
   }, []);
 
   async function loadOrders() {
@@ -42,6 +48,15 @@ export default function MerchantOrders() {
       console.error("Error loading orders:", error);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadStoreInfo() {
+    try {
+      const info = await getStoreInfo('demo');
+      setStoreInfo(info);
+    } catch (error) {
+      console.error("Error loading store info:", error);
     }
   }
 
@@ -82,10 +97,14 @@ export default function MerchantOrders() {
   };
 
   const handleWhatsApp = (order: Order) => {
-    const statusText = getStatusLabel(order.status);
-    const message = `مرحباً ${order.address.fullName}%0Aنحيطكم علماً بأن حالة طلبكم رقم (${order.id.slice(-8)}) في متجر بايرز هي حالياً: *${statusText}*%0Aشكراً لتسوقكم معنا!`;
-    const whatsappUrl = `https://wa.me/${order.address.phone.replace(/\D/g, '')}?text=${message}`;
-    window.open(whatsappUrl, '_blank');
+    setWaOrder(order);
+  };
+
+  const confirmWhatsApp = () => {
+    if (!waOrder || !storeInfo) return;
+    const url = getWhatsAppUrl(waOrder, storeInfo);
+    window.open(url, '_blank');
+    setWaOrder(null);
   };
 
   const handlePrint = (order: Order) => {
@@ -122,7 +141,7 @@ export default function MerchantOrders() {
         </head>
         <body>
           <div class="header">
-            <div class="logo">BUYERS PLATFORM</div>
+            <div class="logo">${storeInfo?.name || 'BUYERS PLATFORM'}</div>
             <div class="invoice-title">فاتورة طلب</div>
           </div>
 
@@ -187,7 +206,7 @@ export default function MerchantOrders() {
           </div>
 
           <div class="footer">
-            <p>شكراً لتسوقكم مع متجر بايرز</p>
+            <p>شكراً لتسوقكم مع ${storeInfo?.name || 'متجر بايرز'}</p>
             <p>تم إنشاء هذه الفاتورة إلكترونياً وهي صالحة بدون كود توثيق.</p>
           </div>
         </body>
@@ -365,6 +384,38 @@ export default function MerchantOrders() {
           </div>
         )}
       </div>
+
+      {/* WhatsApp Confirmation Modal */}
+      <AnimatePresence>
+        {waOrder && (
+          <div className={styles.modalOverlay}>
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className={styles.modal}
+            >
+              <div className={styles.modalHeader}>
+                <h3>إرسال تنبيه واتساب</h3>
+                <button onClick={() => setWaOrder(null)}><X size={20} /></button>
+              </div>
+              <div className={styles.modalBody}>
+                <p>هل تريد إرسال تحديث حالة الطلب للعميل عبر واتساب؟</p>
+                <div className={styles.waPreview}>
+                  <strong>إلى:</strong> {waOrder.address.fullName} ({waOrder.address.phone})<br/>
+                  <strong>الحالة:</strong> {getStatusLabel(waOrder.status)}
+                </div>
+              </div>
+              <div className={styles.modalFooter}>
+                <button className={styles.cancelModalBtn} onClick={() => setWaOrder(null)}>إلغاء</button>
+                <button className={styles.confirmWaBtn} onClick={confirmWhatsApp}>
+                  <Send size={16} /> إرسال الآن
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
