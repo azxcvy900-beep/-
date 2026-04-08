@@ -175,7 +175,7 @@ const DUMMY_PRODUCTS: Product[] = [
   }
 ];
 
-const DUMMY_STORES: StoreInfo[] = [
+export const DUMMY_STORES: StoreInfo[] = [
   {
     slug: 'boun',
     name: 'متجر بون (سعيد)',
@@ -210,7 +210,6 @@ const DUMMY_STORES: StoreInfo[] = [
 
 // Fetch all products for a specific store
 export async function getStoreProducts(storeSlug: string): Promise<Product[]> {
-  // Optimization: Instant dummy data for 'demo' store to solve delay issues
   if (storeSlug === 'demo') {
     return DUMMY_PRODUCTS;
   }
@@ -228,7 +227,6 @@ export async function getStoreProducts(storeSlug: string): Promise<Product[]> {
 
 // Fetch single product by ID
 export async function getProductById(id: string): Promise<Product | null> {
-  // Optimization: If it's a dummy product, return it IMMEDIATELY without network hit
   const dummyProduct = DUMMY_PRODUCTS.find(p => p.id === id);
   if (dummyProduct) return dummyProduct;
   
@@ -262,7 +260,7 @@ export async function getStoreInfo(slug: string): Promise<StoreInfo | null> {
   }
 }
 
-// Fetch related products (same category, different ID)
+// Fetch related products
 export async function getRelatedProducts(category: string, excludeId: string, storeSlug: string = 'demo', limit: number = 4): Promise<Product[]> {
   const allProducts = await getStoreProducts(storeSlug); 
   return allProducts
@@ -270,65 +268,29 @@ export async function getRelatedProducts(category: string, excludeId: string, st
     .slice(0, limit);
 }
 
-// Helper to seed database initially
-export async function seedDatabase() {
-  try {
-    const batch = writeBatch(db);
-    DUMMY_PRODUCTS.forEach(product => {
-      const productRef = doc(db, 'products', product.id);
-      batch.set(productRef, product);
-    });
-    await batch.commit();
-    console.log("Database seeded successfully!");
-  } catch (error) {
-    console.error("Error seeding database:", error);
-  }
-}
-
 // --- MERCHANT API ---
 
-// Upload an image to Firebase Storage
 export async function uploadProductImage(file: File, storeSlug: string): Promise<string> {
-  try {
-    const fileName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
-    const storageRef = ref(storage, `stores/${storeSlug}/products/${fileName}`);
-    const snapshot = await uploadBytes(storageRef, file);
-    return await getDownloadURL(snapshot.ref);
-  } catch (error) {
-    console.error("Error uploading image:", error);
-    throw error;
-  }
+  const fileName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
+  const storageRef = ref(storage, `stores/${storeSlug}/products/${fileName}`);
+  const snapshot = await uploadBytes(storageRef, file);
+  return await getDownloadURL(snapshot.ref);
 }
 
-// Upload store logo to Firebase Storage
 export async function uploadStoreLogo(file: File, storeSlug: string): Promise<string> {
-  try {
-    const fileName = `${Date.now()}_logo_${file.name.replace(/\s+/g, '_')}`;
-    const storageRef = ref(storage, `stores/${storeSlug}/logo/${fileName}`);
-    const snapshot = await uploadBytes(storageRef, file);
-    return await getDownloadURL(snapshot.ref);
-  } catch (error) {
-    console.error("Error uploading logo:", error);
-    throw error;
-  }
+  const fileName = `${Date.now()}_logo_${file.name.replace(/\s+/g, '_')}`;
+  const storageRef = ref(storage, `stores/${storeSlug}/logo/${fileName}`);
+  const snapshot = await uploadBytes(storageRef, file);
+  return await getDownloadURL(snapshot.ref);
 }
 
-// Upload category image/icon to Firebase Storage
 export async function uploadCategoryImage(file: File, storeSlug: string): Promise<string> {
-  try {
-    const fileName = `${Date.now()}_cat_${file.name.replace(/\s+/g, '_')}`;
-    const storageRef = ref(storage, `stores/${storeSlug}/categories/${fileName}`);
-    const snapshot = await uploadBytes(storageRef, file);
-    return await getDownloadURL(snapshot.ref);
-  } catch (error) {
-    console.error("Error uploading category image:", error);
-    throw error;
-  }
+  const fileName = `${Date.now()}_cat_${file.name.replace(/\s+/g, '_')}`;
+  const storageRef = ref(storage, `stores/${storeSlug}/categories/${fileName}`);
+  const snapshot = await uploadBytes(storageRef, file);
+  return await getDownloadURL(snapshot.ref);
 }
 
-// --- CATEGORY API ---
-
-// Fetch all categories for a specific store
 export async function getStoreCategories(storeSlug: string): Promise<Category[]> {
   try {
     const categoriesCol = collection(db, 'stores', storeSlug, 'categories');
@@ -340,7 +302,6 @@ export async function getStoreCategories(storeSlug: string): Promise<Category[]>
   }
 }
 
-// --- COUPONS ---
 export async function getStoreCoupons(storeSlug: string): Promise<Coupon[]> {
   const couponsRef = collection(db, 'stores', storeSlug, 'coupons');
   const q = query(couponsRef, orderBy('id', 'desc'));
@@ -350,12 +311,7 @@ export async function getStoreCoupons(storeSlug: string): Promise<Coupon[]> {
 
 export async function addCoupon(coupon: Omit<Coupon, 'id' | 'usageCount' | 'isActive'>): Promise<string> {
   const id = `cpn_${Date.now()}`;
-  const newCoupon: Coupon = {
-    ...coupon,
-    id,
-    usageCount: 0,
-    isActive: true
-  };
+  const newCoupon: Coupon = { ...coupon, id, usageCount: 0, isActive: true };
   await setDoc(doc(db, 'stores', coupon.storeSlug, 'coupons', id), newCoupon);
   return id;
 }
@@ -370,137 +326,43 @@ export async function deleteCoupon(storeSlug: string, id: string): Promise<void>
   await deleteDoc(couponRef);
 }
 
-export async function validateCoupon(storeSlug: string, code: string, subtotal: number): Promise<Coupon | null> {
-  const couponsRef = collection(db, 'stores', storeSlug, 'coupons');
-  const q = query(couponsRef, where('code', '==', code), where('isActive', '==', true));
-  const querySnapshot = await getDocs(q);
-  
-  if (querySnapshot.empty) return null;
-  
-  const coupon = querySnapshot.docs[0].data() as Coupon;
-  
-  // Check expiry
-  if (coupon.expiryDate && new Date(coupon.expiryDate) < new Date()) return null;
-  
-  // Check usage limit
-  if (coupon.usageLimit && coupon.usageCount >= coupon.usageLimit) return null;
-  
-  // Check min order
-  if (coupon.minOrderAmount && subtotal < coupon.minOrderAmount) return null;
-  
-  return coupon;
-}
-
-// --- REVIEWS ---
-export async function getProductReviews(storeSlug: string, productId: string): Promise<Review[]> {
-  const reviewsRef = collection(db, 'stores', storeSlug, 'reviews');
-  const q = query(reviewsRef, where('productId', '==', productId), where('isApproved', '==', true));
-  const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(doc => doc.data() as Review);
-}
-
 export async function getStoreReviews(storeSlug: string): Promise<Review[]> {
-  const reviewsRef = collection(db, 'stores', storeSlug, 'reviews');
-  const q = query(reviewsRef, orderBy('date', 'desc'));
-  const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(doc => doc.data() as Review);
+  try {
+    const reviewsRef = collection(db, 'stores', storeSlug, 'reviews');
+    const q = query(reviewsRef, orderBy('date', 'desc'));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => doc.data() as Review);
+  } catch (error) {
+    return [];
+  }
 }
 
-export async function addReview(review: Omit<Review, 'id' | 'date' | 'isApproved'>): Promise<string> {
-  const id = `rev_${Date.now()}`;
-  const newReview: Review = {
-    ...review,
-    id,
-    date: new Date().toISOString(),
-    isApproved: false // Requires admin approval by default
-  };
-  await setDoc(doc(db, 'stores', review.storeSlug, 'reviews', id), newReview);
-  return id;
-}
-
-export async function updateReviewStatus(storeSlug: string, id: string, isApproved: boolean): Promise<void> {
-  const reviewRef = doc(db, 'stores', storeSlug, 'reviews', id);
-  await updateDoc(reviewRef, { isApproved });
-}
-
-export async function deleteReview(storeSlug: string, id: string): Promise<void> {
-  const reviewRef = doc(db, 'stores', storeSlug, 'reviews', id);
-  await deleteDoc(reviewRef);
-}
-
-// Add a new category
 export async function addCategory(category: Omit<Category, 'id'>): Promise<string> {
-  try {
-    const categoriesCol = collection(db, 'stores', category.storeSlug, 'categories');
-    const docRef = doc(categoriesCol);
-    const newCategory = { ...category, id: docRef.id };
-    await setDoc(docRef, newCategory);
-    return newCategory.id;
-  } catch (error) {
-    console.error("Error adding category:", error);
-    throw error;
-  }
+  const categoriesCol = collection(db, 'stores', category.storeSlug, 'categories');
+  const docRef = doc(categoriesCol);
+  const newCategory = { ...category, id: docRef.id };
+  await setDoc(docRef, newCategory);
+  return newCategory.id;
 }
 
-// Update existing category
-export async function updateCategory(storeSlug: string, id: string, updates: Partial<Category>): Promise<void> {
-  try {
-    const categoryRef = doc(db, 'stores', storeSlug, 'categories', id);
-    await updateDoc(categoryRef, updates as any);
-  } catch (error) {
-    console.error("Error updating category:", error);
-    throw error;
-  }
-}
-
-// Delete category
-export async function deleteCategory(storeSlug: string, id: string): Promise<void> {
-  try {
-    const categoryRef = doc(db, 'stores', storeSlug, 'categories', id);
-    await deleteDoc(categoryRef);
-  } catch (error) {
-    console.error("Error deleting category:", error);
-    throw error;
-  }
-}
-
-// Add a new product
 export async function addProduct(product: Omit<Product, 'id'>): Promise<string> {
-  try {
-    const productsCol = collection(db, 'products');
-    const docRef = doc(productsCol);
-    const newProduct = { ...product, id: docRef.id };
-    await setDoc(doc(db, 'products', newProduct.id), newProduct);
-    return newProduct.id;
-  } catch (error) {
-    console.error("Error adding product:", error);
-    throw error;
-  }
+  const productsCol = collection(db, 'products');
+  const docRef = doc(productsCol);
+  const newProduct = { ...product, id: docRef.id };
+  await setDoc(doc(db, 'products', newProduct.id), newProduct);
+  return newProduct.id;
 }
 
-// Update existing product
 export async function updateProduct(id: string, updates: Partial<Product>): Promise<void> {
-  try {
-    const productRef = doc(db, 'products', id);
-    await updateDoc(productRef, updates as any);
-  } catch (error) {
-    console.error("Error updating product:", error);
-    throw error;
-  }
+  const productRef = doc(db, 'products', id);
+  await updateDoc(productRef, updates as any);
 }
 
-// Delete product
 export async function deleteProduct(id: string): Promise<void> {
-  try {
-    const productRef = doc(db, 'products', id);
-    await deleteDoc(productRef);
-  } catch (error) {
-    console.error("Error deleting product:", error);
-    throw error;
-  }
+  const productRef = doc(db, 'products', id);
+  await deleteDoc(productRef);
 }
 
-// Fetch all orders for a specific store
 export async function getStoreOrders(storeSlug: string): Promise<Order[]> {
   try {
     const ordersCol = collection(db, 'orders');
@@ -510,30 +372,55 @@ export async function getStoreOrders(storeSlug: string): Promise<Order[]> {
       .filter(o => o.items.some(item => (item as any).storeSlug === storeSlug || storeSlug === 'demo'))
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   } catch (error) {
-    console.error("Error fetching store orders:", error);
     return [];
   }
 }
 
-// Update order status
 export async function updateOrderStatus(orderId: string, status: Order['status']): Promise<void> {
+  const orderRef = doc(db, 'orders', orderId);
+  await updateDoc(orderRef, { status });
+}
+
+export async function updateStoreInfo(slug: string, updates: Partial<StoreInfo>): Promise<void> {
+  const storeRef = doc(db, 'stores', slug);
+  await setDoc(storeRef, updates, { merge: true });
+}
+
+// --- GLOBAL PLATFORM API ---
+
+export async function getAllStores(): Promise<StoreInfo[]> {
   try {
-    const orderRef = doc(db, 'orders', orderId);
-    await updateDoc(orderRef, { status });
+    const storesCol = collection(db, 'stores');
+    const storeSnapshot = await getDocs(storesCol);
+    const dbStores = storeSnapshot.docs.map(doc => ({ ...doc.data(), slug: doc.id } as StoreInfo));
+    const allSlugs = new Set([...dbStores.map(s => s.slug), ...DUMMY_STORES.map(s => s.slug)]);
+    return Array.from(allSlugs).map(slug => {
+       return dbStores.find(s => s.slug === slug) || DUMMY_STORES.find(s => s.slug === slug)!;
+    });
   } catch (error) {
-    console.error("Error updating order status:", error);
-    throw error;
+    return DUMMY_STORES;
   }
 }
 
-// Update store information
-export async function updateStoreInfo(slug: string, updates: Partial<StoreInfo>): Promise<void> {
+export async function getAllPlatformOrders(): Promise<Order[]> {
   try {
-    const storeRef = doc(db, 'stores', slug);
-    // Use setDoc with merge to ensure it creates the doc if it doesn't exist
-    await setDoc(storeRef, updates, { merge: true });
+    const ordersCol = collection(db, 'orders');
+    const orderSnapshot = await getDocs(ordersCol);
+    return orderSnapshot.docs
+      .map(doc => ({ id: doc.id, ...doc.data() } as Order))
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   } catch (error) {
-    console.error("Error updating store info:", error);
-    throw error;
+    return [];
+  }
+}
+
+export async function getAllPlatformReviews(): Promise<Review[]> {
+  try {
+    const stores = await getAllStores();
+    const reviewPromises = stores.map(store => getStoreReviews(store.slug));
+    const reviewsArrays = await Promise.all(reviewPromises);
+    return reviewsArrays.flat().sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  } catch (error) {
+    return [];
   }
 }
