@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Mail, Lock, LogIn, Store, AlertCircle } from 'lucide-react';
+import { Mail, Lock, LogIn, Store, AlertCircle, ShieldAlert } from 'lucide-react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import styles from './login.module.css';
@@ -125,6 +125,28 @@ export default function AdminLoginPage() {
           >
             دخول سريع (للتجربة)
           </button>
+
+          <div className={styles.managerLinkArea} style={{ marginTop: '1.5rem', textAlign: 'center', borderTop: '1px solid #eee', paddingTop: '1rem' }}>
+            <p style={{ fontSize: '12px', color: '#666', marginBottom: '8px' }}>هل أنت مدير المنصة؟</p>
+            <button 
+              type="button"
+              onClick={() => router.push(`/${locale}/manager`)}
+              style={{ 
+                background: 'none', 
+                border: 'none', 
+                color: '#1a73e8', 
+                fontWeight: 'bold', 
+                cursor: 'pointer',
+                fontSize: '14px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                margin: '0 auto'
+              }}
+            >
+              <ShieldAlert size={16} /> الدخول إلى غرفة العمليات (Super Admin)
+            </button>
+          </div>
         </form>
       </motion.div>
     </div>
