@@ -187,7 +187,16 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.25 }}
                   >
-                    <ProductCard product={p} />
+                    <ProductCard 
+                      id={p.id}
+                      slug={resolvedParams.slug}
+                      name={p.name}
+                      price={p.price}
+                      originalPrice={p.originalPrice}
+                      image={p.image}
+                      category={p.category}
+                      currency={p.currency}
+                    />
                   </motion.div>
                 ))}
               </div>
