@@ -63,20 +63,20 @@ export default function MerchantDashboard() {
   const { visibleItems: visibleOrders } = useProgressiveLoad(recentOrders, 2, 200);
 
   // Analytic Calculations - update as data arrives
-  const activeOrders = (orders || []).filter(o => o.status !== 'cancelled');
-  const totalSalesYER = activeOrders.reduce((sum, order) => sum + order.total, 0);
+  const activeOrders = (orders || []).filter((o: Order) => o.status !== 'cancelled');
+  const totalSalesYER = activeOrders.reduce((sum: number, order: Order) => sum + order.total, 0);
   const sarRate = storeInfo?.currencySettings?.rates?.SAR || 140;
   const totalSalesSAR = totalSalesYER / sarRate;
 
-  const lockedOrders = activeOrders.filter(o => o.status === 'pending' || o.isPriceLocked);
-  const lockedFundsYER = lockedOrders.reduce((sum, order) => sum + order.total, 0);
+  const lockedOrders = activeOrders.filter((o: Order) => o.status === 'pending' || o.isPriceLocked);
+  const lockedFundsYER = lockedOrders.reduce((sum: number, order: Order) => sum + order.total, 0);
   
-  const confirmedOrders = activeOrders.filter(o => o.status === 'delivered');
-  const confirmedFundsYER = confirmedOrders.reduce((sum, order) => sum + order.total, 0);
+  const confirmedOrders = activeOrders.filter((o: Order) => o.status === 'delivered');
+  const confirmedFundsYER = confirmedOrders.reduce((sum: number, order: Order) => sum + order.total, 0);
 
   const lowStockThreshold = 5;
-  const lowStockProducts = (products || []).filter(p => p.stockCount > 0 && p.stockCount <= lowStockThreshold);
-  const outOfStockCount = (products || []).filter(p => p.stockCount === 0).length;
+  const lowStockProducts = (products || []).filter((p: Product) => p.stockCount > 0 && p.stockCount <= lowStockThreshold);
+  const outOfStockCount = (products || []).filter((p: Product) => p.stockCount === 0).length;
 
   const { visibleItems: visibleLowStock } = useProgressiveLoad(lowStockProducts, 3, 200);
   const { visibleItems: visibleLocked } = useProgressiveLoad(lockedOrders.slice(0, 5), 2, 200);
@@ -166,7 +166,7 @@ export default function MerchantDashboard() {
             {productsLoading && !products ? (
               <ListSkeleton count={3} />
             ) : visibleLowStock.length > 0 ? (
-              visibleLowStock.map(p => (
+              visibleLowStock.map((p: Product) => (
                 <motion.div 
                   key={p.id} 
                   className={styles.stockItem}
@@ -191,10 +191,10 @@ export default function MerchantDashboard() {
         <div className={styles.topProducts}>
           <h3 className={styles.sectionTitle}>مبالغ بانتظار التأكيد 💰</h3>
           <div className={styles.productList}>
-            {ordersLoading && !orders ? (
+            {ordersLoading && !products ? (
               <ListSkeleton count={3} />
             ) : visibleLocked.length > 0 ? (
-              visibleLocked.map((order) => (
+              visibleLocked.map((order: Order) => (
                 <motion.div 
                   key={order.id} 
                   className={styles.productItem}
@@ -245,7 +245,7 @@ export default function MerchantDashboard() {
                 {visibleOrders.length === 0 && !ordersLoading && (
                    <tr><td colSpan={5} style={{ textAlign: 'center', padding: '2rem' }}>لا توجد طلبات حديثة.</td></tr>
                 )}
-                {visibleOrders.map((order) => (
+                {visibleOrders.map((order: Order) => (
                   <motion.tr 
                     key={order.id}
                     initial={{ opacity: 0 }}

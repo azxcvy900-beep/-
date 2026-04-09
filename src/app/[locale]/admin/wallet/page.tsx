@@ -44,7 +44,7 @@ export default function WalletPage() {
 
   // Transaction Ledger (from orders)
   const transactions = React.useMemo(() => {
-    return (orders || []).map(o => ({
+    return (orders || []).map((o: Order) => ({
       id: o.id,
       date: o.date,
       amount: o.total,
@@ -52,14 +52,14 @@ export default function WalletPage() {
       status: o.status,
       customer: o.address.fullName,
       isLocked: o.isPriceLocked
-    })).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    })).sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [orders]);
 
   const { visibleItems: visibleTransactions } = useProgressiveLoad(transactions, 5, 100);
 
-  const activeOrders = (orders || []).filter(o => o.status !== 'cancelled');
-  const totalBalanceYER = activeOrders.reduce((sum, o) => sum + o.total, 0);
-  const confirmedBalanceYER = activeOrders.filter(o => o.status === 'delivered').reduce((sum, o) => sum + o.total, 0);
+  const activeOrders = (orders || []).filter((o: Order) => o.status !== 'cancelled');
+  const totalBalanceYER = activeOrders.reduce((sum: number, o: Order) => sum + o.total, 0);
+  const confirmedBalanceYER = activeOrders.filter((o: Order) => o.status === 'delivered').reduce((sum: number, o: Order) => sum + o.total, 0);
   const pendingBalanceYER = totalBalanceYER - confirmedBalanceYER;
 
 
@@ -142,7 +142,7 @@ export default function WalletPage() {
               {ordersLoading && visibleTransactions.length === 0 ? (
                 <TableSkeleton rows={5} />
               ) : visibleTransactions.length > 0 ? (
-                visibleTransactions.map((tx) => (
+                visibleTransactions.map((tx: any) => (
                   <motion.tr 
                     key={tx.id}
                     initial={{ opacity: 0 }}
