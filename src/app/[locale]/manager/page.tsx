@@ -33,36 +33,49 @@ function SectionLoader({ label }: { label: string }) {
 
 export default function AdministrationDashboard() {
   // Each data source loads INDEPENDENTLY - no waiting for all
-  const { data: stores, loading: storesLoading } = useStreamingFetch(() => getAllStores(), []);
-  const { data: orders, loading: ordersLoading } = useStreamingFetch(() => getAllPlatformOrders(), []);
-  const { data: reviews, loading: reviewsLoading } = useStreamingFetch(() => getAllPlatformReviews(), []);
+  // Each data source loads INDEPENDENTLY - no waiting for all
+  const { data: stores, loading: storesLoading } = useStreamingFetch(
+    () => getAllStores(), 
+    [], 
+    'all_stores'
+  );
+  const { data: orders, loading: ordersLoading } = useStreamingFetch(
+    () => getAllPlatformOrders(), 
+    [], 
+    'all_orders'
+  );
+  const { data: reviews, loading: reviewsLoading } = useStreamingFetch(
+    () => getAllPlatformReviews(), 
+    [], 
+    'all_reviews'
+  );
 
   // Progressive rendering for merchants list
   const merchantRanking = React.useMemo(() => {
     if (!stores || !orders || !reviews) return [];
-    return stores.map(store => {
-      const storeOrders = orders.filter(o => o.items.some((i: any) => i.storeSlug === store.slug));
-      const storeReviews = reviews.filter(r => r.storeSlug === store.slug);
-      const revenue = storeOrders.reduce((sum, o) => sum + o.total, 0);
+    return (stores as StoreInfo[]).map((store: StoreInfo) => {
+      const storeOrders = (orders as Order[]).filter((o: Order) => o.items.some((i: any) => i.storeSlug === store.slug));
+      const storeReviews = (reviews as Review[]).filter((r: Review) => r.storeSlug === store.slug);
+      const revenue = storeOrders.reduce((sum: number, o: Order) => sum + o.total, 0);
       const avgRating = storeReviews.length > 0 
-        ? storeReviews.reduce((sum, r) => sum + r.rating, 0) / storeReviews.length 
+        ? storeReviews.reduce((sum: number, r: Review) => sum + r.rating, 0) / storeReviews.length 
         : 5;
-      const complaints = storeReviews.filter(r => r.rating <= 2).length;
+      const complaints = storeReviews.filter((r: Review) => r.rating <= 2).length;
       return { ...store, stats: { revenue, avgRating, complaints, orderCount: storeOrders.length } };
-    }).sort((a, b) => b.stats.revenue - a.stats.revenue);
+    }).sort((a: any, b: any) => b.stats.revenue - a.stats.revenue);
   }, [stores, orders, reviews]);
 
   const { visibleItems: visibleMerchants } = useProgressiveLoad(merchantRanking, 3, 200);
   
   const complaintsToShow = React.useMemo(() => {
-    return (reviews || []).filter(r => r.rating <= 3).slice(0, 5);
+    return (reviews || []).filter((r: Review) => r.rating <= 3).slice(0, 5);
   }, [reviews]);
   const { visibleItems: visibleComplaints } = useProgressiveLoad(complaintsToShow, 2, 250);
 
   // Analytics - update as data arrives
-  const totalRevenue = (orders || []).reduce((sum, o) => sum + o.total, 0);
+  const totalRevenue = (orders || []).reduce((sum: number, o: Order) => sum + o.total, 0);
   const activeMerchants = (stores || []).length;
-  const criticalComplaints = (reviews || []).filter(r => r.rating <= 2).length;
+  const criticalComplaints = (reviews || []).filter((r: Review) => r.rating <= 2).length;
 
   const stats = [
     { label: 'إجمالي الحجم المالي', value: ordersLoading ? '...' : `${totalRevenue.toLocaleString()} ر.ي`, icon: TrendingUp, delta: '+12%', color: '#3b82f6', ready: !ordersLoading },
@@ -111,7 +124,7 @@ export default function AdministrationDashboard() {
             {(storesLoading || ordersLoading) && visibleMerchants.length === 0 && (
               <SectionLoader label="جاري تحميل بيانات المتاجر..." />
             )}
-            {visibleMerchants.map((merchant, i) => (
+            {visibleMerchants.map((merchant: any, i: number) => (
               <motion.div 
                 key={merchant.slug} 
                 className={styles.radarItem}
@@ -172,7 +185,7 @@ export default function AdministrationDashboard() {
               {reviewsLoading && visibleComplaints.length === 0 && (
                 <SectionLoader label="جاري تحميل الشكاوى..." />
               )}
-              {visibleComplaints.map(r => (
+              {visibleComplaints.map((r: Review) => (
                 <motion.div 
                   key={r.id} 
                   className={styles.complaintItem}
