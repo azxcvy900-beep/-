@@ -1,6 +1,4 @@
-'use client';
-
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { dataCache } from './cache';
 
 /**
  * useProgressiveLoad - Hook for loading data in visible batches
@@ -18,17 +16,19 @@ export function useProgressiveLoad<T>(
 
   useEffect(() => {
     // Reset when source data changes
-    if (allItems.length === 0) {
-      setVisibleItems([]);
+    if (!allItems || allItems.length === 0) {
+      if (visibleItems.length > 0) setVisibleItems([]);
       setIsStreaming(false);
       return;
     }
 
     setIsStreaming(true);
-    setVisibleItems([]);
-
+    
+    // We don't always want to clear visibleItems immediately if we are doing SWR
+    // but if it's a completely new set (like new search), we do.
+    // For simplicity, we just restart streaming.
+    
     let currentIndex = 0;
-
     const loadNextBatch = () => {
       const nextIndex = Math.min(currentIndex + batchSize, allItems.length);
       setVisibleItems(allItems.slice(0, nextIndex));
@@ -41,7 +41,6 @@ export function useProgressiveLoad<T>(
       }
     };
 
-    // Load first batch immediately
     loadNextBatch();
 
     return () => {
@@ -54,33 +53,41 @@ export function useProgressiveLoad<T>(
   return {
     visibleItems,
     isStreaming,
-    totalCount: allItems.length,
+    totalCount: allItems ? allItems.length : 0,
     loadedCount: visibleItems.length,
-    progress: allItems.length > 0 ? Math.round((visibleItems.length / allItems.length) * 100) : 0
+    progress: (allItems && allItems.length > 0) ? Math.round((visibleItems.length / allItems.length) * 100) : 0
   };
 }
 
 /**
- * useStreamingFetch - Hook that fetches data and streams it progressively
- * Fetches multiple data sources independently so each section loads as fast as possible
+ * useStreamingFetch - Hook that fetches data with SWR (Stale-While-Revalidate)
+ * If data exists in cache, it's returned immediately while fresh data is fetched in bg.
  */
 export function useStreamingFetch<T>(
   fetchFn: () => Promise<T>,
-  deps: any[] = []
+  deps: any[] = [],
+  cacheKey?: string
 ) {
-  const [data, setData] = useState<T | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Try to recover from cache immediately if cacheKey is provided
+  const initialData = cacheKey ? dataCache.get<T>(cacheKey) : null;
+  
+  const [data, setData] = useState<T | null>(initialData);
+  const [loading, setLoading] = useState(!initialData);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
+    
+    // If we don't have cached data, show loading
+    if (!data) setLoading(true);
     
     fetchFn()
       .then((result) => {
         if (!cancelled) {
           setData(result);
           setLoading(false);
+          // Update cache if key exists
+          if (cacheKey) dataCache.set(cacheKey, result);
         }
       })
       .catch((err) => {

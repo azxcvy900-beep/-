@@ -25,6 +25,7 @@ import {
 } from '@/lib/api';
 import { useStreamingFetch, useProgressiveLoad } from '@/lib/hooks';
 import { useAuthStore } from '@/lib/auth-store';
+import { TableSkeleton } from '@/components/shared/Skeletons/Skeletons';
 import styles from './products.module.css';
 
 export default function MerchantProducts() {
@@ -33,13 +34,25 @@ export default function MerchantProducts() {
   const locale = useLocale();
   const { storeSlug } = useAuthStore();
   
-  // Use independent streaming fetches
-  const { data: products, loading: productsLoading } = useStreamingFetch(
-    () => getStoreProducts(storeSlug || 'demo'), [storeSlug]
+  const [localProducts, setLocalProducts] = useState<Product[] | null>(null);
+  
+  // SWR Initial Fetches
+  const { data: initialProducts, loading: productsLoading } = useStreamingFetch(
+    () => getStoreProducts(storeSlug || 'demo'), 
+    [storeSlug],
+    `products_${storeSlug || 'demo'}`
   );
-  const { data: storeCategories, loading: catsLoading } = useStreamingFetch(
-    () => getStoreCategories(storeSlug || 'demo'), [storeSlug]
+
+  const { data: storeCategories } = useStreamingFetch(
+    () => getStoreCategories(storeSlug || 'demo'), 
+    [storeSlug],
+    `categories_${storeSlug || 'demo'}`
   );
+
+  // Sync state
+  useEffect(() => {
+    if (initialProducts) setLocalProducts(initialProducts);
+  }, [initialProducts]);
   
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -67,11 +80,11 @@ export default function MerchantProducts() {
 
   // Filter and progressive load
   const filteredProducts = React.useMemo(() => {
-    return (products || []).filter(p => 
+    return (localProducts || []).filter(p => 
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.category.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [products, searchQuery]);
+  }, [localProducts, searchQuery]);
 
   const { visibleItems: visibleProducts } = useProgressiveLoad(filteredProducts, 5, 100);
 
@@ -176,10 +189,16 @@ export default function MerchantProducts() {
 
   const handleDelete = async (id: string) => {
     if (confirm("هل أنت متأكد من حذف هذا المنتج؟")) {
+      // Optimistic delete
+      setLocalProducts(prev => prev ? prev.filter(p => p.id !== id) : null);
+      
       try {
         await deleteProduct(id);
       } catch (error) {
         alert("حدث خطأ أثناء الحذف.");
+        // Refresh on error
+        const fresh = await getStoreProducts(storeSlug || 'demo');
+        setLocalProducts(fresh);
       }
     }
   };
@@ -323,7 +342,7 @@ export default function MerchantProducts() {
             </thead>
              <tbody>
               {productsLoading && visibleProducts.length === 0 ? (
-                <tr><td colSpan={5} style={{ textAlign: 'center', padding: '3rem' }}>جاري التحميل...</td></tr>
+                <TableSkeleton rows={5} />
               ) : visibleProducts.length > 0 ? (
                 visibleProducts.map((p) => (
                   <motion.tr 

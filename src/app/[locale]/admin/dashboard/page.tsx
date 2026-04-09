@@ -22,6 +22,7 @@ import { getStoreOrders, getStoreProducts, Product, getStoreInfo, StoreInfo } fr
 import { Order } from '@/lib/store';
 import { useStreamingFetch, useProgressiveLoad } from '@/lib/hooks';
 import { useAuthStore } from '@/lib/auth-store';
+import { StatSkeleton, ListSkeleton, TableSkeleton } from '@/components/shared/Skeletons/Skeletons';
 import styles from './dashboard.module.css';
 
 function SectionLoader({ label }: { label: string }) {
@@ -38,10 +39,24 @@ export default function MerchantDashboard() {
   const locale = useLocale();
   const { storeSlug, isResolved } = useAuthStore();
   
-  // Each data source loads INDEPENDENTLY
-  const { data: orders, loading: ordersLoading } = useStreamingFetch(() => getStoreOrders(storeSlug || 'demo'), [storeSlug]);
-  const { data: products, loading: productsLoading } = useStreamingFetch(() => getStoreProducts(storeSlug || 'demo'), [storeSlug]);
-  const { data: storeInfo, loading: infoLoading } = useStreamingFetch(() => getStoreInfo(storeSlug || 'demo'), [storeSlug]);
+  // Use SWR cache keys for instant load
+  const { data: orders, loading: ordersLoading } = useStreamingFetch(
+    () => getStoreOrders(storeSlug || 'demo'), 
+    [storeSlug], 
+    `orders_${storeSlug || 'demo'}`
+  );
+
+  const { data: products, loading: productsLoading } = useStreamingFetch(
+    () => getStoreProducts(storeSlug || 'demo'), 
+    [storeSlug], 
+    `products_${storeSlug || 'demo'}`
+  );
+
+  const { data: storeInfo, loading: infoLoading } = useStreamingFetch(
+    () => getStoreInfo(storeSlug || 'demo'), 
+    [storeSlug], 
+    `store_${storeSlug || 'demo'}`
+  );
 
   // Progressive loading for visible orders
   const recentOrders = React.useMemo(() => (orders || []).slice(0, 6), [orders]);
@@ -119,24 +134,28 @@ export default function MerchantDashboard() {
 
       {/* Stats - show immediately, values stream in */}
       <div className={styles.statGrid}>
-        {stats.map((stat, i) => (
-          <motion.div 
-            key={i} 
-            className={styles.statCard}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.08 }}
-          >
-            <div className={styles.statInfo}>
-              <p className={styles.statLabel}>{stat.label}</p>
-              <h2 className={styles.statValue} style={{ opacity: stat.ready ? 1 : 0.3, transition: 'opacity 0.3s' }}>{stat.value}</h2>
-              <p className={styles.statSub}>{stat.subValue}</p>
-            </div>
-            <div className={styles.statIcon} style={{ backgroundColor: `${stat.color}15`, color: stat.color }}>
-              <stat.icon size={26} />
-            </div>
-          </motion.div>
-        ))}
+        {ordersLoading && !orders ? (
+          Array.from({ length: 4 }).map((_, i) => <StatSkeleton key={i} />)
+        ) : (
+          stats.map((stat, i) => (
+            <motion.div 
+              key={i} 
+              className={styles.statCard}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.08 }}
+            >
+              <div className={styles.statInfo}>
+                <p className={styles.statLabel}>{stat.label}</p>
+                <h2 className={styles.statValue} style={{ opacity: stat.ready ? 1 : 0.3, transition: 'opacity 0.3s' }}>{stat.value}</h2>
+                <p className={styles.statSub}>{stat.subValue}</p>
+              </div>
+              <div className={styles.statIcon} style={{ backgroundColor: `${stat.color}15`, color: stat.color }}>
+                <stat.icon size={26} />
+              </div>
+            </motion.div>
+          ))
+        )}
       </div>
 
       <div className={styles.mainGrid}>
@@ -144,8 +163,8 @@ export default function MerchantDashboard() {
         <div className={styles.actionSection}>
           <h3 className={styles.sectionTitle}>تنبيهات المخزون ⚠️</h3>
           <div className={styles.lowStockList}>
-            {productsLoading ? (
-              <SectionLoader label="جاري فحص المخزون..." />
+            {productsLoading && !products ? (
+              <ListSkeleton count={3} />
             ) : visibleLowStock.length > 0 ? (
               visibleLowStock.map(p => (
                 <motion.div 
@@ -172,8 +191,8 @@ export default function MerchantDashboard() {
         <div className={styles.topProducts}>
           <h3 className={styles.sectionTitle}>مبالغ بانتظار التأكيد 💰</h3>
           <div className={styles.productList}>
-            {ordersLoading ? (
-              <SectionLoader label="جاري تحميل المعلقات..." />
+            {ordersLoading && !orders ? (
+              <ListSkeleton count={3} />
             ) : visibleLocked.length > 0 ? (
               visibleLocked.map((order) => (
                 <motion.div 
@@ -209,44 +228,48 @@ export default function MerchantDashboard() {
         </div>
 
         <div className={styles.tableWrapper}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>رقم الطلب</th>
-                <th>العميل</th>
-                <th>الحالة</th>
-                <th>الإجمالي</th>
-                <th>الإجراء</th>
-              </tr>
-            </thead>
-            <tbody>
-              {ordersLoading && visibleOrders.length === 0 && (
-                <tr><td colSpan={5}><SectionLoader label="جاري تحميل الطلبات..." /></td></tr>
-              )}
-              {visibleOrders.map((order) => (
-                <motion.tr 
-                  key={order.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <td><span className={styles.orderId}>#{order.id.slice(-6)}</span></td>
-                  <td>{order.address.fullName}</td>
-                  <td>
-                    <span className={`${styles.statusBadge} ${styles[order.status]}`}>
-                      {order.status}
-                    </span>
-                  </td>
-                  <td className={styles.amount}>{order.total.toLocaleString()} ر.ي</td>
-                  <td>
-                    <Link href={`/${locale}/admin/orders`} className={styles.actionBtn}>
-                      معالجة
-                    </Link>
-                  </td>
-                </motion.tr>
-              ))}
-            </tbody>
-          </table>
+          {ordersLoading && !orders ? (
+            <TableSkeleton rows={4} />
+          ) : (
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>رقم الطلب</th>
+                  <th>العميل</th>
+                  <th>الحالة</th>
+                  <th>الإجمالي</th>
+                  <th>الإجراء</th>
+                </tr>
+              </thead>
+              <tbody>
+                {visibleOrders.length === 0 && !ordersLoading && (
+                   <tr><td colSpan={5} style={{ textAlign: 'center', padding: '2rem' }}>لا توجد طلبات حديثة.</td></tr>
+                )}
+                {visibleOrders.map((order) => (
+                  <motion.tr 
+                    key={order.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <td><span className={styles.orderId}>#{order.id.slice(-6)}</span></td>
+                    <td>{order.address.fullName}</td>
+                    <td>
+                      <span className={`${styles.statusBadge} ${styles[order.status]}`}>
+                        {order.status}
+                      </span>
+                    </td>
+                    <td className={styles.amount}>{order.total.toLocaleString()} ر.ي</td>
+                    <td>
+                      <Link href={`/${locale}/admin/orders`} className={styles.actionBtn}>
+                        معالجة
+                      </Link>
+                    </td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
 

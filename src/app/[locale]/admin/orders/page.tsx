@@ -20,11 +20,18 @@ import {
   X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getStoreOrders, updateOrderStatus, getStoreInfo, StoreInfo } from '@/lib/api';
+import { 
+  getStoreOrders, 
+  updateOrderStatus, 
+  getStoreInfo, 
+  StoreInfo,
+  subscribeToStoreOrders 
+} from '@/lib/api';
 import { Order } from '@/lib/store';
 import { getWhatsAppUrl } from '@/lib/whatsapp';
 import { useStreamingFetch, useProgressiveLoad } from '@/lib/hooks';
 import { useAuthStore } from '@/lib/auth-store';
+import { TableSkeleton } from '@/components/shared/Skeletons/Skeletons';
 import styles from './orders.module.css';
 
 export default function MerchantOrders() {
@@ -32,25 +39,55 @@ export default function MerchantOrders() {
   const locale = useLocale();
   const { storeSlug } = useAuthStore();
   
-  // Use independent streaming fetches
-  const { data: orders, loading: ordersLoading } = useStreamingFetch(
-    () => getStoreOrders(storeSlug || 'demo'), [storeSlug]
-  );
-  const { data: storeInfo, loading: infoLoading } = useStreamingFetch(
-    () => getStoreInfo(storeSlug || 'demo'), [storeSlug]
-  );
-
-  const { visibleItems: visibleOrders } = useProgressiveLoad(orders || [], 3, 150);
-  
+  const [localOrders, setLocalOrders] = useState<Order[] | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [waOrder, setWaOrder] = useState<Order | null>(null);
+  
+  // SWR Initial Load from cache
+  const { data: initialOrders, loading: ordersLoading } = useStreamingFetch(
+    () => getStoreOrders(storeSlug || 'demo'), 
+    [storeSlug],
+    `orders_${storeSlug || 'demo'}`
+  );
+
+  const { data: storeInfo } = useStreamingFetch(
+    () => getStoreInfo(storeSlug || 'demo'), 
+    [storeSlug],
+    `store_${storeSlug || 'demo'}`
+  );
+
+  // Real-time listener
+  useEffect(() => {
+    if (!storeSlug) return;
+    const unsubscribe = subscribeToStoreOrders(storeSlug, (updatedOrders) => {
+      setLocalOrders(updatedOrders);
+    });
+    return () => unsubscribe();
+  }, [storeSlug]);
+
+  // Sync SWR result to local state if real-time hasn't triggered yet
+  useEffect(() => {
+    if (initialOrders && !localOrders) {
+      setLocalOrders(initialOrders);
+    }
+  }, [initialOrders, localOrders]);
+
+  const { visibleItems: visibleOrders } = useProgressiveLoad(localOrders || [], 3, 100);
 
   const handleStatusUpdate = async (orderId: string, newStatus: Order['status']) => {
+    // 1. Optimistic Update
+    setLocalOrders(prev => 
+      prev ? prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o) : null
+    );
     setUpdatingId(orderId);
+
     try {
       await updateOrderStatus(orderId, newStatus);
     } catch (error) {
+      // Rollback on error
       alert("حدث خطأ أثناء تحديث حالة الطلب.");
+      const freshData = await getStoreOrders(storeSlug || 'demo');
+      setLocalOrders(freshData);
     } finally {
       setUpdatingId(null);
     }
@@ -243,7 +280,7 @@ export default function MerchantOrders() {
 
       <div className={styles.listSection}>
         {ordersLoading && visibleOrders.length === 0 ? (
-          <div className={styles.loadingState}>جاري تحميل الطلبات...</div>
+          <TableSkeleton rows={3} />
         ) : visibleOrders.length > 0 ? (
           <div className={styles.ordersList}>
             {visibleOrders.map((order) => (

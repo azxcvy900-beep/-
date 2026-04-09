@@ -11,7 +11,8 @@ import {
   where,
   orderBy,
   writeBatch,
-  collectionGroup
+  collectionGroup,
+  onSnapshot
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Order } from './store';
@@ -488,16 +489,33 @@ export async function getStoreOrders(storeSlug: string): Promise<Order[]> {
 
   try {
     const ordersCol = collection(db, 'orders');
+    // For merchant, we might need a composite index if we query by multiple fields
+    // but a simple filter followed by manual sort is safer if indices aren't ready
     const orderSnapshot = await getDocs(ordersCol);
     const orders = orderSnapshot.docs
       .map(doc => ({ id: doc.id, ...doc.data() } as Order))
       .filter(o => o.items.some(item => (item as any).storeSlug === storeSlug || storeSlug === 'demo'))
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    dataCache.set(cacheKey, orders, 30);
+    dataCache.set(cacheKey, orders, 60);
     return orders;
   } catch (error) {
     return [];
   }
+}
+
+// Real-time subscription for orders
+export function subscribeToStoreOrders(storeSlug: string, callback: (orders: Order[]) => void) {
+  const ordersCol = collection(db, 'orders');
+  
+  return onSnapshot(ordersCol, (snapshot) => {
+    const orders = snapshot.docs
+      .map(doc => ({ id: doc.id, ...doc.data() } as Order))
+      .filter(o => o.items.some(item => (item as any).storeSlug === storeSlug || storeSlug === 'demo'))
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    
+    dataCache.set(`orders_${storeSlug}`, orders, 60);
+    callback(orders);
+  });
 }
 
 export async function updateOrderStatus(orderId: string, status: Order['status']): Promise<void> {

@@ -30,11 +30,19 @@ export default function AdminCategories() {
   const locale = useLocale();
   const { storeSlug } = useAuthStore();
   
-  const { data: categories, loading: categoriesLoading } = useStreamingFetch(
-    () => getStoreCategories(storeSlug || 'demo'), [storeSlug]
+  const [localCategories, setLocalCategories] = useState<Category[] | null>(null);
+  
+  const { data: initialCategories, loading: categoriesLoading } = useStreamingFetch(
+    () => getStoreCategories(storeSlug || 'demo'), 
+    [storeSlug],
+    `categories_${storeSlug || 'demo'}`
   );
 
-  const { visibleItems: visibleCategories } = useProgressiveLoad(categories || [], 4, 150);
+  useEffect(() => {
+    if (initialCategories) setLocalCategories(initialCategories);
+  }, [initialCategories]);
+
+  const { visibleItems: visibleCategories } = useProgressiveLoad(localCategories || [], 4, 150);
   
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -116,11 +124,15 @@ export default function AdminCategories() {
 
   const handleDelete = async (id: string) => {
     if (confirm("هل أنت متأكد من حذف هذا القسم؟ سيتم إلغاء ربطه بالمنتجات التابعة له.")) {
+      // Optimistic delete
+      setLocalCategories(prev => prev ? prev.filter(c => c.id !== id) : null);
+      
       try {
         await deleteCategory(storeSlug || 'demo', id);
       } catch (error) {
-        console.error("Error deleting category:", error);
         alert("حدث خطأ أثناء الحذف.");
+        const fresh = await getStoreCategories(storeSlug || 'demo');
+        setLocalCategories(fresh);
       }
     }
   };

@@ -21,6 +21,7 @@ import { getStoreOrders, getStoreInfo, StoreInfo, getStoreReviews } from '@/lib/
 import { Order } from '@/lib/store';
 import { useStreamingFetch, useProgressiveLoad } from '@/lib/hooks';
 import { useAuthStore } from '@/lib/auth-store';
+import { StatSkeleton, TableSkeleton } from '@/components/shared/Skeletons/Skeletons';
 import styles from './wallet.module.css';
 
 export default function WalletPage() {
@@ -28,12 +29,17 @@ export default function WalletPage() {
   const locale = useLocale();
   const { storeSlug } = useAuthStore();
   
-  // Use independent streaming fetches
+  // SWR Initial Fetches
   const { data: orders, loading: ordersLoading } = useStreamingFetch(
-    () => getStoreOrders(storeSlug || 'demo'), [storeSlug]
+    () => getStoreOrders(storeSlug || 'demo'), 
+    [storeSlug],
+    `orders_${storeSlug || 'demo'}`
   );
-  const { data: storeInfo, loading: infoLoading } = useStreamingFetch(
-    () => getStoreInfo(storeSlug || 'demo'), [storeSlug]
+  
+  const { data: storeInfo } = useStreamingFetch(
+    () => getStoreInfo(storeSlug || 'demo'), 
+    [storeSlug],
+    `store_${storeSlug || 'demo'}`
   );
 
   // Transaction Ledger (from orders)
@@ -78,32 +84,38 @@ export default function WalletPage() {
       </motion.div>
 
       <div className={styles.balanceGrid}>
-        <motion.div whileHover={{ scale: 1.02 }} className={`${styles.balanceCard} ${styles.total}`}>
-          <div className={styles.cardHeader}>
-            <span>إجمالي المبيعات</span>
-            <TrendingUp size={20} />
-          </div>
-          <h2>{totalBalanceYER.toLocaleString()} <small>ر.ي</small></h2>
-          <p>تراكمي منذ بدء المتجر</p>
-        </motion.div>
+        {ordersLoading && !orders ? (
+          Array.from({ length: 3 }).map((_, i) => <StatSkeleton key={i} />)
+        ) : (
+          <>
+            <motion.div whileHover={{ scale: 1.02 }} className={`${styles.balanceCard} ${styles.total}`}>
+              <div className={styles.cardHeader}>
+                <span>إجمالي المبيعات</span>
+                <TrendingUp size={20} />
+              </div>
+              <h2>{totalBalanceYER.toLocaleString()} <small>ر.ي</small></h2>
+              <p>تراكمي منذ بدء المتجر</p>
+            </motion.div>
 
-        <motion.div whileHover={{ scale: 1.02 }} className={`${styles.balanceCard} ${styles.available}`}>
-          <div className={styles.cardHeader}>
-            <span>الرصيد المتاح (Confirmed)</span>
-            <CheckCircle2 size={20} />
-          </div>
-          <h2>{confirmedBalanceYER.toLocaleString()} <small>ر.ي</small></h2>
-          <p>جاهز للتسليم للتاجر</p>
-        </motion.div>
+            <motion.div whileHover={{ scale: 1.02 }} className={`${styles.balanceCard} ${styles.available}`}>
+              <div className={styles.cardHeader}>
+                <span>الرصيد المتاح (Confirmed)</span>
+                <CheckCircle2 size={20} />
+              </div>
+              <h2>{confirmedBalanceYER.toLocaleString()} <small>ر.ي</small></h2>
+              <p>جاهز للتسليم للتاجر</p>
+            </motion.div>
 
-        <motion.div whileHover={{ scale: 1.02 }} className={`${styles.balanceCard} ${styles.pending}`}>
-          <div className={styles.cardHeader}>
-            <span>بانتظار التأكيد (Locked)</span>
-            <Lock size={20} />
-          </div>
-          <h2>{pendingBalanceYER.toLocaleString()} <small>ر.ي</small></h2>
-          <p>مبالغ قيد شحن الطلبات</p>
-        </motion.div>
+            <motion.div whileHover={{ scale: 1.02 }} className={`${styles.balanceCard} ${styles.pending}`}>
+              <div className={styles.cardHeader}>
+                <span>بانتظار التأكيد (Locked)</span>
+                <Lock size={20} />
+              </div>
+              <h2>{pendingBalanceYER.toLocaleString()} <small>ر.ي</small></h2>
+              <p>مبالغ قيد شحن الطلبات</p>
+            </motion.div>
+          </>
+        )}
       </div>
 
       <div className={styles.ledgerSection}>
@@ -128,7 +140,7 @@ export default function WalletPage() {
             </thead>
             <tbody>
               {ordersLoading && visibleTransactions.length === 0 ? (
-                <tr><td colSpan={6} style={{ textAlign: 'center', padding: '3rem' }}>جاري التحميل...</td></tr>
+                <TableSkeleton rows={5} />
               ) : visibleTransactions.length > 0 ? (
                 visibleTransactions.map((tx) => (
                   <motion.tr 

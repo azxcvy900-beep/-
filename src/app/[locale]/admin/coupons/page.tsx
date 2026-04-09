@@ -32,11 +32,19 @@ export default function MerchantCoupons() {
   const locale = useLocale();
   const { storeSlug } = useAuthStore();
   
-  const { data: coupons, loading: couponsLoading } = useStreamingFetch(
-    () => getStoreCoupons(storeSlug || 'demo'), [storeSlug]
+  const [localCoupons, setLocalCoupons] = useState<Coupon[] | null>(null);
+  
+  const { data: initialCoupons, loading: couponsLoading } = useStreamingFetch(
+    () => getStoreCoupons(storeSlug || 'demo'), 
+    [storeSlug],
+    `coupons_${storeSlug || 'demo'}`
   );
 
-  const { visibleItems: visibleCoupons } = useProgressiveLoad(coupons || [], 4, 150);
+  useEffect(() => {
+    if (initialCoupons) setLocalCoupons(initialCoupons);
+  }, [initialCoupons]);
+
+  const { visibleItems: visibleCoupons } = useProgressiveLoad(localCoupons || [], 4, 150);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -53,19 +61,32 @@ export default function MerchantCoupons() {
   });
 
   const handleToggleActive = async (id: string, currentStatus: boolean) => {
+    // Optimistic Update
+    setLocalCoupons(prev => 
+      prev ? prev.map(c => c.id === id ? { ...c, isActive: !currentStatus } : c) : null
+    );
+    
     try {
       await updateCoupon(storeSlug || 'demo', id, { isActive: !currentStatus });
     } catch (error) {
       alert("حدث خطأ أثناء تحديث حالة الكوبون.");
+      const fresh = await getStoreCoupons(storeSlug || 'demo');
+      setLocalCoupons(fresh);
     }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("هل أنت متأكد من حذف هذا الكوبون؟")) return;
+    
+    // Optimistic Delete
+    setLocalCoupons(prev => prev ? prev.filter(c => c.id !== id) : null);
+    
     try {
       await deleteCoupon(storeSlug || 'demo', id);
     } catch (error) {
       alert("حدث خطأ أثناء حذف الكوبون.");
+      const fresh = await getStoreCoupons(storeSlug || 'demo');
+      setLocalCoupons(fresh);
     }
   };
 
