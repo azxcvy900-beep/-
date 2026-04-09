@@ -240,7 +240,7 @@ export default function MerchantOrders() {
 
   const handleExportCSV = () => {
     const headers = ['Order ID', 'Date', 'Customer', 'Phone', 'Total', 'Payment', 'Status', 'Locked Rate'];
-    const rows = (orders || []).map(o => [
+    const rows = (localOrders || []).map((o: Order) => [
       o.id,
       new Date(o.date).toLocaleDateString(locale),
       o.address.fullName,
@@ -273,7 +273,7 @@ export default function MerchantOrders() {
             تصدير CSV
           </button>
           <div className={styles.ordersCount}>
-            إجمالي الطلبات: {orders?.length || 0}
+            إجمالي الطلبات: {localOrders?.length || 0}
           </div>
         </div>
       </div>

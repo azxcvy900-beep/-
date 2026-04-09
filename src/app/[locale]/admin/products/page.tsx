@@ -208,8 +208,8 @@ export default function MerchantProducts() {
   // --- NEW FEATURES: Print & Export ---
   const handlePrintInventory = (categoryName: string | null = null) => {
     const printProducts = categoryName 
-      ? (products || []).filter(p => p.category === categoryName)
-      : (products || []);
+      ? (localProducts || []).filter((p: Product) => p.category === categoryName)
+      : (localProducts || []);
 
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
@@ -262,7 +262,7 @@ export default function MerchantProducts() {
 
   const handleExportCSV = () => {
     const headers = ['ID', 'Name', 'Category', 'Price', 'Stock', 'In Stock'];
-    const rows = (products || []).map(p => [
+    const rows = (localProducts || []).map((p: Product) => [
       p.id,
       p.name,
       p.category,
