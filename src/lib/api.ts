@@ -15,6 +15,7 @@ import {
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Order } from './store';
+import { dataCache } from './cache';
 
 export interface ProductOption {
   name: string;
@@ -209,17 +210,23 @@ export const DUMMY_STORES: StoreInfo[] = [
   }
 ];
 
-// Fetch all products for a specific store
+// Fetch all products for a specific store (cached for 2 minutes)
 export async function getStoreProducts(storeSlug: string): Promise<Product[]> {
   if (storeSlug === 'demo') {
     return DUMMY_PRODUCTS;
   }
 
+  const cacheKey = `products_${storeSlug}`;
+  const cached = dataCache.get<Product[]>(cacheKey);
+  if (cached) return cached;
+
   try {
     const productsCol = collection(db, 'products');
     const q = query(productsCol, where('storeSlug', '==', storeSlug));
     const productSnapshot = await getDocs(q);
-    return productSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+    const products = productSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+    dataCache.set(cacheKey, products, 120);
+    return products;
   } catch (error) {
     console.error("Error fetching products:", error);
     return DUMMY_PRODUCTS;
@@ -245,15 +252,22 @@ export async function getProductById(id: string): Promise<Product | null> {
   }
 }
 
-// Fetch store metadata
+// Fetch store metadata (cached for 5 minutes)
 export async function getStoreInfo(slug: string): Promise<StoreInfo | null> {
+  const cacheKey = `store_${slug}`;
+  const cached = dataCache.get<StoreInfo | null>(cacheKey);
+  if (cached !== null) return cached;
+
   const dummyStore = DUMMY_STORES.find(s => s.slug === slug);
   try {
     const storeDoc = doc(db, 'stores', slug);
     const storeSnap = await getDoc(storeDoc);
     if (storeSnap.exists()) {
-      return { slug: storeSnap.id, ...storeSnap.data() } as StoreInfo;
+      const result = { slug: storeSnap.id, ...storeSnap.data() } as StoreInfo;
+      dataCache.set(cacheKey, result, 300);
+      return result;
     }
+    dataCache.set(cacheKey, dummyStore || null, 300);
     return dummyStore || null;
   } catch (error) {
     console.error("Error fetching store info:", error);
@@ -293,10 +307,16 @@ export async function uploadCategoryImage(file: File, storeSlug: string): Promis
 }
 
 export async function getStoreCategories(storeSlug: string): Promise<Category[]> {
+  const cacheKey = `categories_${storeSlug}`;
+  const cached = dataCache.get<Category[]>(cacheKey);
+  if (cached) return cached;
+
   try {
     const categoriesCol = collection(db, 'stores', storeSlug, 'categories');
     const categorySnapshot = await getDocs(categoriesCol);
-    return categorySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Category));
+    const categories = categorySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Category));
+    dataCache.set(cacheKey, categories, 120);
+    return categories;
   } catch (error) {
     console.error("Error fetching categories:", error);
     return [];
@@ -394,17 +414,20 @@ export async function addCategory(category: Omit<Category, 'id'>): Promise<strin
   const docRef = doc(categoriesCol);
   const newCategory = { ...category, id: docRef.id };
   await setDoc(docRef, newCategory);
+  dataCache.invalidate(`categories_${category.storeSlug}`);
   return newCategory.id;
 }
 
 export async function updateCategory(storeSlug: string, id: string, data: Partial<Category>): Promise<void> {
   const catRef = doc(db, 'stores', storeSlug, 'categories', id);
   await updateDoc(catRef, data);
+  dataCache.invalidate(`categories_${storeSlug}`);
 }
 
 export async function deleteCategory(storeSlug: string, id: string): Promise<void> {
   const catRef = doc(db, 'stores', storeSlug, 'categories', id);
   await deleteDoc(catRef);
+  dataCache.invalidate(`categories_${storeSlug}`);
 }
 
 export async function addProduct(product: Omit<Product, 'id'>): Promise<string> {
@@ -412,27 +435,36 @@ export async function addProduct(product: Omit<Product, 'id'>): Promise<string> 
   const docRef = doc(productsCol);
   const newProduct = { ...product, id: docRef.id };
   await setDoc(doc(db, 'products', newProduct.id), newProduct);
+  dataCache.invalidatePrefix('products_');
   return newProduct.id;
 }
 
 export async function updateProduct(id: string, updates: Partial<Product>): Promise<void> {
   const productRef = doc(db, 'products', id);
   await updateDoc(productRef, updates as any);
+  dataCache.invalidatePrefix('products_');
 }
 
 export async function deleteProduct(id: string): Promise<void> {
   const productRef = doc(db, 'products', id);
   await deleteDoc(productRef);
+  dataCache.invalidatePrefix('products_');
 }
 
 export async function getStoreOrders(storeSlug: string): Promise<Order[]> {
+  const cacheKey = `orders_${storeSlug}`;
+  const cached = dataCache.get<Order[]>(cacheKey);
+  if (cached) return cached;
+
   try {
     const ordersCol = collection(db, 'orders');
     const orderSnapshot = await getDocs(ordersCol);
-    return orderSnapshot.docs
+    const orders = orderSnapshot.docs
       .map(doc => ({ id: doc.id, ...doc.data() } as Order))
       .filter(o => o.items.some(item => (item as any).storeSlug === storeSlug || storeSlug === 'demo'))
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    dataCache.set(cacheKey, orders, 30);
+    return orders;
   } catch (error) {
     return [];
   }
@@ -501,26 +533,38 @@ export async function updatePlatformSettings(settings: Partial<PlatformSettings>
 }
 
 export async function getAllStores(): Promise<StoreInfo[]> {
+  const cacheKey = 'all_stores';
+  const cached = dataCache.get<StoreInfo[]>(cacheKey);
+  if (cached) return cached;
+
   try {
     const storesCol = collection(db, 'stores');
     const storeSnapshot = await getDocs(storesCol);
     const dbStores = storeSnapshot.docs.map(doc => ({ ...doc.data(), slug: doc.id } as StoreInfo));
     const allSlugs = new Set([...dbStores.map(s => s.slug), ...DUMMY_STORES.map(s => s.slug)]);
-    return Array.from(allSlugs).map(slug => {
+    const result = Array.from(allSlugs).map(slug => {
        return dbStores.find(s => s.slug === slug) || DUMMY_STORES.find(s => s.slug === slug)!;
     });
+    dataCache.set(cacheKey, result, 120);
+    return result;
   } catch (error) {
     return DUMMY_STORES;
   }
 }
 
 export async function getAllPlatformOrders(): Promise<Order[]> {
+  const cacheKey = 'all_orders';
+  const cached = dataCache.get<Order[]>(cacheKey);
+  if (cached) return cached;
+
   try {
     const ordersCol = collection(db, 'orders');
     const orderSnapshot = await getDocs(ordersCol);
-    return orderSnapshot.docs
+    const orders = orderSnapshot.docs
       .map(doc => ({ id: doc.id, ...doc.data() } as Order))
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    dataCache.set(cacheKey, orders, 30);
+    return orders;
   } catch (error) {
     return [];
   }

@@ -1,5 +1,7 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAnalytics, isSupported } from "firebase/analytics";
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAsSwfz3X-sQ0j_5rQBfWv9UfwRvTnbqck",
@@ -14,22 +16,19 @@ const firebaseConfig = {
 // Initialize Firebase (singleton pattern to avoid re-initialization in Next.js)
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-import { getFirestore } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
-import { getStorage } from "firebase/storage";
-
-// Initialize Analytics client-side only
-let analytics: ReturnType<typeof getAnalytics> | null = null;
-if (typeof window !== "undefined") {
-  isSupported().then((supported) => {
-    if (supported) {
-      analytics = getAnalytics(app);
-    }
+// Initialize Firestore with persistent local cache for fast subsequent loads
+let db: ReturnType<typeof initializeFirestore>;
+try {
+  db = initializeFirestore(app, {
+    localCache: persistentLocalCache({
+      tabManager: persistentMultipleTabManager()
+    })
   });
+} catch (e) {
+  // If already initialized (e.g. hot reload), just get the existing instance
+  const { getFirestore } = require("firebase/firestore");
+  db = getFirestore(app);
 }
-
-// Initialize Firestore
-const db = getFirestore(app);
 
 // Initialize Auth
 const auth = getAuth(app);
@@ -37,4 +36,19 @@ const auth = getAuth(app);
 // Initialize Storage
 const storage = getStorage(app);
 
-export { app, analytics, db, auth, storage };
+// Lazy-load Analytics only when needed (not blocking initial load)
+let analytics: any = null;
+export function getAnalyticsInstance() {
+  if (typeof window !== "undefined" && !analytics) {
+    import("firebase/analytics").then(({ getAnalytics, isSupported }) => {
+      isSupported().then((supported) => {
+        if (supported) {
+          analytics = getAnalytics(app);
+        }
+      });
+    });
+  }
+  return analytics;
+}
+
+export { app, db, auth, storage };
