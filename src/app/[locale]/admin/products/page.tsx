@@ -23,16 +23,24 @@ import {
   Product, 
   Category
 } from '@/lib/api';
+import { useStreamingFetch, useProgressiveLoad } from '@/lib/hooks';
+import { useAuthStore } from '@/lib/auth-store';
 import styles from './products.module.css';
 
 export default function MerchantProducts() {
   const t = useTranslations('Admin');
   const pt = useTranslations('Product');
   const locale = useLocale();
+  const { storeSlug } = useAuthStore();
   
-  const [products, setProducts] = useState<Product[]>([]);
-  const [storeCategories, setStoreCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Use independent streaming fetches
+  const { data: products, loading: productsLoading } = useStreamingFetch(
+    () => getStoreProducts(storeSlug || 'demo'), [storeSlug]
+  );
+  const { data: storeCategories, loading: catsLoading } = useStreamingFetch(
+    () => getStoreCategories(storeSlug || 'demo'), [storeSlug]
+  );
+  
   const [searchQuery, setSearchQuery] = useState('');
   
   // Modal State
@@ -52,34 +60,27 @@ export default function MerchantProducts() {
     category: '',
     image: '',
     description: '',
-    storeSlug: 'demo',
+    storeSlug: storeSlug || 'demo',
     stockCount: '0',
     currency: 'YER' as 'YER' | 'SAR' | 'USD'
   });
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  // Filter and progressive load
+  const filteredProducts = React.useMemo(() => {
+    return (products || []).filter(p => 
+      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.category.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [products, searchQuery]);
 
-  async function loadData() {
-    try {
-      const [productsData, catsData] = await Promise.all([
-        getStoreProducts('demo'),
-        getStoreCategories('demo')
-      ]);
-      setProducts(productsData);
-      setStoreCategories(catsData);
-      
-      // If categories exist and form category is empty, set default
-      if (catsData.length > 0 && !formData.category) {
-        setFormData(prev => ({ ...prev, category: catsData[0].name }));
-      }
-    } catch (error) {
-      console.error("Error loading products/categories:", error);
-    } finally {
-      setLoading(false);
+  const { visibleItems: visibleProducts } = useProgressiveLoad(filteredProducts, 5, 100);
+
+  // Set default category when categories arrive
+  useEffect(() => {
+    if (storeCategories && storeCategories.length > 0 && !formData.category) {
+      setFormData(prev => ({ ...prev, category: storeCategories[0].name }));
     }
-  }
+  }, [storeCategories, formData.category]);
 
   const handleOpenModal = (product: Product | null = null) => {
     setSelectedFile(null);
@@ -104,10 +105,10 @@ export default function MerchantProducts() {
         name: '',
         price: '',
         originalPrice: '',
-        category: storeCategories.length > 0 ? storeCategories[0].name : '',
+        category: storeCategories && storeCategories.length > 0 ? storeCategories[0].name : '',
         image: '',
         description: '',
-        storeSlug: 'demo',
+        storeSlug: storeSlug || 'demo',
         stockCount: '0',
         currency: 'YER'
       });
@@ -164,7 +165,6 @@ export default function MerchantProducts() {
       } else {
         await addProduct(productData as any);
       }
-      await loadData();
       handleCloseModal();
     } catch (error) {
       console.error("Submit error:", error);
@@ -178,23 +178,19 @@ export default function MerchantProducts() {
     if (confirm("هل أنت متأكد من حذف هذا المنتج؟")) {
       try {
         await deleteProduct(id);
-        await loadData();
       } catch (error) {
         alert("حدث خطأ أثناء الحذف.");
       }
     }
   };
 
-  const filteredProducts = products.filter(p => 
-    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+
 
   // --- NEW FEATURES: Print & Export ---
   const handlePrintInventory = (categoryName: string | null = null) => {
     const printProducts = categoryName 
-      ? products.filter(p => p.category === categoryName)
-      : products;
+      ? (products || []).filter(p => p.category === categoryName)
+      : (products || []);
 
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
@@ -247,7 +243,7 @@ export default function MerchantProducts() {
 
   const handleExportCSV = () => {
     const headers = ['ID', 'Name', 'Category', 'Price', 'Stock', 'In Stock'];
-    const rows = products.map(p => [
+    const rows = (products || []).map(p => [
       p.id,
       p.name,
       p.category,
@@ -307,7 +303,7 @@ export default function MerchantProducts() {
                defaultValue=""
              >
                 <option value="" disabled>طباعة حسب القسم...</option>
-                {storeCategories.map(cat => (
+                {(storeCategories || []).map(cat => (
                   <option key={cat.id} value={cat.name}>{cat.name}</option>
                 ))}
              </select>
@@ -325,12 +321,17 @@ export default function MerchantProducts() {
                 <th>الإجراءات</th>
               </tr>
             </thead>
-            <tbody>
-              {loading ? (
+             <tbody>
+              {productsLoading && visibleProducts.length === 0 ? (
                 <tr><td colSpan={5} style={{ textAlign: 'center', padding: '3rem' }}>جاري التحميل...</td></tr>
-              ) : filteredProducts.length > 0 ? (
-                filteredProducts.map((p) => (
-                  <tr key={p.id}>
+              ) : visibleProducts.length > 0 ? (
+                visibleProducts.map((p) => (
+                  <motion.tr 
+                    key={p.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                  >
                     <td>
                       <div className={styles.productInfo}>
                         <div style={{ position: 'relative' }}>
@@ -372,7 +373,7 @@ export default function MerchantProducts() {
                         </button>
                       </div>
                     </td>
-                  </tr>
+                  </motion.tr>
                 ))
               ) : (
                 <tr><td colSpan={5} style={{ textAlign: 'center', padding: '3rem' }}>لا توجد منتجات بعد.</td></tr>
@@ -462,7 +463,7 @@ export default function MerchantProducts() {
                       onChange={(e) => setFormData({...formData, category: e.target.value})}
                       required
                     >
-                      {storeCategories.length > 0 ? (
+                      {storeCategories && storeCategories.length > 0 ? (
                         storeCategories.map(cat => (
                           <option key={cat.id} value={cat.name}>{cat.name}</option>
                         ))

@@ -24,6 +24,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/components/providers/ThemeProvider';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { getStoreByMerchant } from '@/lib/api';
+import { useAuthStore } from '@/lib/auth-store';
 import OrderNotification from '@/components/shared/OrderNotification/OrderNotification';
 import styles from './admin-layout.module.css';
 
@@ -37,22 +39,32 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const { setStoreInfo, isResolved, clearStoreInfo } = useAuthStore();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
-      setLoading(false);
       
-      // If we are on an admin page that isn't login, and not logged in, redirect
-      /* 
-      if (!currentUser && !pathname.includes('/admin/login')) {
-        router.push(`/${locale}/admin/login`);
+      if (currentUser) {
+        // Resolve store info if not already resolved
+        if (!isResolved) {
+          const store = await getStoreByMerchant(currentUser.uid);
+          setStoreInfo(store);
+        }
+        setLoading(false);
+      } else {
+        clearStoreInfo();
+        setLoading(false);
+        
+        // Redirect to login if not on login page
+        if (!pathname.includes('/admin/login')) {
+          router.push(`/${locale}/admin/login`);
+        }
       }
-      */
     });
 
     return () => unsubscribe();
-  }, [pathname, locale, router]);
+  }, [pathname, locale, router, isResolved, setStoreInfo, clearStoreInfo]);
 
   const handleLogout = async () => {
     try {

@@ -23,14 +23,21 @@ import {
   deleteCoupon,
   Coupon 
 } from '@/lib/api';
+import { useStreamingFetch, useProgressiveLoad } from '@/lib/hooks';
+import { useAuthStore } from '@/lib/auth-store';
 import styles from './coupons.module.css';
 
 export default function MerchantCoupons() {
   const t = useTranslations('Admin');
   const locale = useLocale();
+  const { storeSlug } = useAuthStore();
   
-  const [coupons, setCoupons] = useState<Coupon[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: coupons, loading: couponsLoading } = useStreamingFetch(
+    () => getStoreCoupons(storeSlug || 'demo'), [storeSlug]
+  );
+
+  const { visibleItems: visibleCoupons } = useProgressiveLoad(coupons || [], 4, 150);
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -42,28 +49,12 @@ export default function MerchantCoupons() {
     minOrderAmount: '',
     expiryDate: '',
     usageLimit: '',
-    storeSlug: 'demo'
+    storeSlug: storeSlug || 'demo'
   });
-
-  useEffect(() => {
-    loadCoupons();
-  }, []);
-
-  async function loadCoupons() {
-    try {
-      const data = await getStoreCoupons('demo');
-      setCoupons(data);
-    } catch (error) {
-      console.error("Error loading coupons:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
 
   const handleToggleActive = async (id: string, currentStatus: boolean) => {
     try {
-      await updateCoupon('demo', id, { isActive: !currentStatus });
-      await loadCoupons();
+      await updateCoupon(storeSlug || 'demo', id, { isActive: !currentStatus });
     } catch (error) {
       alert("حدث خطأ أثناء تحديث حالة الكوبون.");
     }
@@ -72,8 +63,7 @@ export default function MerchantCoupons() {
   const handleDelete = async (id: string) => {
     if (!confirm("هل أنت متأكد من حذف هذا الكوبون؟")) return;
     try {
-      await deleteCoupon('demo', id);
-      await loadCoupons();
+      await deleteCoupon(storeSlug || 'demo', id);
     } catch (error) {
       alert("حدث خطأ أثناء حذف الكوبون.");
     }
@@ -85,11 +75,11 @@ export default function MerchantCoupons() {
     try {
       await addCoupon({
         ...formData,
+        storeSlug: storeSlug || 'demo',
         value: parseFloat(formData.value),
         minOrderAmount: formData.minOrderAmount ? parseFloat(formData.minOrderAmount) : undefined,
         usageLimit: formData.usageLimit ? parseInt(formData.usageLimit) : undefined,
       });
-      await loadCoupons();
       setIsModalOpen(false);
       setFormData({
         code: '',
@@ -98,7 +88,7 @@ export default function MerchantCoupons() {
         minOrderAmount: '',
         expiryDate: '',
         usageLimit: '',
-        storeSlug: 'demo'
+        storeSlug: storeSlug || 'demo'
       });
     } catch (error) {
       alert("حدث خطأ أثناء إضافة الكوبون.");
@@ -116,15 +106,16 @@ export default function MerchantCoupons() {
         </button>
       </div>
 
-      {loading ? (
+      {couponsLoading && visibleCoupons.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '4rem' }}>جاري التحميل...</div>
-      ) : coupons.length > 0 ? (
+      ) : visibleCoupons.length > 0 ? (
         <div className={styles.couponsGrid}>
-          {coupons.map((coupon) => (
+          {visibleCoupons.map((coupon) => (
             <motion.div 
               key={coupon.id}
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.2 }}
               className={styles.couponCard}
             >
               <div className={`${styles.badge} ${coupon.isActive ? styles.active : styles.inactive}`}>
@@ -183,7 +174,7 @@ export default function MerchantCoupons() {
       ) : (
         <div style={{ textAlign: 'center', padding: '4rem', background: 'var(--bg-paper)', borderRadius: '24px', border: '1px dashed rgba(128,128,128,0.2)' }}>
           <Tag size={48} style={{ color: 'var(--text-secondary)', marginBottom: '1rem', opacity: 0.3 }} />
-          <p style={{ color: 'var(--text-secondary)' }}>لا توجد كوبونات فعالة حالياً. ابدأ بإنشاء أول عرض لزبائنك!</p>
+          <p style={{ color: 'var(--text-secondary)' }}>{!couponsLoading && "لا توجد كوبونات فعالة حالياً. ابدأ بإنشاء أول عرض لزبائنك!"}</p>
         </div>
       )}
 

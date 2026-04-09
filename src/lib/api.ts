@@ -63,6 +63,7 @@ export interface StoreInfo {
     facebook?: string;
   };
   shippingFee?: number; // Fixed shipping fee controlled by merchant
+  merchantId?: string; // Firebase UID of the merchant who owns this store
 }
 
 export interface Coupon {
@@ -254,6 +255,7 @@ export async function getProductById(id: string): Promise<Product | null> {
 
 // Fetch store metadata (cached for 5 minutes)
 export async function getStoreInfo(slug: string): Promise<StoreInfo | null> {
+  if (!slug) return null;
   const cacheKey = `store_${slug}`;
   const cached = dataCache.get<StoreInfo | null>(cacheKey);
   if (cached !== null) return cached;
@@ -272,6 +274,34 @@ export async function getStoreInfo(slug: string): Promise<StoreInfo | null> {
   } catch (error) {
     console.error("Error fetching store info:", error);
     return dummyStore || null;
+  }
+}
+
+// Get store by merchant UID
+export async function getStoreByMerchant(uid: string): Promise<StoreInfo | null> {
+  if (!uid) return null;
+  
+  const cacheKey = `merchant_store_${uid}`;
+  const cached = dataCache.get<StoreInfo | null>(cacheKey);
+  if (cached) return cached;
+
+  try {
+    const storesCol = collection(db, 'stores');
+    const q = query(storesCol, where('merchantId', '==', uid));
+    const querySnapshot = await getDocs(q);
+    
+    if (!querySnapshot.empty) {
+      const doc = querySnapshot.docs[0];
+      const result = { slug: doc.id, ...doc.data() } as StoreInfo;
+      dataCache.set(cacheKey, result, 600); // Cache for 10 mins
+      return result;
+    }
+    
+    // Fallback: search dummy stores (if any has demo user ID - not needed for prod but helpful for dev)
+    return DUMMY_STORES.find(s => (s as any).merchantId === uid) || null;
+  } catch (error) {
+    console.error("Error fetching store by merchant:", error);
+    return null;
   }
 }
 

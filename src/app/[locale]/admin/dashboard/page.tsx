@@ -21,6 +21,7 @@ import { motion } from 'framer-motion';
 import { getStoreOrders, getStoreProducts, Product, getStoreInfo, StoreInfo } from '@/lib/api';
 import { Order } from '@/lib/store';
 import { useStreamingFetch, useProgressiveLoad } from '@/lib/hooks';
+import { useAuthStore } from '@/lib/auth-store';
 import styles from './dashboard.module.css';
 
 function SectionLoader({ label }: { label: string }) {
@@ -35,11 +36,12 @@ function SectionLoader({ label }: { label: string }) {
 export default function MerchantDashboard() {
   const t = useTranslations('Admin');
   const locale = useLocale();
+  const { storeSlug, isResolved } = useAuthStore();
   
   // Each data source loads INDEPENDENTLY
-  const { data: orders, loading: ordersLoading } = useStreamingFetch(() => getStoreOrders('demo'), []);
-  const { data: products, loading: productsLoading } = useStreamingFetch(() => getStoreProducts('demo'), []);
-  const { data: storeInfo, loading: infoLoading } = useStreamingFetch(() => getStoreInfo('demo'), []);
+  const { data: orders, loading: ordersLoading } = useStreamingFetch(() => getStoreOrders(storeSlug || 'demo'), [storeSlug]);
+  const { data: products, loading: productsLoading } = useStreamingFetch(() => getStoreProducts(storeSlug || 'demo'), [storeSlug]);
+  const { data: storeInfo, loading: infoLoading } = useStreamingFetch(() => getStoreInfo(storeSlug || 'demo'), [storeSlug]);
 
   // Progressive loading for visible orders
   const recentOrders = React.useMemo(() => (orders || []).slice(0, 6), [orders]);

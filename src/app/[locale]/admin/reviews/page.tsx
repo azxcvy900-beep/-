@@ -18,34 +18,24 @@ import {
   deleteReview,
   Review 
 } from '@/lib/api';
+import { useStreamingFetch, useProgressiveLoad } from '@/lib/hooks';
+import { useAuthStore } from '@/lib/auth-store';
 import styles from './reviews.module.css';
 
 export default function MerchantReviews() {
   const t = useTranslations('Admin');
   const locale = useLocale();
+  const { storeSlug } = useAuthStore();
   
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: reviews, loading: reviewsLoading } = useStreamingFetch(
+    () => getStoreReviews(storeSlug || 'demo'), [storeSlug]
+  );
 
-  useEffect(() => {
-    loadReviews();
-  }, []);
-
-  async function loadReviews() {
-    try {
-      const data = await getStoreReviews('demo');
-      setReviews(data);
-    } catch (error) {
-      console.error("Error loading reviews:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const { visibleItems: visibleReviews } = useProgressiveLoad(reviews || [], 3, 150);
 
   const handleApprove = async (id: string) => {
     try {
-      await updateReviewStatus('demo', id, true);
-      await loadReviews();
+      await updateReviewStatus(storeSlug || 'demo', id, true);
     } catch (error) {
       alert("حدث خطأ أثناء الموافقة على التقييم.");
     }
@@ -54,8 +44,7 @@ export default function MerchantReviews() {
   const handleDelete = async (id: string) => {
     if (!confirm("هل أنت متأكد من حذف هذا التقييم؟")) return;
     try {
-      await deleteReview('demo', id);
-      await loadReviews();
+      await deleteReview(storeSlug || 'demo', id);
     } catch (error) {
       alert("حدث خطأ أثناء حذف التقييم.");
     }
@@ -65,15 +54,16 @@ export default function MerchantReviews() {
     <div className={styles.reviewsPage}>
       <h1 className={styles.title}>إدارة تقييمات العملاء</h1>
 
-      {loading ? (
+      {reviewsLoading && visibleReviews.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '4rem' }}>جاري التحميل...</div>
-      ) : reviews.length > 0 ? (
+      ) : visibleReviews.length > 0 ? (
         <div className={styles.reviewsList}>
-          {reviews.map((review) => (
+          {visibleReviews.map((review) => (
             <motion.div 
               key={review.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
               className={styles.reviewCard}
             >
               <div className={styles.header}>
@@ -133,7 +123,7 @@ export default function MerchantReviews() {
       ) : (
         <div style={{ textAlign: 'center', padding: '4rem', background: 'var(--bg-paper)', borderRadius: '24px', border: '1px dashed rgba(128,128,128,0.2)' }}>
           <MessageSquare size={48} style={{ color: 'var(--text-secondary)', marginBottom: '1rem', opacity: 0.3 }} />
-          <p style={{ color: 'var(--text-secondary)' }}>لا توجد تقييمات حالياً.</p>
+          <p style={{ color: 'var(--text-secondary)' }}>{!reviewsLoading && "لا توجد تقييمات حالياً."}</p>
         </div>
       )}
     </div>

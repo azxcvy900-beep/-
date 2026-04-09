@@ -17,55 +17,46 @@ import {
   Lock
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { getStoreOrders, getStoreInfo, StoreInfo } from '@/lib/api';
+import { getStoreOrders, getStoreInfo, StoreInfo, getStoreReviews } from '@/lib/api';
 import { Order } from '@/lib/store';
+import { useStreamingFetch, useProgressiveLoad } from '@/lib/hooks';
+import { useAuthStore } from '@/lib/auth-store';
 import styles from './wallet.module.css';
 
 export default function WalletPage() {
   const t = useTranslations('Admin');
   const locale = useLocale();
+  const { storeSlug } = useAuthStore();
   
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [storeInfo, setStoreInfo] = useState<StoreInfo | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Use independent streaming fetches
+  const { data: orders, loading: ordersLoading } = useStreamingFetch(
+    () => getStoreOrders(storeSlug || 'demo'), [storeSlug]
+  );
+  const { data: storeInfo, loading: infoLoading } = useStreamingFetch(
+    () => getStoreInfo(storeSlug || 'demo'), [storeSlug]
+  );
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const [ordersData, infoData] = await Promise.all([
-          getStoreOrders('demo'),
-          getStoreInfo('demo')
-        ]);
-        setOrders(ordersData);
-        setStoreInfo(infoData);
-      } catch (error) {
-        console.error("Wallet data load error:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadData();
-  }, []);
+  // Transaction Ledger (from orders)
+  const transactions = React.useMemo(() => {
+    return (orders || []).map(o => ({
+      id: o.id,
+      date: o.date,
+      amount: o.total,
+      type: 'sale',
+      status: o.status,
+      customer: o.address.fullName,
+      isLocked: o.isPriceLocked
+    })).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [orders]);
 
-  const activeOrders = orders.filter(o => o.status !== 'cancelled');
+  const { visibleItems: visibleTransactions } = useProgressiveLoad(transactions, 5, 100);
+
+  const activeOrders = (orders || []).filter(o => o.status !== 'cancelled');
   const totalBalanceYER = activeOrders.reduce((sum, o) => sum + o.total, 0);
   const confirmedBalanceYER = activeOrders.filter(o => o.status === 'delivered').reduce((sum, o) => sum + o.total, 0);
   const pendingBalanceYER = totalBalanceYER - confirmedBalanceYER;
 
-  // Transaction Ledger (from orders)
-  const transactions = orders.map(o => ({
-    id: o.id,
-    date: o.date,
-    amount: o.total,
-    type: 'sale',
-    status: o.status,
-    customer: o.address.fullName,
-    isLocked: o.isPriceLocked
-  })).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-  if (loading) {
-    return <div className={styles.loadingContainer}>جاري جلب المحفظة المالية...</div>;
-  }
 
   return (
     <div className={styles.walletPage}>
@@ -136,34 +127,45 @@ export default function WalletPage() {
               </tr>
             </thead>
             <tbody>
-              {transactions.map((tx) => (
-                <tr key={tx.id}>
-                  <td>{new Date(tx.date).toLocaleDateString('ar-YE')}</td>
-                  <td>
-                    <div className={styles.typeTag}>
-                      <ArrowUpCircle size={14} color="#10b981" />
-                      مبيعات
-                    </div>
-                  </td>
-                  <td>
-                    <div className={styles.customerInfo}>
-                      <strong>#{tx.id.slice(-6)}</strong>
-                      <span>{tx.customer}</span>
-                    </div>
-                  </td>
-                  <td className={styles.amount}>+{tx.amount.toLocaleString()} ر.ي</td>
-                  <td>
-                    <span className={`${styles.statusBadge} ${styles[tx.status]}`}>
-                      {tx.status === 'delivered' ? 'مؤكد ✅' : tx.isLocked ? 'مجمّد 🔒' : 'قيد الانتظار ⏳'}
-                    </span>
-                  </td>
-                  <td>
-                    <Link href={`/${locale}/admin/orders`} className={styles.viewDetails}>
-                      التفاصيل
-                    </Link>
-                  </td>
-                </tr>
-              ))}
+              {ordersLoading && visibleTransactions.length === 0 ? (
+                <tr><td colSpan={6} style={{ textAlign: 'center', padding: '3rem' }}>جاري التحميل...</td></tr>
+              ) : visibleTransactions.length > 0 ? (
+                visibleTransactions.map((tx) => (
+                  <motion.tr 
+                    key={tx.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <td>{new Date(tx.date).toLocaleDateString('ar-YE')}</td>
+                    <td>
+                      <div className={styles.typeTag}>
+                        <ArrowUpCircle size={14} color="#10b981" />
+                        مبيعات
+                      </div>
+                    </td>
+                    <td>
+                      <div className={styles.customerInfo}>
+                        <strong>#{tx.id.slice(-6)}</strong>
+                        <span>{tx.customer}</span>
+                      </div>
+                    </td>
+                    <td className={styles.amount}>+{tx.amount.toLocaleString()} ر.ي</td>
+                    <td>
+                      <span className={`${styles.statusBadge} ${styles[tx.status]}`}>
+                        {tx.status === 'delivered' ? 'مؤكد ✅' : tx.isLocked ? 'مجمّد 🔒' : 'قيد الانتظار ⏳'}
+                      </span>
+                    </td>
+                    <td>
+                      <Link href={`/${locale}/admin/orders`} className={styles.viewDetails}>
+                        التفاصيل
+                      </Link>
+                    </td>
+                  </motion.tr>
+                ))
+              ) : (
+                <tr><td colSpan={6} style={{ textAlign: 'center', padding: '3rem' }}>! {!ordersLoading && "لا توجد عمليات مالية بعد."}</td></tr>
+              )}
             </tbody>
           </table>
         </div>

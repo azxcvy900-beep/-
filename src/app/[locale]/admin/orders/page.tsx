@@ -23,48 +23,32 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { getStoreOrders, updateOrderStatus, getStoreInfo, StoreInfo } from '@/lib/api';
 import { Order } from '@/lib/store';
 import { getWhatsAppUrl } from '@/lib/whatsapp';
+import { useStreamingFetch, useProgressiveLoad } from '@/lib/hooks';
+import { useAuthStore } from '@/lib/auth-store';
 import styles from './orders.module.css';
 
 export default function MerchantOrders() {
   const t = useTranslations('Admin');
   const locale = useLocale();
+  const { storeSlug } = useAuthStore();
   
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Use independent streaming fetches
+  const { data: orders, loading: ordersLoading } = useStreamingFetch(
+    () => getStoreOrders(storeSlug || 'demo'), [storeSlug]
+  );
+  const { data: storeInfo, loading: infoLoading } = useStreamingFetch(
+    () => getStoreInfo(storeSlug || 'demo'), [storeSlug]
+  );
+
+  const { visibleItems: visibleOrders } = useProgressiveLoad(orders || [], 3, 150);
+  
   const [updatingId, setUpdatingId] = useState<string | null>(null);
-  const [storeInfo, setStoreInfo] = useState<StoreInfo | null>(null);
   const [waOrder, setWaOrder] = useState<Order | null>(null);
-
-  useEffect(() => {
-    loadOrders();
-    loadStoreInfo();
-  }, []);
-
-  async function loadOrders() {
-    try {
-      const data = await getStoreOrders('demo');
-      setOrders(data);
-    } catch (error) {
-      console.error("Error loading orders:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function loadStoreInfo() {
-    try {
-      const info = await getStoreInfo('demo');
-      setStoreInfo(info);
-    } catch (error) {
-      console.error("Error loading store info:", error);
-    }
-  }
 
   const handleStatusUpdate = async (orderId: string, newStatus: Order['status']) => {
     setUpdatingId(orderId);
     try {
       await updateOrderStatus(orderId, newStatus);
-      await loadOrders();
     } catch (error) {
       alert("حدث خطأ أثناء تحديث حالة الطلب.");
     } finally {
@@ -219,7 +203,7 @@ export default function MerchantOrders() {
 
   const handleExportCSV = () => {
     const headers = ['Order ID', 'Date', 'Customer', 'Phone', 'Total', 'Payment', 'Status', 'Locked Rate'];
-    const rows = orders.map(o => [
+    const rows = (orders || []).map(o => [
       o.id,
       new Date(o.date).toLocaleDateString(locale),
       o.address.fullName,
@@ -252,21 +236,22 @@ export default function MerchantOrders() {
             تصدير CSV
           </button>
           <div className={styles.ordersCount}>
-            إجمالي الطلبات: {orders.length}
+            إجمالي الطلبات: {orders?.length || 0}
           </div>
         </div>
       </div>
 
       <div className={styles.listSection}>
-        {loading ? (
+        {ordersLoading && visibleOrders.length === 0 ? (
           <div className={styles.loadingState}>جاري تحميل الطلبات...</div>
-        ) : orders.length > 0 ? (
+        ) : visibleOrders.length > 0 ? (
           <div className={styles.ordersList}>
-            {orders.map((order) => (
+            {visibleOrders.map((order) => (
               <motion.div 
                 key={order.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2 }}
                 className={styles.orderCard}
               >
                 <div className={styles.orderHeader}>
@@ -380,7 +365,7 @@ export default function MerchantOrders() {
           </div>
         ) : (
           <div className={styles.emptyOrders}>
-            لا توجد طلبات واردة حالياً.
+            {!ordersLoading && "لا توجد طلبات واردة حالياً."}
           </div>
         )}
       </div>

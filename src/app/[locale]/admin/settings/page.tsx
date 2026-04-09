@@ -17,11 +17,13 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getStoreInfo, updateStoreInfo, uploadStoreLogo, StoreInfo } from '@/lib/api';
+import { useAuthStore } from '@/lib/auth-store';
 import styles from './settings.module.css';
 
 export default function MerchantSettings() {
   const t = useTranslations('Admin');
   const locale = useLocale();
+  const { storeSlug } = useAuthStore();
   
   const [storeData, setStoreData] = useState<StoreInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -35,14 +37,14 @@ export default function MerchantSettings() {
   useEffect(() => {
     async function loadStore() {
       try {
-        const data = await getStoreInfo('demo');
+        const data = await getStoreInfo(storeSlug || 'demo');
         if (data) {
           setStoreData(data);
           setLogoPreview(data.logo || null);
         } else {
           // Initialize with empty data if nothing found
           setStoreData({
-            slug: 'demo',
+            slug: storeSlug || 'demo',
             name: '',
             phone: '',
             description: '',
@@ -57,7 +59,7 @@ export default function MerchantSettings() {
       }
     }
     loadStore();
-  }, []);
+  }, [storeSlug]);
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -83,7 +85,7 @@ export default function MerchantSettings() {
 
       // 1. Upload new logo if selected
       if (selectedLogo) {
-        finalLogoUrl = await uploadStoreLogo(selectedLogo, 'demo');
+        finalLogoUrl = await uploadStoreLogo(selectedLogo, storeSlug || 'demo');
       }
 
       const updatedData = {
@@ -92,7 +94,7 @@ export default function MerchantSettings() {
       };
 
       // 2. Save all info
-      await updateStoreInfo('demo', updatedData);
+      await updateStoreInfo(storeSlug || 'demo', updatedData);
       setStoreData(updatedData);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);

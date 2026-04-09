@@ -21,14 +21,20 @@ import {
   uploadCategoryImage, 
   Category 
 } from '@/lib/api';
+import { useStreamingFetch, useProgressiveLoad } from '@/lib/hooks';
+import { useAuthStore } from '@/lib/auth-store';
 import styles from './categories.module.css';
 
 export default function AdminCategories() {
   const t = useTranslations('Admin');
   const locale = useLocale();
+  const { storeSlug } = useAuthStore();
   
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: categories, loading: categoriesLoading } = useStreamingFetch(
+    () => getStoreCategories(storeSlug || 'demo'), [storeSlug]
+  );
+
+  const { visibleItems: visibleCategories } = useProgressiveLoad(categories || [], 4, 150);
   
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -39,21 +45,6 @@ export default function AdminCategories() {
   const [categoryName, setCategoryName] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-
-  useEffect(() => {
-    loadCategories();
-  }, []);
-
-  async function loadCategories() {
-    try {
-      const data = await getStoreCategories('demo');
-      setCategories(data);
-    } catch (error) {
-      console.error("Error loading categories:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
 
   const handleOpenModal = (category: Category | null = null) => {
     if (category) {
@@ -99,22 +90,21 @@ export default function AdminCategories() {
       let iconUrl = editingCategory?.image || '';
 
       if (selectedFile) {
-        iconUrl = await uploadCategoryImage(selectedFile, 'demo');
+        iconUrl = await uploadCategoryImage(selectedFile, storeSlug || 'demo');
       }
 
       const categoryData = {
         name: categoryName,
         image: iconUrl,
-        storeSlug: 'demo'
+        storeSlug: storeSlug || 'demo'
       };
 
       if (editingCategory) {
-        await updateCategory('demo', editingCategory.id, categoryData);
+        await updateCategory(storeSlug || 'demo', editingCategory.id, categoryData);
       } else {
         await addCategory(categoryData);
       }
       
-      await loadCategories();
       handleCloseModal();
     } catch (error) {
       console.error("Error saving category:", error);
@@ -127,8 +117,7 @@ export default function AdminCategories() {
   const handleDelete = async (id: string) => {
     if (confirm("هل أنت متأكد من حذف هذا القسم؟ سيتم إلغاء ربطه بالمنتجات التابعة له.")) {
       try {
-        await deleteCategory('demo', id);
-        await loadCategories();
+        await deleteCategory(storeSlug || 'demo', id);
       } catch (error) {
         console.error("Error deleting category:", error);
         alert("حدث خطأ أثناء الحذف.");
@@ -146,14 +135,20 @@ export default function AdminCategories() {
         </button>
       </div>
 
-      {loading ? (
+      {categoriesLoading && visibleCategories.length === 0 ? (
         <div style={{ display: 'flex', justifyContent: 'center', padding: '5rem' }}>
           <Loader2 className="animate-spin" size={40} color="var(--primary)" />
         </div>
       ) : (
         <div className={styles.categoriesGrid}>
-          {categories.map((cat) => (
-            <div key={cat.id} className={styles.categoryCard}>
+          {visibleCategories.map((cat) => (
+            <motion.div 
+              key={cat.id} 
+              className={styles.categoryCard}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
+            >
               <div className={styles.categoryIcon}>
                 {cat.image ? (
                   <img src={cat.image} alt={cat.name} />
@@ -172,9 +167,9 @@ export default function AdminCategories() {
                   <Trash2 size={16} />
                 </button>
               </div>
-            </div>
+            </motion.div>
           ))}
-          {categories.length === 0 && (
+          {visibleCategories.length === 0 && !categoriesLoading && (
             <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '3rem', background: 'rgba(var(--primary-rgb), 0.05)', borderRadius: '16px' }}>
               لا توجد أقسام مضافة بعد. ابدأ بإضافة قسم لمتجرك!
             </div>
