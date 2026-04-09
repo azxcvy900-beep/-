@@ -27,26 +27,47 @@ export default function MerchantReviews() {
   const locale = useLocale();
   const { storeSlug } = useAuthStore();
   
-  const { data: reviews, loading: reviewsLoading } = useStreamingFetch(
-    () => getStoreReviews(storeSlug || 'demo'), [storeSlug]
+  const [localReviews, setLocalReviews] = useState<Review[] | null>(null);
+  
+  const { data: initialReviews, loading: reviewsLoading } = useStreamingFetch(
+    () => getStoreReviews(storeSlug || 'demo'), 
+    [storeSlug],
+    `reviews_${storeSlug || 'demo'}`
   );
 
-  const { visibleItems: visibleReviews } = useProgressiveLoad(reviews || [], 3, 150);
+  useEffect(() => {
+    if (initialReviews) setLocalReviews(initialReviews);
+  }, [initialReviews]);
+
+  const { visibleItems: visibleReviews } = useProgressiveLoad(localReviews || [], 3, 150);
 
   const handleApprove = async (id: string) => {
+    // Optimistic Update
+    setLocalReviews(prev => 
+      prev ? prev.map(r => r.id === id ? { ...r, isApproved: true } : r) : null
+    );
+    
     try {
       await updateReviewStatus(storeSlug || 'demo', id, true);
     } catch (error) {
       alert("حدث خطأ أثناء الموافقة على التقييم.");
+      const fresh = await getStoreReviews(storeSlug || 'demo');
+      setLocalReviews(fresh);
     }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("هل أنت متأكد من حذف هذا التقييم؟")) return;
+    
+    // Optimistic Delete
+    setLocalReviews(prev => prev ? prev.filter(r => r.id !== id) : null);
+    
     try {
       await deleteReview(storeSlug || 'demo', id);
     } catch (error) {
       alert("حدث خطأ أثناء حذف التقييم.");
+      const fresh = await getStoreReviews(storeSlug || 'demo');
+      setLocalReviews(fresh);
     }
   };
 
@@ -58,7 +79,7 @@ export default function MerchantReviews() {
         <div style={{ textAlign: 'center', padding: '4rem' }}>جاري التحميل...</div>
       ) : visibleReviews.length > 0 ? (
         <div className={styles.reviewsList}>
-          {visibleReviews.map((review) => (
+          {visibleReviews.map((review: Review) => (
             <motion.div 
               key={review.id}
               initial={{ opacity: 0, y: 10 }}
@@ -92,7 +113,7 @@ export default function MerchantReviews() {
               </div>
 
               <div className={styles.rating}>
-                {[1,2,3,4,5].map(s => (
+                {[1,2,3,4,5].map((s: number) => (
                   <Star key={s} size={18} fill={s <= review.rating ? "#fbbf24" : "none"} color="#fbbf24" />
                 ))}
               </div>
