@@ -77,7 +77,7 @@ export default function MerchantOrders() {
   const handleStatusUpdate = async (orderId: string, newStatus: Order['status']) => {
     // 1. Optimistic Update
     setLocalOrders(prev => 
-      prev ? prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o) : null
+      prev ? prev.map((o: Order) => o.id === orderId ? { ...o, status: newStatus } : o) : null
     );
     setUpdatingId(orderId);
 

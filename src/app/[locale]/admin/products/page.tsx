@@ -242,7 +242,7 @@ export default function MerchantProducts() {
               </tr>
             </thead>
             <tbody>
-              ${printProducts.map(p => `
+              ${printProducts.map((p: Product) => `
                 <tr>
                   <td>${p.name}</td>
                   <td>${p.category}</td>
@@ -322,10 +322,10 @@ export default function MerchantProducts() {
                defaultValue=""
              >
                 <option value="" disabled>طباعة حسب القسم...</option>
-                {(storeCategories || []).map(cat => (
+                {(storeCategories || []).map((cat: Category) => (
                   <option key={cat.id} value={cat.name}>{cat.name}</option>
                 ))}
-             </select>
+              </select>
           </div>
         </div>
 
@@ -483,7 +483,7 @@ export default function MerchantProducts() {
                       required
                     >
                       {storeCategories && storeCategories.length > 0 ? (
-                        storeCategories.map(cat => (
+                        storeCategories.map((cat: Category) => (
                           <option key={cat.id} value={cat.name}>{cat.name}</option>
                         ))
                       ) : (
