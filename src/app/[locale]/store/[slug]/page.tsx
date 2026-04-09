@@ -8,7 +8,8 @@ import CategoryFilter from '@/components/store/CategoryFilter/CategoryFilter';
 import SearchBar from '@/components/shared/SearchBar/SearchBar';
 import { getStoreProducts, getStoreCategories, getStoreInfo, Product, Category } from '@/lib/api';
 import { useCartStore } from '@/lib/store';
-import { ArrowLeft, Grid } from 'lucide-react';
+import { useStreamingFetch, useProgressiveLoad } from '@/lib/hooks';
+import { ArrowLeft, Grid, Loader2 } from 'lucide-react';
 import styles from './page.module.css';
 
 const containerVariants = {
@@ -32,60 +33,47 @@ const itemVariants = {
 export default function StoreHome({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = React.use(params);
   const t = useTranslations('StoreHome');
-  const [products, setProducts] = useState<Product[]>([]);
-  const [storeCategories, setStoreCategories] = useState<Category[]>([]);
   const [activeCategory, setActiveCategory] = useState('all');
   const [viewMode, setViewMode] = useState<'categories' | 'products'>('categories');
   const [searchQuery, setSearchQuery] = useState('');
-  const [loading, setLoading] = useState(true);
 
   // Cart Sync Actions
   const { setRates, setManualRate, setShippingFee } = useCartStore();
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const [productsData, catsData, storeInfo] = await Promise.all([
-          getStoreProducts(resolvedParams.slug),
-          getStoreCategories(resolvedParams.slug),
-          getStoreInfo(resolvedParams.slug)
-        ]);
-        
-        setProducts(productsData);
-        setStoreCategories(catsData);
+  // Each data source loads INDEPENDENTLY
+  const { data: products, loading: productsLoading } = useStreamingFetch(
+    () => getStoreProducts(resolvedParams.slug), [resolvedParams.slug]
+  );
+  const { data: storeCategories, loading: catsLoading } = useStreamingFetch(
+    () => getStoreCategories(resolvedParams.slug), [resolvedParams.slug]
+  );
+  const { data: storeInfo } = useStreamingFetch(
+    () => getStoreInfo(resolvedParams.slug), [resolvedParams.slug]
+  );
 
-        // Sync Store Settings (Rates, Shipping, etc)
-        if (storeInfo) {
-          if (storeInfo.currencySettings?.rates) {
-            setRates(storeInfo.currencySettings.rates);
-          }
-          if (storeInfo.currencySettings?.manualSARRate !== undefined) {
-             setManualRate(
-               !!storeInfo.currencySettings.useManualSARRate, 
-               storeInfo.currencySettings.manualSARRate
-             );
-          }
-          if (storeInfo.shippingFee !== undefined) {
-            setShippingFee(storeInfo.shippingFee);
-          }
-        }
-      } catch (error) {
-        console.error("Error loading store data:", error);
-      } finally {
-        setLoading(false);
+  // Sync store settings when info arrives
+  useEffect(() => {
+    if (storeInfo) {
+      if (storeInfo.currencySettings?.rates) setRates(storeInfo.currencySettings.rates);
+      if (storeInfo.currencySettings?.manualSARRate !== undefined) {
+        setManualRate(!!storeInfo.currencySettings.useManualSARRate, storeInfo.currencySettings.manualSARRate);
       }
+      if (storeInfo.shippingFee !== undefined) setShippingFee(storeInfo.shippingFee);
     }
-    loadData();
-  }, [resolvedParams.slug, setRates, setManualRate, setShippingFee]);
+  }, [storeInfo, setRates, setManualRate, setShippingFee]);
 
   const filteredProducts = useMemo(() => {
-    return products.filter(p => {
+    return (products || []).filter(p => {
       const matchesCategory = activeCategory === 'all' || p.category === activeCategory;
       const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                            (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase()));
       return matchesCategory && matchesSearch;
     });
   }, [products, activeCategory, searchQuery]);
+
+  // Progressive rendering for products
+  const { visibleItems: visibleProducts, isStreaming } = useProgressiveLoad(filteredProducts, 4, 150);
+  const { visibleItems: visibleCategories } = useProgressiveLoad(storeCategories || [], 3, 200);
 
   const handleCategoryClick = (categoryName: string) => {
     setActiveCategory(categoryName);
@@ -104,14 +92,11 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
         <p className={styles.subtitle}>{t('subtitle')}</p>
       </motion.header>
       
-      {loading ? (
-        <div style={{ textAlign: 'center', padding: '3rem' }}>
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-            style={{ width: 40, height: 40, border: '3px solid var(--primary)', borderTopColor: 'transparent', borderRadius: '50%', margin: '0 auto 1rem' }}
-          />
+      {productsLoading && !products ? (
+        <div style={{ textAlign: 'center', padding: '3rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', color: '#64748b' }}>
+          <Loader2 size={22} style={{ animation: 'spin 1s linear infinite' }} />
           {t('loading')}
+          <style jsx>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
         </div>
       ) : (
         <AnimatePresence mode="wait">
@@ -131,14 +116,21 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
               </div>
               
               <div className={styles.categoryGrid}>
-                {storeCategories.length > 0 ? (
-                  storeCategories.map((cat) => (
+                {catsLoading ? (
+                  <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '2rem', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                    <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> جاري تحميل الأقسام...
+                  </div>
+                ) : visibleCategories.length > 0 ? (
+                  visibleCategories.map((cat) => (
                     <motion.div 
                       key={cat.id}
                       className={styles.categoryCard}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => handleCategoryClick(cat.name)}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.25 }}
                     >
                       <div className={styles.categoryIconLarge}>
                         {cat.image ? (
@@ -149,7 +141,7 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
                       </div>
                       <h3 className={styles.categoryCardName}>{cat.name}</h3>
                       <span className={styles.itemCount}>
-                        {products.filter(p => p.category === cat.name).length} منتج
+                        {(products || []).filter(p => p.category === cat.name).length} منتج
                       </span>
                     </motion.div>
                   ))
@@ -185,8 +177,29 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
                 {activeCategory !== 'all' && <span className={styles.activeTag}>القسم: {activeCategory}</span>}
               </div>
 
-              
-              {filteredProducts.length === 0 && (
+
+              {/* Products rendered progressively */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1rem' }}>
+                {visibleProducts.map((p) => (
+                  <motion.div
+                    key={p.id}
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25 }}
+                  >
+                    <ProductCard product={p} />
+                  </motion.div>
+                ))}
+              </div>
+
+              {isStreaming && (
+                <div style={{ textAlign: 'center', padding: '1rem', color: '#64748b', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>
+                  <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
+                  جاري تحميل المزيد...
+                </div>
+              )}
+
+              {!productsLoading && filteredProducts.length === 0 && (
                 <div className={styles.emptyState}>
                   <p>{t('noProducts')}</p>
                 </div>

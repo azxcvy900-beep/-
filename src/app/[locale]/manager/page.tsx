@@ -12,71 +12,64 @@ import {
   Globe,
   Star,
   MessageSquareWarning,
-  Activity
+  Activity,
+  Loader2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { getAllStores, getAllPlatformOrders, getAllPlatformReviews, StoreInfo } from '@/lib/api';
 import { Order } from '@/lib/store';
 import { Review } from '@/lib/api';
+import { useStreamingFetch, useProgressiveLoad } from '@/lib/hooks';
 import styles from './manager.module.css';
 
+function SectionLoader({ label }: { label: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '1.5rem', color: '#64748b', fontSize: '0.9rem' }}>
+      <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
+      {label}
+    </div>
+  );
+}
+
 export default function AdministrationDashboard() {
-  const [stores, setStores] = useState<StoreInfo[]>([]);
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Each data source loads INDEPENDENTLY - no waiting for all
+  const { data: stores, loading: storesLoading } = useStreamingFetch(() => getAllStores(), []);
+  const { data: orders, loading: ordersLoading } = useStreamingFetch(() => getAllPlatformOrders(), []);
+  const { data: reviews, loading: reviewsLoading } = useStreamingFetch(() => getAllPlatformReviews(), []);
 
-  useEffect(() => {
-    async function loadStats() {
-      try {
-        const [storesData, ordersData, reviewsData] = await Promise.all([
-          getAllStores(),
-          getAllPlatformOrders(),
-          getAllPlatformReviews()
-        ]);
-        setStores(storesData);
-        setOrders(ordersData);
-        setReviews(reviewsData);
-      } catch (error) {
-        console.error("Administration data load error:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadStats();
-  }, []);
+  // Progressive rendering for merchants list
+  const merchantRanking = React.useMemo(() => {
+    if (!stores || !orders || !reviews) return [];
+    return stores.map(store => {
+      const storeOrders = orders.filter(o => o.items.some((i: any) => i.storeSlug === store.slug));
+      const storeReviews = reviews.filter(r => r.storeSlug === store.slug);
+      const revenue = storeOrders.reduce((sum, o) => sum + o.total, 0);
+      const avgRating = storeReviews.length > 0 
+        ? storeReviews.reduce((sum, r) => sum + r.rating, 0) / storeReviews.length 
+        : 5;
+      const complaints = storeReviews.filter(r => r.rating <= 2).length;
+      return { ...store, stats: { revenue, avgRating, complaints, orderCount: storeOrders.length } };
+    }).sort((a, b) => b.stats.revenue - a.stats.revenue);
+  }, [stores, orders, reviews]);
 
-  // Analytics
-  const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
-  const activeMerchants = stores.length;
-  const criticalComplaints = reviews.filter(r => r.rating <= 2).length;
+  const { visibleItems: visibleMerchants } = useProgressiveLoad(merchantRanking, 3, 200);
+  
+  const complaintsToShow = React.useMemo(() => {
+    return (reviews || []).filter(r => r.rating <= 3).slice(0, 5);
+  }, [reviews]);
+  const { visibleItems: visibleComplaints } = useProgressiveLoad(complaintsToShow, 2, 250);
 
-  const getStoreStats = (slug: string) => {
-    const storeOrders = orders.filter(o => o.items.some((i: any) => i.storeSlug === slug));
-    const storeReviews = reviews.filter(r => r.storeSlug === slug);
-    const revenue = storeOrders.reduce((sum, o) => sum + o.total, 0);
-    const avgRating = storeReviews.length > 0 
-      ? storeReviews.reduce((sum, r) => sum + r.rating, 0) / storeReviews.length 
-      : 5;
-    const complaints = storeReviews.filter(r => r.rating <= 2).length;
-    
-    return { revenue, avgRating, complaints, orderCount: storeOrders.length };
-  };
-
-  const merchantRanking = stores.map(store => ({
-    ...store,
-    stats: getStoreStats(store.slug)
-  })).sort((a, b) => b.stats.revenue - a.stats.revenue);
+  // Analytics - update as data arrives
+  const totalRevenue = (orders || []).reduce((sum, o) => sum + o.total, 0);
+  const activeMerchants = (stores || []).length;
+  const criticalComplaints = (reviews || []).filter(r => r.rating <= 2).length;
 
   const stats = [
-    { label: 'إجمالي الحجم المالي', value: `${totalRevenue.toLocaleString()} ر.ي`, icon: TrendingUp, delta: '+12%', color: '#3b82f6' },
-    { label: 'التجار النشطون', value: activeMerchants, icon: Users, delta: '+2', color: '#8b5cf6' },
-    { label: 'الطلبات الكلية', value: orders.length, icon: ShoppingBag, delta: '+54', color: '#10b981' },
-    { label: 'تحذيرات الرضا', value: criticalComplaints, icon: AlertTriangle, delta: 'مستقر', color: '#ef4444' },
+    { label: 'إجمالي الحجم المالي', value: ordersLoading ? '...' : `${totalRevenue.toLocaleString()} ر.ي`, icon: TrendingUp, delta: '+12%', color: '#3b82f6', ready: !ordersLoading },
+    { label: 'التجار النشطون', value: storesLoading ? '...' : activeMerchants, icon: Users, delta: '+2', color: '#8b5cf6', ready: !storesLoading },
+    { label: 'الطلبات الكلية', value: ordersLoading ? '...' : (orders || []).length, icon: ShoppingBag, delta: '+54', color: '#10b981', ready: !ordersLoading },
+    { label: 'تحذيرات الرضا', value: reviewsLoading ? '...' : criticalComplaints, icon: AlertTriangle, delta: 'مستقر', color: '#ef4444', ready: !reviewsLoading },
   ];
-
-  if (loading) return <div className={styles.loading}>جاري فحص حالة المنصة الشاملة...</div>;
-
 
   return (
     <div className={styles.opsRoom}>
@@ -85,13 +78,14 @@ export default function AdministrationDashboard() {
         <p>مراقبة مباشرة لأداء المتاجر والنشاط المالي في اليمن</p>
       </div>
 
+      {/* Stats cards - show immediately with progressive values */}
       <div className={styles.statGrid}>
         {stats.map((stat, i) => (
           <motion.div 
             key={i} 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
+            transition={{ delay: i * 0.08 }}
             className={styles.statCard}
           >
             <div className={styles.statIcon} style={{ background: `${stat.color}15`, color: stat.color }}>
@@ -99,54 +93,63 @@ export default function AdministrationDashboard() {
             </div>
             <div className={styles.statContent}>
               <p>{stat.label}</p>
-              <h3>{stat.value}</h3>
-              <span className={stat.delta.startsWith('+') ? styles.positive : ''}>{stat.delta}</span>
+              <h3 style={{ opacity: stat.ready ? 1 : 0.4, transition: 'opacity 0.3s' }}>{stat.value}</h3>
+              <span className={typeof stat.delta === 'string' && stat.delta.startsWith('+') ? styles.positive : ''}>{stat.delta}</span>
             </div>
           </motion.div>
         ))}
       </div>
 
       <div className={styles.mainGrid}>
-        {/* Merchant Radar */}
+        {/* Merchant Radar - loads progressively */}
         <div className={styles.header}>
           <div className={styles.titleInfo}>
             <h1 className={styles.title}>لوحة الإدارة الاستراتيجية</h1>
             <p className={styles.subtitle}>الرقابة الشاملة والتحليل المتقدم لمنصة بايرز</p>
           </div>
           <div className={styles.radarList}>
-             {merchantRanking.map((merchant, i) => (
-               <div key={merchant.slug} className={styles.radarItem}>
-                 <div className={styles.merchantInfo}>
-                    <img src={merchant.logo} alt={merchant.name} />
-                    <div>
-                      <h4>{merchant.name}</h4>
-                      <span>{merchant.slug}</span>
-                    </div>
-                 </div>
-                 <div className={styles.merchantStats}>
-                    <div className={styles.mStat}>
-                       <small>المبيعات</small>
-                       <p>{merchant.stats.revenue.toLocaleString()} ر.ي</p>
-                    </div>
-                    <div className={styles.mStat}>
-                       <small>الرضا</small>
-                       <p className={merchant.stats.avgRating < 3 ? styles.bad : styles.good}>
-                         <Star size={12} fill="currentColor" /> {merchant.stats.avgRating.toFixed(1)}
-                       </p>
-                    </div>
-                    <div className={styles.mStat}>
-                       <small>الشكاوى</small>
-                       <p className={merchant.stats.complaints > 0 ? styles.alert : ''}>
-                         {merchant.stats.complaints}
-                       </p>
-                    </div>
-                 </div>
-               </div>
-             ))}
+            {(storesLoading || ordersLoading) && visibleMerchants.length === 0 && (
+              <SectionLoader label="جاري تحميل بيانات المتاجر..." />
+            )}
+            {visibleMerchants.map((merchant, i) => (
+              <motion.div 
+                key={merchant.slug} 
+                className={styles.radarItem}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className={styles.merchantInfo}>
+                   <img src={merchant.logo} alt={merchant.name} />
+                   <div>
+                     <h4>{merchant.name}</h4>
+                     <span>{merchant.slug}</span>
+                   </div>
+                </div>
+                <div className={styles.merchantStats}>
+                   <div className={styles.mStat}>
+                      <small>المبيعات</small>
+                      <p>{merchant.stats.revenue.toLocaleString()} ر.ي</p>
+                   </div>
+                   <div className={styles.mStat}>
+                      <small>الرضا</small>
+                      <p className={merchant.stats.avgRating < 3 ? styles.bad : styles.good}>
+                        <Star size={12} fill="currentColor" /> {merchant.stats.avgRating.toFixed(1)}
+                      </p>
+                   </div>
+                   <div className={styles.mStat}>
+                      <small>الشكاوى</small>
+                      <p className={merchant.stats.complaints > 0 ? styles.alert : ''}>
+                        {merchant.stats.complaints}
+                      </p>
+                   </div>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
 
-        {/* Global Map & Pulse */}
+        {/* Global Map & Complaints - loads progressively */}
         <div className={styles.mapSection}>
           <div className={styles.sectionHeader}>
             <h3>توزيع النشاط الاستراتيجي</h3>
@@ -166,19 +169,38 @@ export default function AdministrationDashboard() {
           <div className={styles.complaintsBox}>
             <h4>أحدث تقارير رصد الشكاوى</h4>
             <div className={styles.complaintList}>
-              {reviews.filter(r => r.rating <= 3).slice(0, 3).map(r => (
-                <div key={r.id} className={styles.complaintItem}>
+              {reviewsLoading && visibleComplaints.length === 0 && (
+                <SectionLoader label="جاري تحميل الشكاوى..." />
+              )}
+              {visibleComplaints.map(r => (
+                <motion.div 
+                  key={r.id} 
+                  className={styles.complaintItem}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.25 }}
+                >
                    <MessageSquareWarning size={16} color="#ef4444" />
                    <div className={styles.compDetail}>
                       <p><strong>{r.customerName}</strong>: {r.comment}</p>
                       <small>متجر: {r.storeSlug} • {new Date(r.date).toLocaleDateString()}</small>
                    </div>
-                </div>
+                </motion.div>
               ))}
+              {!reviewsLoading && visibleComplaints.length === 0 && (
+                <p style={{ padding: '1rem', color: '#10b981', textAlign: 'center' }}>لا توجد شكاوى حالياً ✅</p>
+              )}
             </div>
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }

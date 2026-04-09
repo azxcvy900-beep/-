@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import Link from 'next/link';
 import { 
@@ -14,44 +14,39 @@ import {
   Users,
   Wallet,
   Lock,
-  ChevronLeft
+  ChevronLeft,
+  Loader2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { getStoreOrders, getStoreProducts, Product, getStoreInfo, StoreInfo } from '@/lib/api';
 import { Order } from '@/lib/store';
+import { useStreamingFetch, useProgressiveLoad } from '@/lib/hooks';
 import styles from './dashboard.module.css';
+
+function SectionLoader({ label }: { label: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '1rem', color: '#64748b', fontSize: '0.85rem' }}>
+      <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
+      {label}
+    </div>
+  );
+}
 
 export default function MerchantDashboard() {
   const t = useTranslations('Admin');
   const locale = useLocale();
   
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [storeInfo, setStoreInfo] = useState<StoreInfo | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Each data source loads INDEPENDENTLY
+  const { data: orders, loading: ordersLoading } = useStreamingFetch(() => getStoreOrders('demo'), []);
+  const { data: products, loading: productsLoading } = useStreamingFetch(() => getStoreProducts('demo'), []);
+  const { data: storeInfo, loading: infoLoading } = useStreamingFetch(() => getStoreInfo('demo'), []);
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const [ordersData, productsData, infoData] = await Promise.all([
-          getStoreOrders('demo'),
-          getStoreProducts('demo'),
-          getStoreInfo('demo')
-        ]);
-        setOrders(ordersData);
-        setProducts(productsData);
-        setStoreInfo(infoData);
-      } catch (error) {
-        console.error("Dashboard data load error:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadData();
-  }, []);
+  // Progressive loading for visible orders
+  const recentOrders = React.useMemo(() => (orders || []).slice(0, 6), [orders]);
+  const { visibleItems: visibleOrders } = useProgressiveLoad(recentOrders, 2, 200);
 
-  // Analytic Calculations
-  const activeOrders = orders.filter(o => o.status !== 'cancelled');
+  // Analytic Calculations - update as data arrives
+  const activeOrders = (orders || []).filter(o => o.status !== 'cancelled');
   const totalSalesYER = activeOrders.reduce((sum, order) => sum + order.total, 0);
   const sarRate = storeInfo?.currencySettings?.rates?.SAR || 140;
   const totalSalesSAR = totalSalesYER / sarRate;
@@ -63,43 +58,46 @@ export default function MerchantDashboard() {
   const confirmedFundsYER = confirmedOrders.reduce((sum, order) => sum + order.total, 0);
 
   const lowStockThreshold = 5;
-  const lowStockProducts = products.filter(p => p.stockCount > 0 && p.stockCount <= lowStockThreshold);
-  const outOfStockCount = products.filter(p => p.stockCount === 0).length;
+  const lowStockProducts = (products || []).filter(p => p.stockCount > 0 && p.stockCount <= lowStockThreshold);
+  const outOfStockCount = (products || []).filter(p => p.stockCount === 0).length;
+
+  const { visibleItems: visibleLowStock } = useProgressiveLoad(lowStockProducts, 3, 200);
+  const { visibleItems: visibleLocked } = useProgressiveLoad(lockedOrders.slice(0, 5), 2, 200);
 
   const stats = [
     { 
       label: 'إجمالي المبيعات (YER)', 
-      value: `${totalSalesYER.toLocaleString()} ر.ي`, 
-      subValue: `~${totalSalesSAR.toLocaleString(undefined, { maximumFractionDigits: 0 })} ر.س`,
+      value: ordersLoading ? '...' : `${totalSalesYER.toLocaleString()} ر.ي`, 
+      subValue: ordersLoading ? '' : `~${totalSalesSAR.toLocaleString(undefined, { maximumFractionDigits: 0 })} ر.س`,
       icon: TrendingUp, 
-      color: '#10b981'
+      color: '#10b981',
+      ready: !ordersLoading
     },
     { 
       label: 'مبالغ مجمّدة', 
-      value: `${lockedFundsYER.toLocaleString()} ر.ي`, 
+      value: ordersLoading ? '...' : `${lockedFundsYER.toLocaleString()} ر.ي`, 
       subValue: 'بانتظار تأكيد الحوالات',
       icon: Lock, 
-      color: '#f59e0b'
+      color: '#f59e0b',
+      ready: !ordersLoading
     },
     { 
       label: 'مبالغ مؤكدة', 
-      value: `${confirmedFundsYER.toLocaleString()} ر.ي`, 
+      value: ordersLoading ? '...' : `${confirmedFundsYER.toLocaleString()} ر.ي`, 
       subValue: 'تم التأكد والتحصيل',
       icon: CheckCircle2, 
-      color: '#3b82f6'
+      color: '#3b82f6',
+      ready: !ordersLoading
     },
     { 
       label: 'تحتاج تنبيه', 
-      value: lowStockProducts.length + outOfStockCount, 
-      subValue: `${outOfStockCount} نفدت تماماً`,
+      value: productsLoading ? '...' : lowStockProducts.length + outOfStockCount, 
+      subValue: productsLoading ? '' : `${outOfStockCount} نفدت تماماً`,
       icon: AlertCircle, 
-      color: '#ef4444'
+      color: '#ef4444',
+      ready: !productsLoading
     },
   ];
-
-  if (loading) {
-    return <div className={styles.loadingContainer}>جاري تحميل التحليلات...</div>;
-  }
 
   return (
     <motion.div 
@@ -117,34 +115,50 @@ export default function MerchantDashboard() {
         </Link>
       </div>
 
+      {/* Stats - show immediately, values stream in */}
       <div className={styles.statGrid}>
         {stats.map((stat, i) => (
-          <div key={i} className={styles.statCard}>
+          <motion.div 
+            key={i} 
+            className={styles.statCard}
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.08 }}
+          >
             <div className={styles.statInfo}>
               <p className={styles.statLabel}>{stat.label}</p>
-              <h2 className={styles.statValue}>{stat.value}</h2>
+              <h2 className={styles.statValue} style={{ opacity: stat.ready ? 1 : 0.3, transition: 'opacity 0.3s' }}>{stat.value}</h2>
               <p className={styles.statSub}>{stat.subValue}</p>
             </div>
             <div className={styles.statIcon} style={{ backgroundColor: `${stat.color}15`, color: stat.color }}>
               <stat.icon size={26} />
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
 
       <div className={styles.mainGrid}>
+        {/* Low Stock Alerts - stream progressively */}
         <div className={styles.actionSection}>
           <h3 className={styles.sectionTitle}>تنبيهات المخزون ⚠️</h3>
           <div className={styles.lowStockList}>
-            {lowStockProducts.length > 0 ? (
-              lowStockProducts.map(p => (
-                <div key={p.id} className={styles.stockItem}>
+            {productsLoading ? (
+              <SectionLoader label="جاري فحص المخزون..." />
+            ) : visibleLowStock.length > 0 ? (
+              visibleLowStock.map(p => (
+                <motion.div 
+                  key={p.id} 
+                  className={styles.stockItem}
+                  initial={{ opacity: 0, x: -15 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.25 }}
+                >
                   <img src={p.image} alt={p.name} />
                   <div className={styles.stockInfo}>
                     <h4>{p.name}</h4>
                     <p>المتبقي: <span className={styles.warningText}>{p.stockCount} قطع</span></p>
                   </div>
-                </div>
+                </motion.div>
               ))
             ) : (
               <p className={styles.empty}>جميع المنتجات متوفرة بكثرة ✅</p>
@@ -152,24 +166,38 @@ export default function MerchantDashboard() {
           </div>
         </div>
 
+        {/* Locked funds - stream progressively */}
         <div className={styles.topProducts}>
           <h3 className={styles.sectionTitle}>مبالغ بانتظار التأكيد 💰</h3>
           <div className={styles.productList}>
-            {lockedOrders.slice(0, 5).map((order) => (
-              <div key={order.id} className={styles.productItem}>
-                <div className={styles.prodInfo}>
-                  <h4>#{order.id.slice(-6)}</h4>
-                  <p>{order.address.fullName}</p>
-                </div>
-                <div className={styles.prodPrice}>
-                  {order.total.toLocaleString()} ر.ي
-                </div>
-              </div>
-            ))}
+            {ordersLoading ? (
+              <SectionLoader label="جاري تحميل المعلقات..." />
+            ) : visibleLocked.length > 0 ? (
+              visibleLocked.map((order) => (
+                <motion.div 
+                  key={order.id} 
+                  className={styles.productItem}
+                  initial={{ opacity: 0, x: 15 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.25 }}
+                >
+                  <div className={styles.prodInfo}>
+                    <h4>#{order.id.slice(-6)}</h4>
+                    <p>{order.address.fullName}</p>
+                  </div>
+                  <div className={styles.prodPrice}>
+                    {order.total.toLocaleString()} ر.ي
+                  </div>
+                </motion.div>
+              ))
+            ) : (
+              <p className={styles.empty}>لا توجد مبالغ معلقة ✅</p>
+            )}
           </div>
         </div>
       </div>
 
+      {/* Recent orders - stream progressively */}
       <div className={styles.section}>
         <div className={styles.sectionHeader}>
           <h3 className={styles.sectionTitle}>أحدث الطلبات القادمة 📦</h3>
@@ -190,8 +218,16 @@ export default function MerchantDashboard() {
               </tr>
             </thead>
             <tbody>
-              {orders.slice(0, 6).map((order) => (
-                <tr key={order.id}>
+              {ordersLoading && visibleOrders.length === 0 && (
+                <tr><td colSpan={5}><SectionLoader label="جاري تحميل الطلبات..." /></td></tr>
+              )}
+              {visibleOrders.map((order) => (
+                <motion.tr 
+                  key={order.id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.2 }}
+                >
                   <td><span className={styles.orderId}>#{order.id.slice(-6)}</span></td>
                   <td>{order.address.fullName}</td>
                   <td>
@@ -205,12 +241,19 @@ export default function MerchantDashboard() {
                       معالجة
                     </Link>
                   </td>
-                </tr>
+                </motion.tr>
               ))}
             </tbody>
           </table>
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </motion.div>
   );
 }
