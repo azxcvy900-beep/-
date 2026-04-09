@@ -63,7 +63,7 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
   }, [storeInfo, setRates, setManualRate, setShippingFee]);
 
   const filteredProducts = useMemo(() => {
-    return (products || []).filter(p => {
+    return (products || []).filter((p: Product) => {
       const matchesCategory = activeCategory === 'all' || p.category === activeCategory;
       const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                            (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -121,7 +121,7 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
                     <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> جاري تحميل الأقسام...
                   </div>
                 ) : visibleCategories.length > 0 ? (
-                  visibleCategories.map((cat) => (
+                  visibleCategories.map((cat: Category) => (
                     <motion.div 
                       key={cat.id}
                       className={styles.categoryCard}
@@ -141,7 +141,7 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
                       </div>
                       <h3 className={styles.categoryCardName}>{cat.name}</h3>
                       <span className={styles.itemCount}>
-                        {(products || []).filter(p => p.category === cat.name).length} منتج
+                        {(products || []).filter((p: Product) => p.category === cat.name).length} منتج
                       </span>
                     </motion.div>
                   ))
@@ -180,7 +180,7 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
 
               {/* Products rendered progressively */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1rem' }}>
-                {visibleProducts.map((p) => (
+                {visibleProducts.map((p: Product) => (
                   <motion.div
                     key={p.id}
                     initial={{ opacity: 0, y: 15 }}
