@@ -344,7 +344,7 @@ export default function MerchantProducts() {
               {productsLoading && visibleProducts.length === 0 ? (
                 <TableSkeleton rows={5} />
               ) : visibleProducts.length > 0 ? (
-                visibleProducts.map((p) => (
+                visibleProducts.map((p: Product) => (
                   <motion.tr 
                     key={p.id}
                     initial={{ opacity: 0 }}

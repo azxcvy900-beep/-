@@ -131,7 +131,7 @@ export default function MerchantCoupons() {
         <div style={{ textAlign: 'center', padding: '4rem' }}>جاري التحميل...</div>
       ) : visibleCoupons.length > 0 ? (
         <div className={styles.couponsGrid}>
-          {visibleCoupons.map((coupon) => (
+          {visibleCoupons.map((coupon: Coupon) => (
             <motion.div 
               key={coupon.id}
               initial={{ opacity: 0, scale: 0.95 }}
@@ -235,7 +235,7 @@ export default function MerchantCoupons() {
                     <select 
                       className={styles.input}
                       value={formData.type}
-                      onChange={e => setFormData({...formData, type: e.target.value as any})}
+                      onChange={e => setFormData({...formData, type: e.target.value as 'percent' | 'fixed'})}
                     >
                       <option value="percent">نسبة مئوية (%)</option>
                       <option value="fixed">مبلغ ثابت (ر.ي)</option>

@@ -153,7 +153,7 @@ export default function AdminCategories() {
         </div>
       ) : (
         <div className={styles.categoriesGrid}>
-          {visibleCategories.map((cat) => (
+          {visibleCategories.map((cat: Category) => (
             <motion.div 
               key={cat.id} 
               className={styles.categoryCard}

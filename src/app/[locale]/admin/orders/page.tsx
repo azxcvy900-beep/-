@@ -283,7 +283,7 @@ export default function MerchantOrders() {
           <TableSkeleton rows={3} />
         ) : visibleOrders.length > 0 ? (
           <div className={styles.ordersList}>
-            {visibleOrders.map((order) => (
+            {visibleOrders.map((order: Order) => (
               <motion.div 
                 key={order.id}
                 initial={{ opacity: 0, y: 10 }}
