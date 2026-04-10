@@ -394,6 +394,18 @@ export async function deleteCoupon(storeSlug: string, id: string): Promise<void>
   await deleteDoc(couponRef);
 }
 
+export async function validateCoupon(storeSlug: string, code: string, totalAmount?: number): Promise<Coupon | null> {
+  try {
+    const couponsRef = collection(db, 'stores', storeSlug, 'coupons');
+    const q = query(couponsRef, where('code', '==', code.toUpperCase()), where('isActive', '==', true));
+    const querySnapshot = await getDocs(q);
+    if (querySnapshot.empty) return null;
+    const coupon = querySnapshot.docs[0].data() as Coupon;
+    
+    if (totalAmount !== undefined && coupon.minOrderAmount && totalAmount < coupon.minOrderAmount) {
+      return null;
+    }
+    
     return coupon;
   } catch (error) {
     return null;
