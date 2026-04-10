@@ -9,7 +9,7 @@ import SearchBar from '@/components/shared/SearchBar/SearchBar';
 import { getStoreProducts, getStoreCategories, getStoreInfo, Product, Category } from '@/lib/api';
 import { useCartStore } from '@/lib/store';
 import { useStreamingFetch, useProgressiveLoad } from '@/lib/hooks';
-import { ArrowLeft, Grid, Loader2 } from 'lucide-react';
+import { ArrowLeft, Grid, Loader2, Package } from 'lucide-react';
 import styles from './page.module.css';
 
 const containerVariants = {
