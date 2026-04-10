@@ -15,7 +15,7 @@ import {
   onSnapshot
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { Order } from './store';
+export type { Order } from './store';
 import { dataCache } from './cache';
 
 export interface ProductOption {
