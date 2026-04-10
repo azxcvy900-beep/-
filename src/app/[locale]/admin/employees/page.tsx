@@ -98,13 +98,13 @@ export default function EmployeesPage() {
         <div className={styles.titleInfo}>
           <Users size={32} className={styles.icon} />
           <div>
-            <h1>إدارة فريق العمل</h1>
-            <p>أضف موظفيك وحدد صلاحياتهم بدقة</p>
+            <h1>{t('employees.title')}</h1>
+            <p>{t('employees.subtitle')}</p>
           </div>
         </div>
         <button className={styles.addBtn} onClick={() => setIsAdding(true)}>
           <Plus size={20} />
-          إضافة موظف
+          {t('employees.addNew')}
         </button>
       </header>
 
@@ -118,14 +118,14 @@ export default function EmployeesPage() {
           >
             <div className={styles.modal}>
               <div className={styles.modalHeader}>
-                <h2>إضافة موظف جديد</h2>
+                <h2>{t('employees.addNew')}</h2>
                 <button onClick={() => setIsAdding(false)} className={styles.closeBtn}>×</button>
               </div>
               
               <form onSubmit={handleSubmit} className={styles.form}>
                 <div className={styles.grid}>
                    <div className={styles.inputGroup}>
-                      <label>اسم المستخدم (بالإنجليزي)</label>
+                      <label>{t('employees.username')}</label>
                       <div className={styles.inputWrapper}>
                         <UserIcon size={18} />
                         <input 
@@ -137,7 +137,7 @@ export default function EmployeesPage() {
                       </div>
                    </div>
                    <div className={styles.inputGroup}>
-                      <label>البريد الإلكتروني</label>
+                      <label>{t('employees.email')}</label>
                       <div className={styles.inputWrapper}>
                         <Mail size={18} />
                         <input 
@@ -150,7 +150,7 @@ export default function EmployeesPage() {
                       </div>
                    </div>
                    <div className={styles.inputGroup}>
-                      <label>كلمة المرور</label>
+                      <label>{t('employees.password')}</label>
                       <div className={styles.inputWrapper}>
                         <Lock size={18} />
                         <input 
@@ -165,7 +165,7 @@ export default function EmployeesPage() {
                 </div>
 
                 <div className={styles.permissionsArea}>
-                   <h3>الصلاحيات الممنوحة</h3>
+                   <h3>{t('employees.permissions')}</h3>
                    <div className={styles.permissionsGrid}>
                       {AVAILABLE_PERMISSIONS.map(p => (
                         <div 
@@ -188,9 +188,9 @@ export default function EmployeesPage() {
                 {error && <div className={styles.error}>{error}</div>}
 
                 <div className={styles.actions}>
-                  <button type="button" onClick={() => setIsAdding(false)} className={styles.cancelBtn}>إلغاء</button>
+                  <button type="button" onClick={() => setIsAdding(false)} className={styles.cancelBtn}>{t('employees.cancel')}</button>
                   <button type="submit" disabled={formLoading} className={styles.saveBtn}>
-                    {formLoading ? 'جاري الحفظ...' : 'حفظ الموظف'}
+                    {formLoading ? '...' : t('employees.save')}
                   </button>
                 </div>
               </form>
@@ -201,11 +201,11 @@ export default function EmployeesPage() {
 
       <div className={styles.list}>
         {loading ? (
-          <div className={styles.loading}>جاري تحميل قائمة الموظفين...</div>
+          <div className={styles.loading}>...</div>
         ) : employees.length === 0 ? (
           <div className={styles.empty}>
             <UsersRound size={64} />
-            <p>لا يوجد موظفون حالياً في متجرك</p>
+            <p>{t('employees.noEmployees')}</p>
           </div>
         ) : (
           <div className={styles.employeesGrid}>

@@ -78,8 +78,8 @@ export interface PaymentProof {
   storeSlug: string;
   merchantId: string;
   amount: number;
-  planRequested: 'pro' | 'business';
-  screenshot: string;
+  plan: 'pro' | 'business';
+  imageUrl: string;
   date: string;
   status: 'pending' | 'approved' | 'rejected';
 }
@@ -608,6 +608,18 @@ export async function incrementStoreOrderCount(slug: string): Promise<void> {
  * Submit a new order to Firestore and update customer CRM.
  */
 export async function submitOrder(order: Order, storeSlug: string): Promise<void> {
+  // 0. Final Inventory Guard: Verify all items are in stock
+  for (const item of order.items) {
+    const productRef = doc(db, 'products', item.id);
+    const productSnap = await getDoc(productRef);
+    if (!productSnap.exists()) continue;
+    
+    const prodData = productSnap.data();
+    if ((prodData.stockCount || 0) < item.quantity) {
+      throw new Error(`out_of_stock:${item.name}`);
+    }
+  }
+
   const orderRef = doc(db, 'orders', order.id);
   
   // 1. Save order to Firestore
@@ -625,8 +637,24 @@ export async function submitOrder(order: Order, storeSlug: string): Promise<void
     phone: order.address.phone,
     storeSlug: storeSlug,
     lastOrderDate: order.date,
-    // totalSpent will be updated in saveCustomerInfo
   });
+
+  // 4. Automated Inventory Decrement
+  for (const item of order.items) {
+    try {
+      const productRef = doc(db, 'products', item.id);
+      const productSnap = await getDoc(productRef);
+      if (productSnap.exists()) {
+        const prodData = productSnap.data();
+        const currentStock = prodData.stockCount || 0;
+        // Decrement stock, but don't go below 0
+        const newStock = Math.max(0, currentStock - item.quantity);
+        await updateDoc(productRef, { stockCount: newStock });
+      }
+    } catch (err) {
+      console.error(`Failed to decrement stock for item ${item.id}:`, err);
+    }
+  }
 }
 
 export async function submitPaymentProof(proof: Omit<PaymentProof, 'id' | 'date' | 'status'>): Promise<string> {
@@ -955,4 +983,47 @@ export async function saveCustomerInfo(customerData: Omit<Customer, 'totalOrders
     };
     await setDoc(customerRef, newCustomer);
   }
+}
+
+/**
+ * Get all pending payment proofs for platform manager.
+ */
+export async function getPendingPayments(): Promise<PaymentProof[]> {
+  try {
+    const proofsCol = collection(db, 'platform', 'payments', 'proofs');
+    const q = query(proofsCol, where('status', '==', 'pending'));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => doc.data() as PaymentProof);
+  } catch (error) {
+    console.error("Error fetching proofs:", error);
+    return [];
+  }
+}
+
+/**
+ * Approve a merchant's subscription.
+ */
+export async function approveStoreSubscription(proofId: string, storeSlug: string, plan: 'pro' | 'business'): Promise<void> {
+  const proofRef = doc(db, 'platform', 'payments', 'proofs', proofId);
+  const storeRef = doc(db, 'stores', storeSlug);
+
+  // 1. Update payment status
+  await updateDoc(proofRef, { status: 'approved' });
+
+  // 2. Update store plan and status
+  await updateDoc(storeRef, {
+    subscriptionStatus: 'active',
+    planType: plan
+  });
+}
+
+/**
+ * Reject a merchant's subscription proof.
+ */
+export async function rejectStoreSubscription(proofId: string, storeSlug: string): Promise<void> {
+  const proofRef = doc(db, 'platform', 'payments', 'proofs', proofId);
+  const storeRef = doc(db, 'stores', storeSlug);
+
+  await updateDoc(proofRef, { status: 'rejected' });
+  await updateDoc(storeRef, { subscriptionStatus: 'rejected' });
 }

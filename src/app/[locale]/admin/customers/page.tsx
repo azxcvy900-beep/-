@@ -54,8 +54,8 @@ export default function CustomersPage() {
         <div className={styles.titleInfo}>
           <UsersRound size={32} className={styles.icon} />
           <div>
-            <h1>قاعدة بيانات العملاء</h1>
-            <p>تتبع سلوك وتفاعل عملائك مع متجرك</p>
+            <h1>{t('customers.title')}</h1>
+            <p>{t('customers.subtitle')}</p>
           </div>
         </div>
       </header>
@@ -65,7 +65,7 @@ export default function CustomersPage() {
           <Search size={20} />
           <input 
             type="text" 
-            placeholder="البحث بالاسم، الهاتف، أو البريد..." 
+            placeholder={t('customers.searchPlaceholder')} 
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
           />
@@ -80,7 +80,7 @@ export default function CustomersPage() {
 
       <div className={styles.listArea}>
         {loading ? (
-          <div className={styles.loading}>جاري تحميل قائمة العملاء...</div>
+          <div className={styles.loading}>...</div>
         ) : filteredCustomers.length === 0 ? (
           <div className={styles.empty}>
              <Search size={48} />
@@ -93,9 +93,9 @@ export default function CustomersPage() {
                 <tr>
                   <th>العميل</th>
                   <th>معلومات التواصل</th>
-                  <th>عدد الطلبات</th>
-                  <th>إجمالي المشتريات</th>
-                  <th>آخر طلب</th>
+                  <th>{t('customers.totalOrders')}</th>
+                  <th>{t('customers.totalSpent')}</th>
+                  <th>{t('customers.lastOrder')}</th>
                   <th>إجراءات</th>
                 </tr>
               </thead>

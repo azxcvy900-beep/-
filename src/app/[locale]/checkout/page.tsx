@@ -259,9 +259,14 @@ export default function CheckoutPage() {
       useCartStore.getState().addOrder(newOrder);
       clearCart();
       router.push(`/${locale}/order-success`);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Order submission failed:", error);
-      alert("حدث خطأ أثناء إرسال الطلب، يرجى المحاولة مرة أخرى.");
+      if (error.message?.startsWith('out_of_stock:')) {
+        const productName = error.message.split(':')[1];
+        alert(`عذراً، نفدت كمية المنتج (${productName}) حالاً. يرجى تعديل السلة.`);
+      } else {
+        alert("حدث خطأ أثناء إرسال الطلب، يرجى المحاولة مرة أخرى.");
+      }
     } finally {
       setIsSubmitting(false);
     }
