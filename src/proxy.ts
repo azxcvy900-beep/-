@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import createMiddleware from 'next-intl/middleware';
+import { routing } from './i18n/routing';
+
+const intlMiddleware = createMiddleware(routing);
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -7,7 +11,7 @@ export function proxy(request: NextRequest) {
   // Extract role from cookies
   const authRole = request.cookies.get('buyers-auth-role')?.value;
   
-  // Define locales (should match next-intl config)
+  // Define locales
   const locales = ['ar', 'en'];
   const localePattern = `^/(${locales.join('|')})`;
   
@@ -37,16 +41,15 @@ export function proxy(request: NextRequest) {
     }
   }
 
-  return NextResponse.next();
+  // 3. Handle Locale Redirection for other routes (Root, Store, etc.)
+  return intlMiddleware(request);
 }
 
-// Optimization: Apply proxy only to management routes
+// Optimization: Apply proxy to management routes and root/locales
 export const config = {
   matcher: [
-    '/ar/manager/:path*', 
-    '/en/manager/:path*',
-    '/ar/admin/:path*',
-    '/en/admin/:path*',
+    '/',
+    '/(ar|en)/:path*',
     '/manager/:path*',
     '/admin/:path*'
   ],
