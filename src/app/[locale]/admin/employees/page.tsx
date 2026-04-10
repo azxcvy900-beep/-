@@ -13,7 +13,8 @@ import {
   CheckCircle2,
   Lock,
   Mail,
-  User as UserIcon
+  User as UserIcon,
+  UsersRound
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSessionStore } from '@/lib/session-store';
