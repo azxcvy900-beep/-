@@ -16,7 +16,8 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useLocale } from 'next-intl';
-import { updateStoreInfo } from '@/lib/api';
+import { updateStoreInfo, updateMerchant } from '@/lib/api';
+import { useSessionStore } from '@/lib/session-store';
 import styles from './setup.module.css';
 
 const steps = [
@@ -30,6 +31,7 @@ export default function MerchantSetupWizard() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const locale = useLocale();
+  const { username, setStoreSlug } = useSessionStore();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -46,15 +48,21 @@ export default function MerchantSetupWizard() {
   const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 0));
 
   const handleFinish = async () => {
+    if (!username) return;
     setLoading(true);
+    
     try {
-      // Logic to save the new store to Firestore
-      // Using existing updateStoreInfo for now as a base (it does setDoc with merge)
-      await updateStoreInfo(formData.slug, {
+      const slug = formData.slug.trim().toLowerCase().replace(/\s+/g, '-');
+      
+      // 1. Create/Update Store Record
+      await updateStoreInfo(slug, {
         name: formData.name,
         description: formData.description,
         phone: formData.whatsapp,
         primaryColor: formData.primaryColor,
+        merchantId: username, // Link store to merchant username
+        subscriptionStatus: 'active', // Default for new signups
+        planType: 'free',
         currencySettings: {
           default: formData.currency,
           rates: { YER: 530, SAR: 140 }
@@ -65,10 +73,17 @@ export default function MerchantSetupWizard() {
         }
       });
       
+      // 2. Link store to Merchant Profile
+      await updateMerchant(username, { storeSlug: slug });
+      
+      // 3. Update Session State
+      setStoreSlug(slug);
+
       // Success! Redirect to dashboard
       router.push(`/${locale}/admin/dashboard`);
     } catch (error) {
       console.error("Setup error:", error);
+      alert("حدث خطأ أثناء إعداد المتجر. يرجى المحاولة مرة أخرى.");
     } finally {
       setLoading(false);
     }

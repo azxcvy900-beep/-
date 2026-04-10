@@ -158,6 +158,68 @@
   line-height: 1.6;
 }
 
+/* Auth Tabs */
+.tabs {
+  display: flex;
+  margin-bottom: 2rem;
+  background: rgba(15, 23, 42, 0.4);
+  padding: 0.25rem;
+  border-radius: 16px;
+  position: relative;
+  gap: 0.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.tab {
+  flex: 1;
+  padding: 0.85rem;
+  border: none;
+  background: none;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #64748b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  transition: all 0.3s;
+  z-index: 1;
+}
+
+.activeTab {
+  color: #e2e8f0;
+}
+
+.tabUnderline {
+  position: absolute;
+  top: 0.25rem;
+  bottom: 0.25rem;
+  left: 0.25rem;
+  width: calc(50% - 0.25rem);
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.successMsg {
+  background: rgba(16, 185, 129, 0.1);
+  color: #34d399;
+  padding: 1rem;
+  border-radius: 14px;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  text-align: right;
+}
+
 .form {
   display: flex;
   flex-direction: column;

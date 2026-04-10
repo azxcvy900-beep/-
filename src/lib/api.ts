@@ -771,4 +771,73 @@ export async function seedDatabase(): Promise<void> {
 
   await batch.commit();
 }
+// --- MERCHANT IDENTITY API ---
 
+export interface Merchant {
+  uid: string;
+  username: string;
+  password?: string; // Stored as plain for MVP, recommended hashing for production
+  email?: string;
+  storeSlug?: string;
+  createdAt: string;
+}
+
+/**
+ * Register a new merchant in Firestore.
+ */
+export async function registerMerchant(merchant: Omit<Merchant, 'uid' | 'createdAt'>): Promise<string> {
+  const isAvailable = await checkUsernameAvailability(merchant.username);
+  if (!isAvailable) throw new Error('username_taken');
+
+  const uid = `mcht_${Date.now()}`;
+  const newMerchant: Merchant = {
+    ...merchant,
+    uid,
+    createdAt: new Date().toISOString()
+  };
+
+  await setDoc(doc(db, 'merchants', merchant.username.toLowerCase()), newMerchant);
+  return uid;
+}
+
+/**
+ * Validate merchant credentials against Firestore.
+ */
+export async function loginMerchant(username: string, password: string): Promise<Merchant | null> {
+  try {
+    const merchantDoc = doc(db, 'merchants', username.toLowerCase());
+    const merchantSnap = await getDoc(merchantDoc);
+
+    if (merchantSnap.exists()) {
+      const data = merchantSnap.data() as Merchant;
+      if (data.password === password) {
+        return data;
+      }
+    }
+    return null;
+  } catch (error) {
+    console.error("Login error:", error);
+    return null;
+  }
+}
+
+/**
+ * Check if a username is already taken.
+ */
+export async function checkUsernameAvailability(username: string): Promise<boolean> {
+  try {
+    const merchantDoc = doc(db, 'merchants', username.toLowerCase());
+    const merchantSnap = await getDoc(merchantDoc);
+    return !merchantSnap.exists();
+  } catch (error) {
+    return false;
+  }
+}
+
+/**
+ * Update merchant profile (e.g. link a storeSlug after setup).
+ */
+export async function updateMerchant(username: string, updates: Partial<Merchant>): Promise<void> {
+  const merchantRef = doc(db, 'merchants', username.toLowerCase());
+  await updateDoc(merchantRef, updates);
+}

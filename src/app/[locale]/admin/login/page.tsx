@@ -3,10 +3,24 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { User, Lock, LogIn, Store, AlertCircle, ShieldAlert, Sparkles } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  User, 
+  Lock, 
+  LogIn, 
+  Store, 
+  AlertCircle, 
+  ShieldAlert, 
+  Sparkles, 
+  UserPlus, 
+  CheckCircle2,
+  ChevronRight
+} from 'lucide-react';
 import { useSessionStore } from '@/lib/session-store';
+import { registerMerchant, checkUsernameAvailability } from '@/lib/api';
 import styles from './login.module.css';
+
+type AuthMode = 'login' | 'register';
 
 export default function AdminLoginPage() {
   const t = useTranslations('Admin');
@@ -14,15 +28,19 @@ export default function AdminLoginPage() {
   const router = useRouter();
   const { isLoggedIn, role, loginAsMerchant } = useSessionStore();
 
+  const [mode, setMode] = useState<AuthMode>('login');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
-  // If already logged in as merchant, redirect to dashboard
+  // If already logged in as merchant, redirect to dashboard or setup
   useEffect(() => {
     if (isLoggedIn && role === 'merchant') {
-      router.replace(`/${locale}/admin/dashboard`);
+       // Check if storeSlug exists, if not, they might need setup (logic handled via routing/setup check)
+       router.replace(`/${locale}/admin/dashboard`);
     }
   }, [isLoggedIn, role, router, locale]);
 
@@ -30,22 +48,59 @@ export default function AdminLoginPage() {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccess('');
 
-    // Small delay for UX feel
-    await new Promise(resolve => setTimeout(resolve, 600));
-
-    const success = loginAsMerchant(username, password);
-    if (success) {
-      router.push(`/${locale}/admin/dashboard`);
-    } else {
-      setError('اسم المستخدم أو كلمة المرور غير صحيحة.');
+    try {
+      const success = await loginAsMerchant(username, password);
+      if (success) {
+        setSuccess('تم تسجيل الدخول بنجاح! جاري التوجيه...');
+        setTimeout(() => router.push(`/${locale}/admin/dashboard`), 800);
+      } else {
+        setError('اسم المستخدم أو كلمة المرور غير صحيحة.');
+      }
+    } catch (err) {
+      setError('حدث خطأ أثناء الاتصال بالخادم.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setSuccess('');
+
+    if (password !== confirmPassword) {
+      setError('كلمتا المرور غير متطابقتين.');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // 1. Create merchant account
+      await registerMerchant({ username, password });
+      
+      // 2. Auto login
+      await loginAsMerchant(username, password);
+      
+      setSuccess('تم إنشاء الحساب بنجاح! لنبدأ بتجهيز متجرك...');
+      
+      // 3. Redirect to Setup Wizard
+      setTimeout(() => router.push(`/${locale}/admin/setup`), 1500);
+    } catch (err: any) {
+      if (err.message === 'username_taken') {
+        setError('اسم المستخدم هذا محجوز بالفعل. اختر اسماً آخر.');
+      } else {
+        setError('حدث خطأ أثناء إنشاء الحساب.');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className={styles.loginContainer}>
-      {/* Floating particles background */}
       <div className={styles.bgParticles}>
         <div className={styles.particle} style={{ top: '10%', left: '15%', animationDelay: '0s' }} />
         <div className={styles.particle} style={{ top: '60%', left: '80%', animationDelay: '1.5s' }} />
@@ -69,31 +124,73 @@ export default function AdminLoginPage() {
             <Store size={40} />
           </motion.div>
           <div className={styles.logo}>
-            بايرز <span>آدمن</span>
-          </div>
-          <div className={styles.badge}>
-            <Sparkles size={12} />
-            <span>لوحة إدارة التجار</span>
+            بايرز <span>تجار</span>
           </div>
         </div>
 
-        <h1 className={styles.title}>تسجيل دخول التاجر</h1>
-        <p className={styles.subtitle}>أدخل بيانات حسابك للوصول إلى لوحة تحكم متجرك</p>
-
-        {error && (
-          <motion.div 
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            className={styles.errorMsg}
+        {/* Tab Switcher */}
+        <div className={styles.tabs}>
+          <button 
+            className={`${styles.tab} ${mode === 'login' ? styles.activeTab : ''}`}
+            onClick={() => { setMode('login'); setError(''); setSuccess(''); }}
           >
-            <AlertCircle size={18} />
-            {error}
-          </motion.div>
-        )}
+            <LogIn size={18} />
+            تسجيل دخول
+          </button>
+          <button 
+            className={`${styles.tab} ${mode === 'register' ? styles.activeTab : ''}`}
+            onClick={() => { setMode('register'); setError(''); setSuccess(''); }}
+          >
+            <UserPlus size={18} />
+            إنشاء متجر جديد
+          </button>
+          <motion.div 
+            layoutId="tab-underline"
+            className={styles.tabUnderline}
+            animate={{ x: mode === 'login' ? '0%' : '100%' }}
+          />
+        </div>
 
-        <form onSubmit={handleLogin} className={styles.form}>
+        <h1 className={styles.title}>
+          {mode === 'login' ? 'مرحباً بعودتك' : 'انضم لأسرة بايرز'}
+        </h1>
+        <p className={styles.subtitle}>
+          {mode === 'login' 
+            ? 'أدخل بياناتك للوصول إلى لوحة التحكم' 
+            : 'ابدأ رحلة نجاحك وأنشئ متجرك الإلكتروني في دقائق'}
+        </p>
+
+        <AnimatePresence mode="wait">
+          {error && (
+            <motion.div 
+              key="error"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className={styles.errorMsg}
+            >
+              <AlertCircle size={18} />
+              {error}
+            </motion.div>
+          )}
+
+          {success && (
+            <motion.div 
+              key="success"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className={styles.successMsg}
+            >
+              <CheckCircle2 size={18} />
+              {success}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <form onSubmit={mode === 'login' ? handleLogin : handleRegister} className={styles.form}>
           <div className={styles.inputGroup}>
-            <label htmlFor="username">اسم المستخدم</label>
+            <label htmlFor="username">اسم المستخدم (بالإنجليزي)</label>
             <div className={styles.inputWrapper}>
               <User size={20} />
               <input 
@@ -104,13 +201,12 @@ export default function AdminLoginPage() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
-                autoComplete="username"
               />
             </div>
           </div>
 
           <div className={styles.inputGroup}>
-            <label htmlFor="password">{t('password')}</label>
+            <label htmlFor="password">كلمة المرور</label>
             <div className={styles.inputWrapper}>
               <Lock size={20} />
               <input 
@@ -121,10 +217,34 @@ export default function AdminLoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                autoComplete="current-password"
               />
             </div>
           </div>
+
+          <AnimatePresence>
+            {mode === 'register' && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0, y: -10 }}
+                animate={{ opacity: 1, height: 'auto', y: 0 }}
+                exit={{ opacity: 0, height: 0, y: -10 }}
+                className={styles.inputGroup}
+              >
+                <label htmlFor="confirmPassword">تأكيد كلمة المرور</label>
+                <div className={styles.inputWrapper}>
+                  <Lock size={20} />
+                  <input 
+                    id="confirmPassword"
+                    type="password" 
+                    className={styles.input}
+                    placeholder="أعد كتابة كلمة المرور"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <button 
             type="submit" 
@@ -135,24 +255,22 @@ export default function AdminLoginPage() {
               <div className={styles.spinner}></div>
             ) : (
               <>
-                <LogIn size={20} />
-                {t('loginBtn')}
+                {mode === 'login' ? <LogIn size={20} /> : <Sparkles size={20} />}
+                {mode === 'login' ? 'دخول اللوحة' : 'ابدأ التجهيز الآن'}
               </>
             )}
           </button>
 
-          <div className={styles.divider}>
-            <span>أو</span>
-          </div>
-
-          <button 
-            type="button"
-            className={styles.managerBtn}
-            onClick={() => router.push(`/${locale}/manager/login`)}
-          >
-            <ShieldAlert size={18} />
-            الدخول كمدير المنصة (Super Admin)
-          </button>
+          {mode === 'login' && (
+             <button 
+               type="button"
+               className={styles.managerBtn}
+               onClick={() => router.push(`/${locale}/manager/login`)}
+             >
+               <ShieldAlert size={18} />
+               مدير المنصة (Super Admin)
+             </button>
+          )}
         </form>
       </motion.div>
     </div>

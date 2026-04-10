@@ -1,16 +1,12 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { loginMerchant } from './api';
 
 /**
- * Hardcoded credentials for testing.
- * In production, these would come from a secure backend.
+ * Hardcoded credentials for testing (ONLY for Platform Admin).
+ * Merchants now use Firestore records.
  */
 const ADMIN_CREDENTIALS = {
-  username: '1111',
-  password: '1111',
-};
-
-const MERCHANT_CREDENTIALS = {
   username: '1111',
   password: '1111',
 };
@@ -25,14 +21,14 @@ interface SessionState {
   loginTime: string | null;
 
   loginAsAdmin: (username: string, password: string) => boolean;
-  loginAsMerchant: (username: string, password: string) => boolean;
+  loginAsMerchant: (username: string, password: string) => Promise<boolean>;
   setStoreSlug: (slug: string | null) => void;
   logout: () => void;
 }
 
 /**
- * Global session store for lightweight authentication.
- * Persisted to localStorage so sessions survive page refreshes.
+ * Global session store for authentication.
+ * Persisted to localStorage.
  */
 export const useSessionStore = create<SessionState>()(
   persist(
@@ -52,11 +48,10 @@ export const useSessionStore = create<SessionState>()(
             isLoggedIn: true,
             role: 'admin' as UserRole,
             username,
-            storeSlug: 'demo', // Admin gets demo access
+            storeSlug: 'demo', 
             loginTime: new Date().toISOString(),
           };
           set(newState);
-          // Set cookie for proxy/middleware access
           if (typeof document !== 'undefined') {
             document.cookie = `buyers-auth-role=admin; path=/; max-age=${60 * 60 * 24 * 7}`;
             document.cookie = `buyers-auth-user=${username}; path=/; max-age=${60 * 60 * 24 * 7}`;
@@ -66,20 +61,18 @@ export const useSessionStore = create<SessionState>()(
         return false;
       },
 
-      loginAsMerchant: (username: string, password: string) => {
-        if (
-          username === MERCHANT_CREDENTIALS.username &&
-          password === MERCHANT_CREDENTIALS.password
-        ) {
+      loginAsMerchant: async (username: string, password: string) => {
+        const merchant = await loginMerchant(username, password);
+        
+        if (merchant) {
           const newState = {
             isLoggedIn: true,
             role: 'merchant' as UserRole,
-            username,
-            storeSlug: null, // Initially null, will be fetched or set via setup
+            username: merchant.username,
+            storeSlug: merchant.storeSlug || null, 
             loginTime: new Date().toISOString(),
           };
           set(newState);
-          // Set cookie for proxy/middleware access
           if (typeof document !== 'undefined') {
             document.cookie = `buyers-auth-role=merchant; path=/; max-age=${60 * 60 * 24 * 7}`;
             document.cookie = `buyers-auth-user=${username}; path=/; max-age=${60 * 60 * 24 * 7}`;
@@ -99,7 +92,6 @@ export const useSessionStore = create<SessionState>()(
           storeSlug: null,
           loginTime: null,
         });
-        // Remove cookies
         if (typeof document !== 'undefined') {
           document.cookie = "buyers-auth-role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
           document.cookie = "buyers-auth-user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
