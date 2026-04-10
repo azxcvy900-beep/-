@@ -18,7 +18,9 @@ import {
   Ticket,
   MessageSquare,
   Moon,
-  Sun
+  Sun,
+  Users,
+  UsersRound
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/components/providers/ThemeProvider';
@@ -35,15 +37,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [checkingStore, setCheckingStore] = useState(true);
-  const { isLoggedIn, role, username, storeSlug, logout } = useSessionStore();
+  const { isLoggedIn, role, username, storeSlug, permissions, logout } = useSessionStore();
   
   const isSetupPage = pathname.includes('/admin/setup');
   const isLoginPage = pathname.includes('/admin/login');
 
-  // Verify store existence for merchants
+  // Verify access for merchants, admins, or employees
   useEffect(() => {
-    if (isLoggedIn && role === 'merchant' && !isLoginPage) {
-      // In a real app, we'd fetch the store by merchant ID here
+    if (isLoggedIn && (role === 'merchant' || role === 'employee' || role === 'admin') && !isLoginPage) {
       setCheckingStore(false);
     } else {
       setCheckingStore(false);
@@ -55,12 +56,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return <>{children}</>;
   }
 
-  // Redirect to login if not authenticated as merchant or admin
-  if (!isLoggedIn || (role !== 'merchant' && role !== 'admin')) {
+  // Redirect to login if not authenticated
+  if (!isLoggedIn || (role !== 'merchant' && role !== 'admin' && role !== 'employee')) {
     return <RedirectToLogin locale={locale} />;
   }
 
-  // FORCE Setup if no storeSlug and not on setup page
+  // FORCE Setup if no storeSlug and not on setup page (only for merchant owners)
   if (role === 'merchant' && !storeSlug && !isSetupPage && !checkingStore) {
     return <RedirectToSetup locale={locale} />;
   }
@@ -75,18 +76,70 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     router.push(`/${locale}/admin/login`);
   };
 
+  const hasAll = permissions?.includes('all');
+
   const navItems = [
-    { name: t('sidebar.dashboard'), href: `/${locale}/admin/dashboard`, icon: LayoutDashboard },
-    { name: 'الأقسام', href: `/${locale}/admin/categories`, icon: Grid },
-    { name: t('sidebar.products'), href: `/${locale}/admin/products`, icon: Package },
-    { name: 'الكوبونات', href: `/${locale}/admin/coupons`, icon: Ticket },
-    { name: 'التقييمات', href: `/${locale}/admin/reviews`, icon: MessageSquare },
-    { name: t('sidebar.orders'), href: `/${locale}/admin/orders`, icon: ShoppingBag },
-    { name: t('sidebar.settings'), href: `/${locale}/admin/settings`, icon: Settings },
+    { 
+      name: t('sidebar.dashboard'), 
+      href: `/${locale}/admin/dashboard`, 
+      icon: LayoutDashboard,
+      show: true 
+    },
+    { 
+      name: 'الأقسام', 
+      href: `/${locale}/admin/categories`, 
+      icon: Grid,
+      show: hasAll || permissions?.includes('products.view') || role === 'admin'
+    },
+    { 
+      name: t('sidebar.products'), 
+      href: `/${locale}/admin/products`, 
+      icon: Package,
+      show: hasAll || permissions?.includes('products.view') || role === 'admin'
+    },
+    { 
+      name: 'الكوبونات', 
+      href: `/${locale}/admin/coupons`, 
+      icon: Ticket,
+      show: hasAll || permissions?.includes('marketing.view') || role === 'admin'
+    },
+    { 
+      name: 'التقييمات', 
+      href: `/${locale}/admin/reviews`, 
+      icon: MessageSquare,
+      show: hasAll || permissions?.includes('reviews.view') || role === 'admin'
+    },
+    { 
+      name: t('sidebar.orders'), 
+      href: `/${locale}/admin/orders`, 
+      icon: ShoppingBag,
+      show: hasAll || permissions?.includes('orders.view') || role === 'admin'
+    },
+    { 
+      name: 'العملاء', 
+      href: `/${locale}/admin/customers`, 
+      icon: UsersRound,
+      show: hasAll || permissions?.includes('customers.view') || role === 'admin'
+    },
+    { 
+      name: 'الموظفين', 
+      href: `/${locale}/admin/employees`, 
+      icon: Users,
+      show: role === 'merchant' || role === 'admin' // Only owner/admin manages team
+    },
+    { 
+      name: t('sidebar.settings'), 
+      href: `/${locale}/admin/settings`, 
+      icon: Settings,
+      show: hasAll || permissions?.includes('settings.manage') || role === 'admin'
+    },
   ];
+
+  const visibleNavItems = navItems.filter(item => item.show);
 
   return (
     <div className={styles.adminLayout}>
+      <OrderNotification storeSlug={storeSlug || 'demo'} />
       {/* Sidebar */}
       <aside className={`${styles.sidebar} ${!isSidebarOpen ? styles.sidebarClosed : ''}`}>
         <Link href={`/${locale}`} className={styles.sidebarLogo}>
@@ -95,7 +148,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </Link>
         
         <nav className={styles.sidebarNav}>
-          {navItems.map((item) => {
+          {visibleNavItems.map((item) => {
             const isActive = pathname === item.href;
             return (
               <Link 

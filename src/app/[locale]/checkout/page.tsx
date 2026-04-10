@@ -248,20 +248,23 @@ export default function CheckoutPage() {
       isPriceLocked: !!receipt
     };
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Increment Merchant's SaaS usage counter
-    const currentStore = useCartStore.getState().storeSlug;
-    if (currentStore) {
-      const { incrementStoreOrderCount } = await import('@/lib/api');
-      incrementStoreOrderCount(currentStore).catch(console.error);
+    try {
+      // 1. Submit Order to Firestore & Update CRM
+      const { submitOrder } = await import('@/lib/api');
+      const currentStore = useCartStore.getState().storeSlug || 'demo';
+      
+      await submitOrder(newOrder, currentStore);
+      
+      // 2. Update local state
+      useCartStore.getState().addOrder(newOrder);
+      clearCart();
+      router.push(`/${locale}/order-success`);
+    } catch (error) {
+      console.error("Order submission failed:", error);
+      alert("حدث خطأ أثناء إرسال الطلب، يرجى المحاولة مرة أخرى.");
+    } finally {
+      setIsSubmitting(false);
     }
-    
-    useCartStore.getState().addOrder(newOrder);
-    clearCart();
-    setIsSubmitting(false);
-    router.push(`/${locale}/order-success`);
   };
 
   if (!mounted || items.length === 0) return null;

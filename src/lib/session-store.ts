@@ -11,13 +11,14 @@ const ADMIN_CREDENTIALS = {
   password: '1111',
 };
 
-export type UserRole = 'admin' | 'merchant' | null;
+export type UserRole = 'admin' | 'merchant' | 'employee' | null;
 
 interface SessionState {
   isLoggedIn: boolean;
   role: UserRole;
   username: string | null;
   storeSlug: string | null;
+  permissions: string[]; // e.g. ['all'] or ['orders.view']
   loginTime: string | null;
 
   loginAsAdmin: (username: string, password: string) => boolean;
@@ -37,6 +38,7 @@ export const useSessionStore = create<SessionState>()(
       role: null,
       username: null,
       storeSlug: null,
+      permissions: [],
       loginTime: null,
 
       loginAsAdmin: (username: string, password: string) => {
@@ -49,6 +51,7 @@ export const useSessionStore = create<SessionState>()(
             role: 'admin' as UserRole,
             username,
             storeSlug: 'demo', 
+            permissions: ['all'],
             loginTime: new Date().toISOString(),
           };
           set(newState);
@@ -62,19 +65,20 @@ export const useSessionStore = create<SessionState>()(
       },
 
       loginAsMerchant: async (username: string, password: string) => {
-        const merchant = await loginMerchant(username, password);
+        const user = await loginMerchant(username, password);
         
-        if (merchant) {
+        if (user) {
           const newState = {
             isLoggedIn: true,
-            role: 'merchant' as UserRole,
-            username: merchant.username,
-            storeSlug: merchant.storeSlug || null, 
+            role: user.role as UserRole,
+            username: user.username,
+            storeSlug: user.storeSlug || null, 
+            permissions: user.permissions || [],
             loginTime: new Date().toISOString(),
           };
           set(newState);
           if (typeof document !== 'undefined') {
-            document.cookie = `buyers-auth-role=merchant; path=/; max-age=${60 * 60 * 24 * 7}`;
+            document.cookie = `buyers-auth-role=${user.role}; path=/; max-age=${60 * 60 * 24 * 7}`;
             document.cookie = `buyers-auth-user=${username}; path=/; max-age=${60 * 60 * 24 * 7}`;
           }
           return true;
@@ -90,6 +94,7 @@ export const useSessionStore = create<SessionState>()(
           role: null,
           username: null,
           storeSlug: null,
+          permissions: [],
           loginTime: null,
         });
         if (typeof document !== 'undefined') {

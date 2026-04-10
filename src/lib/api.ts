@@ -604,6 +604,31 @@ export async function incrementStoreOrderCount(slug: string): Promise<void> {
   }
 }
 
+/**
+ * Submit a new order to Firestore and update customer CRM.
+ */
+export async function submitOrder(order: Order, storeSlug: string): Promise<void> {
+  const orderRef = doc(db, 'orders', order.id);
+  
+  // 1. Save order to Firestore
+  await setDoc(orderRef, {
+    ...order,
+    storeSlug, // Ensure storeSlug is correctly indexed
+  });
+
+  // 2. Increment store usage counter
+  await incrementStoreOrderCount(storeSlug);
+
+  // 3. Save/Update customer info in store's CRM
+  await saveCustomerInfo({
+    name: order.address.fullName,
+    phone: order.address.phone,
+    storeSlug: storeSlug,
+    lastOrderDate: order.date,
+    // totalSpent will be updated in saveCustomerInfo
+  });
+}
+
 export async function submitPaymentProof(proof: Omit<PaymentProof, 'id' | 'date' | 'status'>): Promise<string> {
   const id = `pay_${Date.now()}`;
   const newProof: PaymentProof = {
@@ -773,43 +798,62 @@ export async function seedDatabase(): Promise<void> {
 }
 // --- MERCHANT IDENTITY API ---
 
-export interface Merchant {
+// --- USER & PERMISSIONS ---
+
+export type UserRole = 'admin' | 'merchant' | 'employee' | null;
+
+export interface AppUser {
   uid: string;
   username: string;
-  password?: string; // Stored as plain for MVP, recommended hashing for production
+  password?: string;
   email?: string;
   storeSlug?: string;
+  role: UserRole;
+  permissions?: string[]; // e.g. ['orders.view', 'products.edit']
   createdAt: string;
+}
+
+export interface Customer {
+  id: string; // Phone or Email
+  name: string;
+  phone: string;
+  email?: string;
+  totalOrders: number;
+  totalSpent: number;
+  lastOrderDate: string;
+  storeSlug: string;
 }
 
 /**
  * Register a new merchant in Firestore.
  */
-export async function registerMerchant(merchant: Omit<Merchant, 'uid' | 'createdAt'>): Promise<string> {
+export async function registerMerchant(merchant: Omit<AppUser, 'uid' | 'createdAt' | 'role' | 'permissions'>): Promise<string> {
   const isAvailable = await checkUsernameAvailability(merchant.username);
   if (!isAvailable) throw new Error('username_taken');
 
   const uid = `mcht_${Date.now()}`;
-  const newMerchant: Merchant = {
+  const newUser: AppUser = {
     ...merchant,
     uid,
+    role: 'merchant',
+    permissions: ['all'], // Owners have all permissions
     createdAt: new Date().toISOString()
   };
 
-  await setDoc(doc(db, 'merchants', merchant.username.toLowerCase()), newMerchant);
+  await setDoc(doc(db, 'merchants', merchant.username.toLowerCase()), newUser);
   return uid;
 }
 
 /**
- * Validate merchant credentials against Firestore.
+ * Validate user credentials against Firestore.
  */
-export async function loginMerchant(username: string, password: string): Promise<Merchant | null> {
+export async function loginMerchant(username: string, password: string): Promise<AppUser | null> {
   try {
-    const merchantDoc = doc(db, 'merchants', username.toLowerCase());
-    const merchantSnap = await getDoc(merchantDoc);
+    const userRef = doc(db, 'merchants', username.toLowerCase());
+    const userSnap = await getDoc(userRef);
 
-    if (merchantSnap.exists()) {
-      const data = merchantSnap.data() as Merchant;
+    if (userSnap.exists()) {
+      const data = userSnap.data() as AppUser;
       if (data.password === password) {
         return data;
       }
@@ -835,9 +879,80 @@ export async function checkUsernameAvailability(username: string): Promise<boole
 }
 
 /**
- * Update merchant profile (e.g. link a storeSlug after setup).
+ * Update user profile (e.g. link a storeSlug after setup).
  */
-export async function updateMerchant(username: string, updates: Partial<Merchant>): Promise<void> {
-  const merchantRef = doc(db, 'merchants', username.toLowerCase());
-  await updateDoc(merchantRef, updates);
+export async function updateMerchant(username: string, updates: Partial<AppUser>): Promise<void> {
+  const userRef = doc(db, 'merchants', username.toLowerCase());
+  await updateDoc(userRef, updates);
+}
+
+/**
+ * Add a new employee to a store.
+ */
+export async function addEmployee(employee: Omit<AppUser, 'uid' | 'createdAt' | 'role'>, storeSlug: string): Promise<string> {
+  const isAvailable = await checkUsernameAvailability(employee.username);
+  if (!isAvailable) throw new Error('username_taken');
+
+  const uid = `emp_${Date.now()}`;
+  const newUser: AppUser = {
+    ...employee,
+    uid,
+    role: 'employee',
+    storeSlug,
+    createdAt: new Date().toISOString()
+  };
+
+  await setDoc(doc(db, 'merchants', employee.username.toLowerCase()), newUser);
+  return uid;
+}
+
+/**
+ * Get all employees for a specific store.
+ */
+export async function getStoreEmployees(storeSlug: string): Promise<AppUser[]> {
+  const usersRef = collection(db, 'merchants');
+  const q = query(usersRef, where('storeSlug', '==', storeSlug), where('role', '==', 'employee'));
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => doc.data() as AppUser);
+}
+
+/**
+ * Get all customers for a specific store.
+ */
+export async function getStoreCustomers(storeSlug: string): Promise<Customer[]> {
+  try {
+    const customersRef = collection(db, 'stores', storeSlug, 'customers');
+    const q = query(customersRef, orderBy('lastOrderDate', 'desc'));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => doc.data() as Customer);
+  } catch (error) {
+    return [];
+  }
+}
+
+/**
+ * Save or update customer info when an order is placed.
+ */
+export async function saveCustomerInfo(customerData: Omit<Customer, 'totalOrders' | 'totalSpent' | 'id'>): Promise<void> {
+  const customerId = customerData.phone; // Use phone as unique ID
+  const customerRef = doc(db, 'stores', customerData.storeSlug, 'customers', customerId);
+  const snap = await getDoc(customerRef);
+
+  if (snap.exists()) {
+    const existing = snap.data() as Customer;
+    await updateDoc(customerRef, {
+      totalOrders: existing.totalOrders + 1,
+      totalSpent: existing.totalSpent + (existing as any).lastOrderTotal || 0,
+      lastOrderDate: new Date().toISOString()
+    });
+  } else {
+    const newCustomer: Customer = {
+      ...customerData,
+      id: customerId,
+      totalOrders: 1,
+      totalSpent: 0, 
+      lastOrderDate: new Date().toISOString()
+    };
+    await setDoc(customerRef, newCustomer);
+  }
 }
