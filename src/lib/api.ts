@@ -62,6 +62,7 @@ export interface StoreInfo {
     instagram?: string;
     twitter?: string;
     facebook?: string;
+    whatsapp?: string;
   };
   shippingFee?: number; // Fixed shipping fee controlled by merchant
   merchantId?: string; // Firebase UID of the merchant who owns this store
