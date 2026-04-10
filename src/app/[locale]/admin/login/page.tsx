@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
 import { 
   User, 
   Lock, 
@@ -14,11 +15,15 @@ import {
   Sparkles, 
   UserPlus, 
   CheckCircle2,
-  ChevronRight,
-  Mail
+  Mail,
+  ArrowLeft,
+  ShoppingBag,
+  Zap,
+  TrendingUp,
+  Award
 } from 'lucide-react';
 import { useSessionStore } from '@/lib/session-store';
-import { registerMerchant, checkUsernameAvailability } from '@/lib/api';
+import { registerMerchant, loginMerchant } from '@/lib/api';
 import styles from './login.module.css';
 
 type AuthMode = 'login' | 'register';
@@ -38,10 +43,11 @@ export default function AdminLoginPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // If already logged in as merchant, redirect to dashboard or setup
+  // Use the generated image path
+  const bgImage = "/_next/image?url=%2FC%3A%2FUsers%2FHP%2F.gemini%2Fantigravity%2Fbrain%2F507bca0c-c054-42cb-a477-edd1675a0d2f%2Fmerchant_login_bg_1775836873246.png&w=1080&q=75";
+
   useEffect(() => {
     if (isLoggedIn && role === 'merchant') {
-       // Check if storeSlug exists, if not, they might need setup (logic handled via routing/setup check)
        router.replace(`/${locale}/admin/dashboard`);
     }
   }, [isLoggedIn, role, router, locale]);
@@ -53,8 +59,8 @@ export default function AdminLoginPage() {
     setSuccess('');
 
     try {
-      const success = await loginAsMerchant(username, password);
-      if (success) {
+      const successStatus = await loginAsMerchant(username, password);
+      if (successStatus) {
         setSuccess('تم تسجيل الدخول بنجاح! جاري التوجيه...');
         setTimeout(() => router.push(`/${locale}/admin/dashboard`), 800);
       } else {
@@ -80,19 +86,13 @@ export default function AdminLoginPage() {
     }
 
     try {
-      // 1. Create merchant account with email
       await registerMerchant({ username, password, email });
-      
-      // 2. Auto login
       await loginAsMerchant(username, password);
-      
-      setSuccess('تم إنشاء الحساب بنجاح! لنبدأ بتجهيز متجرك...');
-      
-      // 3. Redirect to Setup Wizard
+      setSuccess('مبارك! تم حسابك بنجاح. لنبدأ بتجهيز متجرك...');
       setTimeout(() => router.push(`/${locale}/admin/setup`), 1500);
     } catch (err: any) {
       if (err.message === 'username_taken') {
-        setError('اسم المستخدم هذا محجوز بالفعل. اختر اسماً آخر.');
+        setError('اسم المستخدم هذا محجوز. اختر اسماً فريداً.');
       } else {
         setError('حدث خطأ أثناء إنشاء الحساب.');
       }
@@ -103,203 +103,242 @@ export default function AdminLoginPage() {
 
   return (
     <div className={styles.loginContainer}>
-      <div className={styles.bgParticles}>
-        <div className={styles.particle} style={{ top: '10%', left: '15%', animationDelay: '0s' }} />
-        <div className={styles.particle} style={{ top: '60%', left: '80%', animationDelay: '1.5s' }} />
-        <div className={styles.particle} style={{ top: '30%', left: '60%', animationDelay: '3s' }} />
-        <div className={styles.particle} style={{ top: '80%', left: '25%', animationDelay: '0.8s' }} />
-        <div className={styles.particle} style={{ top: '45%', left: '40%', animationDelay: '2.2s' }} />
-      </div>
-
-      <motion.div 
-        initial={{ opacity: 0, y: 30, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
-        className={styles.loginCard}
-      >
-        <div className={styles.logoArea}>
-          <motion.div 
-            className={styles.logoIcon}
-            animate={{ rotate: [0, 5, -5, 0] }}
-            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-          >
-            <Store size={40} />
-          </motion.div>
-          <div className={styles.logo}>
-            بايرز <span>تجار</span>
+      {/* Side Panel (Visual Content) */}
+      <section className={styles.sidePanel}>
+        <div className={styles.visualBg}>
+           <Image 
+             src={bgImage}
+             alt="Merchant Background"
+             fill
+             style={{ objectFit: 'cover' }}
+             priority
+           />
+        </div>
+        <div className={styles.visualOverlay} />
+        
+        <motion.div 
+          initial={{ opacity: 0, x: -50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className={styles.visualContent}
+        >
+          <div className={styles.logoArea} style={{ marginBottom: '4rem' }}>
+             <ShoppingBag size={42} style={{ color: '#10b981' }} />
           </div>
-        </div>
+          <h1 className={styles.visualTitle}>
+             انطلق بمتجرك <br />
+             إلى <span>آفاق عالمية</span>
+          </h1>
+          <p className={styles.visualDesc}>
+            انضم لأكثر من 500 تاجر في اليمن والوطن العربي يديرون مبيعاتهم بذكاء وبساطة عبر منصة بايرز.
+          </p>
 
-        {/* Tab Switcher */}
-        <div className={styles.tabs}>
-          <button 
-            className={`${styles.tab} ${mode === 'login' ? styles.activeTab : ''}`}
-            onClick={() => { setMode('login'); setError(''); setSuccess(''); }}
-          >
-            <LogIn size={18} />
-            تسجيل دخول
-          </button>
-          <button 
-            className={`${styles.tab} ${mode === 'register' ? styles.activeTab : ''}`}
-            onClick={() => { setMode('register'); setError(''); setSuccess(''); }}
-          >
-            <UserPlus size={18} />
-            إنشاء متجر جديد
-          </button>
-          <motion.div 
-            layoutId="tab-underline"
-            className={styles.tabUnderline}
-            animate={{ x: mode === 'login' ? '0%' : '100%' }}
-          />
-        </div>
+          <div className={styles.statsGrid}>
+             <div className={styles.statItem}>
+                <h3>24/7</h3>
+                <p>دعم فني متواصل</p>
+             </div>
+             <div className={styles.statItem}>
+                <h3>+15k</h3>
+                <p>منتج مباع</p>
+             </div>
+          </div>
+        </motion.div>
+      </section>
 
-        <h1 className={styles.title}>
-          {mode === 'login' ? 'مرحباً بعودتك' : 'انضم لأسرة بايرز'}
-        </h1>
-        <p className={styles.subtitle}>
-          {mode === 'login' 
-            ? 'أدخل بياناتك للوصول إلى لوحة التحكم' 
-            : 'ابدأ رحلة نجاحك وأنشئ متجرك الإلكتروني في دقائق'}
-        </p>
-
-        <AnimatePresence mode="wait">
-          {error && (
-            <motion.div 
-              key="error"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className={styles.errorMsg}
-            >
-              <AlertCircle size={18} />
-              {error}
-            </motion.div>
-          )}
-
-          {success && (
-            <motion.div 
-              key="success"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className={styles.successMsg}
-            >
-              <CheckCircle2 size={18} />
-              {success}
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <form onSubmit={mode === 'login' ? handleLogin : handleRegister} className={styles.form}>
-          <div className={styles.inputGroup}>
-            <label htmlFor="username">اسم المستخدم (بالإنجليزي)</label>
-            <div className={styles.inputWrapper}>
-              <User size={20} />
-              <input 
-                id="username"
-                type="text" 
-                className={styles.input}
-                placeholder="أدخل اسم المستخدم"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-              />
-            </div>
+      {/* Form Panel */}
+      <section className={styles.formPanel}>
+        <div className={styles.formWrapper}>
+          <div className={styles.logoArea}>
+            <div className={styles.logo}>بايرز <span>تجار</span></div>
           </div>
 
-          <AnimatePresence>
-            {mode === 'register' && (
+          <div className={styles.tabs}>
+            <button 
+              className={`${styles.tab} ${mode === 'login' ? styles.activeTab : ''}`}
+              onClick={() => { setMode('login'); setError(''); setSuccess(''); }}
+            >
+              <LogIn size={18} />
+              دخول
+            </button>
+            <button 
+              className={`${styles.tab} ${mode === 'register' ? styles.activeTab : ''}`}
+              onClick={() => { setMode('register'); setError(''); setSuccess(''); }}
+            >
+              <UserPlus size={18} />
+              اشتراك جديد
+            </button>
+            <motion.div 
+              layoutId="tab-underline"
+              className={styles.tabUnderline}
+              animate={{ x: mode === 'login' ? '0%' : '100%' }}
+            />
+          </div>
+
+          <header className={styles.header}>
+            <h2 className={styles.title}>
+              {mode === 'login' ? 'أهلاً بعودتك' : 'ابدأ نجاحك اليوم'}
+            </h2>
+            <p className={styles.subtitle}>
+              {mode === 'login' 
+                ? 'سجل دخولك لإدارة مبيعاتك وطلبات عملاءك' 
+                : 'أنشئ حساباً وأطلق متجرك للجمهور في 5 دقائق'}
+            </p>
+          </header>
+
+          <AnimatePresence mode="wait">
+            {error && (
               <motion.div 
-                initial={{ opacity: 0, height: 0, scale: 0.9 }}
-                animate={{ opacity: 1, height: 'auto', scale: 1 }}
-                exit={{ opacity: 0, height: 0, scale: 0.9 }}
-                className={styles.inputGroup}
+                key="error"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className={styles.errorMsg}
               >
-                <label htmlFor="email">البريد الإلكتروني (Gmail)</label>
-                <div className={styles.inputWrapper}>
-                  <Mail size={20} />
-                  <input 
-                    id="email"
-                    type="email" 
-                    className={styles.input}
-                    placeholder="example@gmail.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
+                <AlertCircle size={18} />
+                {error}
+              </motion.div>
+            )}
+
+            {success && (
+              <motion.div 
+                key="success"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className={styles.successMsg}
+              >
+                <CheckCircle2 size={18} />
+                {success}
               </motion.div>
             )}
           </AnimatePresence>
 
-          <div className={styles.inputGroup}>
-            <label htmlFor="password">كلمة المرور</label>
-            <div className={styles.inputWrapper}>
-              <Lock size={20} />
-              <input 
-                id="password"
-                type="password" 
-                className={styles.input}
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+          <form onSubmit={mode === 'login' ? handleLogin : handleRegister} className={styles.form}>
+            <div className={styles.inputGroup}>
+              <div className={styles.inputWrapper}>
+                <User size={18} />
+                <input 
+                  type="text" 
+                  className={styles.input}
+                  placeholder=" "
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                />
+                <label className={styles.inputLabel}>اسم المستخدم (English)</label>
+              </div>
             </div>
-          </div>
 
-          <AnimatePresence>
-            {mode === 'register' && (
-              <motion.div 
-                initial={{ opacity: 0, height: 0, y: -10 }}
-                animate={{ opacity: 1, height: 'auto', y: 0 }}
-                exit={{ opacity: 0, height: 0, y: -10 }}
-                className={styles.inputGroup}
-              >
-                <label htmlFor="confirmPassword">تأكيد كلمة المرور</label>
-                <div className={styles.inputWrapper}>
-                  <Lock size={20} />
-                  <input 
-                    id="confirmPassword"
-                    type="password" 
-                    className={styles.input}
-                    placeholder="أعد كتابة كلمة المرور"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                  />
-                </div>
-              </motion.div>
+            <AnimatePresence>
+              {mode === 'register' && (
+                <motion.div 
+                  initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                  animate={{ opacity: 1, height: 'auto', marginBottom: 20 }}
+                  exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                  className={styles.inputGroup}
+                >
+                  <div className={styles.inputWrapper}>
+                    <Mail size={18} />
+                    <input 
+                      type="email" 
+                      className={styles.input}
+                      placeholder=" "
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                    />
+                    <label className={styles.inputLabel}>البريد الإلكتروني</label>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <div className={styles.inputGroup}>
+              <div className={styles.inputWrapper}>
+                <Lock size={18} />
+                <input 
+                  type="password" 
+                  className={styles.input}
+                  placeholder=" "
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <label className={styles.inputLabel}>كلمة المرور</label>
+              </div>
+            </div>
+
+            <AnimatePresence>
+              {mode === 'register' && (
+                <motion.div 
+                  initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                  animate={{ opacity: 1, height: 'auto', marginBottom: 20 }}
+                  exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                  className={styles.inputGroup}
+                >
+                  <div className={styles.inputWrapper}>
+                    <Lock size={18} />
+                    <input 
+                      type="password" 
+                      className={styles.input}
+                      placeholder=" "
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      required
+                    />
+                    <label className={styles.inputLabel}>تأكيد كلمة المرور</label>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <button 
+              type="submit" 
+              className={styles.loginBtn}
+              disabled={loading}
+            >
+              {loading ? (
+                <div className={styles.spinner}></div>
+              ) : (
+                <>
+                  {mode === 'login' ? <Zap size={20} /> : <Award size={20} />}
+                  {mode === 'login' ? 'دخول لوحة التحكم' : 'إطلاق متجري الإلكتروني'}
+                </>
+              )}
+            </button>
+
+            {mode === 'login' && (
+               <button 
+                 type="button"
+                 className={styles.managerBtn}
+                 onClick={() => router.push(`/${locale}/manager/login`)}
+               >
+                 <ShieldAlert size={18} />
+                 مدير المنصة (Super Admin)
+               </button>
             )}
-          </AnimatePresence>
+          </form>
 
-          <button 
-            type="submit" 
-            className={styles.loginBtn}
-            disabled={loading}
-          >
-            {loading ? (
-              <div className={styles.spinner}></div>
-            ) : (
-              <>
-                {mode === 'login' ? <LogIn size={20} /> : <Sparkles size={20} />}
-                {mode === 'login' ? 'دخول اللوحة' : 'ابدأ التجهيز الآن'}
-              </>
-            )}
-          </button>
-
-          {mode === 'login' && (
+          <footer style={{ marginTop: '2rem', textAlign: 'center' }}>
              <button 
-               type="button"
-               className={styles.managerBtn}
-               onClick={() => router.push(`/${locale}/manager/login`)}
+               onClick={() => router.push(`/${locale}`)}
+               style={{ 
+                 background: 'none', 
+                 border: 'none', 
+                 color: '#64748b', 
+                 fontSize: '0.85rem', 
+                 display: 'inline-flex', 
+                 alignItems: 'center', 
+                 gap: '0.5rem', 
+                 cursor: 'pointer' 
+               }}
              >
-               <ShieldAlert size={18} />
-               مدير المنصة (Super Admin)
+               <ArrowLeft size={16} /> العودة للموقع الرئيسي
              </button>
-          )}
-        </form>
-      </motion.div>
+          </footer>
+        </div>
+      </section>
     </div>
   );
 }
