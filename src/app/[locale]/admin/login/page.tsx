@@ -14,7 +14,8 @@ import {
   Sparkles, 
   UserPlus, 
   CheckCircle2,
-  ChevronRight
+  ChevronRight,
+  Mail
 } from 'lucide-react';
 import { useSessionStore } from '@/lib/session-store';
 import { registerMerchant, checkUsernameAvailability } from '@/lib/api';
@@ -30,6 +31,7 @@ export default function AdminLoginPage() {
 
   const [mode, setMode] = useState<AuthMode>('login');
   const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -78,8 +80,8 @@ export default function AdminLoginPage() {
     }
 
     try {
-      // 1. Create merchant account
-      await registerMerchant({ username, password });
+      // 1. Create merchant account with email
+      await registerMerchant({ username, password, email });
       
       // 2. Auto login
       await loginAsMerchant(username, password);
@@ -204,6 +206,31 @@ export default function AdminLoginPage() {
               />
             </div>
           </div>
+
+          <AnimatePresence>
+            {mode === 'register' && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0, scale: 0.9 }}
+                animate={{ opacity: 1, height: 'auto', scale: 1 }}
+                exit={{ opacity: 0, height: 0, scale: 0.9 }}
+                className={styles.inputGroup}
+              >
+                <label htmlFor="email">البريد الإلكتروني (Gmail)</label>
+                <div className={styles.inputWrapper}>
+                  <Mail size={20} />
+                  <input 
+                    id="email"
+                    type="email" 
+                    className={styles.input}
+                    placeholder="example@gmail.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <div className={styles.inputGroup}>
             <label htmlFor="password">كلمة المرور</label>
