@@ -9,10 +9,9 @@ import {
   CheckCircle2, 
   ArrowRight, 
   ArrowLeft,
-  Upload,
   Globe,
   MessageCircle,
-  Instagram,
+  AtSign,
   DollarSign
 } from 'lucide-react';
 import { useRouter, useLocale } from 'next/navigation';
@@ -151,7 +150,7 @@ export default function MerchantSetupWizard() {
               <div className={styles.formGroup}>
                 <label>رابط انستقرام (اختياري)</label>
                 <div className={styles.inputWrapper}>
-                  <Instagram size={18} />
+                  <AtSign size={18} />
                   <input 
                     type="text" 
                     value={formData.instagram}

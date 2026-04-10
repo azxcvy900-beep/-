@@ -43,7 +43,7 @@ export default function Home() {
             <h1 className={styles.title}>
               ابنِ إمبراطوريتك التجارية <br />
               <span>بسهولة واحترافية</span>
-            </div>
+            </h1>
             <p className={styles.subtitle}>
               منصة "بايرز" تمنحك متجراً متكاملاً، لوحة تحكم ذكية، ونظام طلبات مباشر عبر واتساب. ابدأ اليوم وحوّل زوارك إلى عملاء دائمين.
             </p>
