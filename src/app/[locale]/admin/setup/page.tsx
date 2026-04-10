@@ -14,7 +14,8 @@ import {
   AtSign,
   DollarSign
 } from 'lucide-react';
-import { useRouter, useLocale } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { useLocale } from 'next-intl';
 import { updateStoreInfo } from '@/lib/api';
 import styles from './setup.module.css';
 
