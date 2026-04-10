@@ -32,6 +32,7 @@ import { getWhatsAppUrl } from '@/lib/whatsapp';
 import { useStreamingFetch, useProgressiveLoad } from '@/lib/hooks';
 import { useAuthStore } from '@/lib/auth-store';
 import { TableSkeleton } from '@/components/shared/Skeletons/Skeletons';
+import UsageGuard from '@/components/shared/UsageGuard/UsageGuard';
 import styles from './orders.module.css';
 
 export default function MerchantOrders() {
@@ -56,6 +57,11 @@ export default function MerchantOrders() {
     `store_${storeSlug || 'demo'}`
   );
 
+  // SaaS Logic for Guard
+  const orderCount = storeInfo?.orderCountMonth || 0;
+  const plan = storeInfo?.planType || 'free';
+  const isLocked = plan === 'free' && orderCount >= 15;
+
   // Real-time listener
   useEffect(() => {
     if (!storeSlug) return;
@@ -64,6 +70,27 @@ export default function MerchantOrders() {
     });
     return () => unsubscribe();
   }, [storeSlug]);
+
+  // ... (keeping other helper functions as is)
+
+  // In the render loop (around line 340):
+  const renderPaymentProof = (order: Order) => (
+    <div className={styles.paymentSection}>
+      <h4><CreditCard size={14} /> سند الدفع</h4>
+      <UsageGuard isLocked={isLocked} orderCount={orderCount} plan={plan}>
+        {order.paymentProof ? (
+          <div className={styles.paymentReceipt} onClick={() => window.open(order.paymentProof, '_blank')}>
+            <img src={order.paymentProof} alt="Receipt" />
+            <div className={styles.receiptOverlay}>عرض السند</div>
+          </div>
+        ) : (
+          <div className={styles.noReceipt}>
+            لا يوجد سند مرفق.
+          </div>
+        )}
+      </UsageGuard>
+    </div>
+  );
 
   // Sync SWR result to local state if real-time hasn't triggered yet
   useEffect(() => {
@@ -337,19 +364,7 @@ export default function MerchantOrders() {
                     </div>
                   </div>
 
-                  <div className={styles.paymentSection}>
-                    <h4><CreditCard size={14} /> سند الدفع</h4>
-                    {order.paymentProof ? (
-                      <div className={styles.paymentReceipt} onClick={() => window.open(order.paymentProof, '_blank')}>
-                        <img src={order.paymentProof} alt="Receipt" />
-                        <div className={styles.receiptOverlay}>عرض السند</div>
-                      </div>
-                    ) : (
-                      <div className={styles.noReceipt}>
-                        لا يوجد سند مرفق.
-                      </div>
-                    )}
-                  </div>
+                  {renderPaymentProof(order)}
                 </div>
 
                 <div className={styles.orderFooter}>

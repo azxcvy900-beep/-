@@ -66,6 +66,21 @@ export interface StoreInfo {
   };
   shippingFee?: number; // Fixed shipping fee controlled by merchant
   merchantId?: string; // Firebase UID of the merchant who owns this store
+  planType?: 'free' | 'pro' | 'business';
+  subscriptionStatus?: 'active' | 'expired' | 'pending_verification';
+  orderCountMonth?: number;
+  lastCountReset?: string;
+}
+
+export interface PaymentProof {
+  id: string;
+  storeSlug: string;
+  merchantId: string;
+  amount: number;
+  planRequested: 'pro' | 'business';
+  screenshot: string;
+  date: string;
+  status: 'pending' | 'approved' | 'rejected';
 }
 
 export interface Coupon {
@@ -527,6 +542,58 @@ export async function updateOrderStatus(orderId: string, status: Order['status']
 export async function updateStoreInfo(slug: string, updates: Partial<StoreInfo>): Promise<void> {
   const storeRef = doc(db, 'stores', slug);
   await setDoc(storeRef, updates, { merge: true });
+}
+
+export async function incrementStoreOrderCount(slug: string): Promise<void> {
+  if (slug === 'demo') return;
+  const storeRef = doc(db, 'stores', slug);
+  const storeSnap = await getDoc(storeRef);
+  
+  if (storeSnap.exists()) {
+    const data = storeSnap.data();
+    const currentCount = data.orderCountMonth || 0;
+    const now = new Date();
+    const lastReset = data.lastCountReset ? new Date(data.lastCountReset) : null;
+    
+    // Auto-reset count if it's a new month
+    const isNewMonth = !lastReset || lastReset.getMonth() !== now.getMonth() || lastReset.getFullYear() !== now.getFullYear();
+    
+    await updateDoc(storeRef, {
+      orderCountMonth: isNewMonth ? 1 : currentCount + 1,
+      lastCountReset: now.toISOString()
+    });
+  }
+}
+
+export async function submitPaymentProof(proof: Omit<PaymentProof, 'id' | 'date' | 'status'>): Promise<string> {
+  const id = `pay_${Date.now()}`;
+  const newProof: PaymentProof = {
+    ...proof,
+    id,
+    date: new Date().toISOString(),
+    status: 'pending'
+  };
+  
+  await setDoc(doc(db, 'platform', 'payments', 'proofs', id), newProof);
+  
+  // Also update store status to pending
+  await updateStoreInfo(proof.storeSlug, { subscriptionStatus: 'pending_verification' });
+  
+  return id;
+}
+
+export async function getStoreAnalytics(slug: string) {
+  // Placeholder for advanced aggregation logic
+  // Will return monthly sales data for Recharts
+  return [
+    { name: 'السبت', sales: 4000 },
+    { name: 'الأحد', sales: 3000 },
+    { name: 'الاثنين', sales: 2000 },
+    { name: 'الثلاثاء', sales: 2780 },
+    { name: 'الأربعاء', sales: 1890 },
+    { name: 'الخميس', sales: 2390 },
+    { name: 'الجمعة', sales: 3490 },
+  ];
 }
 
 // --- GLOBAL PLATFORM API ---

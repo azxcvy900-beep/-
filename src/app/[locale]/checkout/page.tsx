@@ -251,6 +251,13 @@ export default function CheckoutPage() {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 2000));
     
+    // Increment Merchant's SaaS usage counter
+    const currentStore = useCartStore.getState().storeSlug;
+    if (currentStore) {
+      const { incrementStoreOrderCount } = await import('@/lib/api');
+      incrementStoreOrderCount(currentStore).catch(console.error);
+    }
+    
     useCartStore.getState().addOrder(newOrder);
     clearCart();
     setIsSubmitting(false);

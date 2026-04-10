@@ -177,11 +177,56 @@
   border: 1px solid #f1f5f9;
 }
 
-.sectionHeader {
+.sectionH.header {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2.5rem;
+  gap: 1.5rem;
+}
+
+.titleRow {
+  display: flex;
   align-items: center;
-  margin-bottom: 1.5rem;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.usageBrief {
+  background: #fff7ed;
+  color: #c2410c;
+  padding: 0.25rem 0.75rem;
+  border-radius: 99px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border: 1px solid #ffedd5;
+  white-space: nowrap;
+}
+
+.headerActions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.billingBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #0f172a;
+  color: white;
+  padding: 0.6rem 1.1rem;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.billingBtn:hover {
+  background: #3b82f6;
+  transform: translateY(-2px);
 }
 
 .sectionTitle {

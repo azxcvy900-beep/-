@@ -23,6 +23,7 @@ import { Order } from '@/lib/store';
 import { useStreamingFetch, useProgressiveLoad } from '@/lib/hooks';
 import { useAuthStore } from '@/lib/auth-store';
 import { StatSkeleton, ListSkeleton, TableSkeleton } from '@/components/shared/Skeletons/Skeletons';
+import UsageGuard from '@/components/shared/UsageGuard/UsageGuard';
 import styles from './dashboard.module.css';
 
 function SectionLoader({ label }: { label: string }) {
@@ -61,6 +62,11 @@ export default function MerchantDashboard() {
   // Progressive loading for visible orders
   const recentOrders = React.useMemo(() => (orders || []).slice(0, 6), [orders]);
   const { visibleItems: visibleOrders } = useProgressiveLoad(recentOrders, 2, 200);
+
+  // SaaS Usage Logic
+  const orderCount = storeInfo?.orderCountMonth || 0;
+  const plan = storeInfo?.planType || 'free';
+  const isLocked = plan === 'free' && orderCount >= 15;
 
   // Analytic Calculations - update as data arrives
   const activeOrders = (orders || []).filter((o: Order) => o.status !== 'cancelled');
@@ -122,15 +128,28 @@ export default function MerchantDashboard() {
       animate={{ opacity: 1, y: 0 }}
       className={styles.dashboard}
     >
-      <div className={styles.header}>
-        <div>
-          <h1 className={styles.title}>لوحة تحكم التاجر 🚀</h1>
-          <p className={styles.subtitle}>أداء {storeInfo?.name || 'متجر بايرز'} في لمح البصر</p>
+      <UsageGuard isLocked={isLocked} orderCount={orderCount} plan={plan}>
+        <div className={styles.header}>
+          <div>
+            <div className={styles.titleRow}>
+               <h1 className={styles.title}>لوحة تحكم التاجر 🚀</h1>
+               {plan === 'free' && (
+                 <div className={styles.usageBrief}>
+                    استهلاك الطلبات: {orderCount}/10
+                 </div>
+               )}
+            </div>
+            <p className={styles.subtitle}>أداء {storeInfo?.name || 'متجر بايرز'} في لمح البصر</p>
+          </div>
+          <div className={styles.headerActions}>
+            <Link href={`/${locale}/admin/billing`} className={styles.billingBtn}>
+              <Crown size={18} /> ترقية الباقة
+            </Link>
+            <Link href={`/${locale}/admin/wallet`} className={styles.walletLink}>
+              <Wallet size={18} /> المحفظة
+            </Link>
+          </div>
         </div>
-        <Link href={`/${locale}/admin/wallet`} className={styles.walletLink}>
-          <Wallet size={18} /> المحفظة
-        </Link>
-      </div>
 
       {/* Stats - show immediately, values stream in */}
       <div className={styles.statGrid}>
@@ -273,6 +292,7 @@ export default function MerchantDashboard() {
         </div>
       </div>
 
+      </UsageGuard>
       <style jsx>{`
         @keyframes spin {
           from { transform: rotate(0deg); }

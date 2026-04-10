@@ -54,6 +54,7 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
   // Sync store settings when info arrives
   useEffect(() => {
     if (storeInfo) {
+      setStoreSlug(resolvedParams.slug);
       if (storeInfo.currencySettings?.rates) setRates(storeInfo.currencySettings.rates);
       if (storeInfo.currencySettings?.manualSARRate !== undefined) {
         setManualRate(!!storeInfo.currencySettings.useManualSARRate, storeInfo.currencySettings.manualSARRate);

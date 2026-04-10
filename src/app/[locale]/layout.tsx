@@ -27,6 +27,12 @@ export const metadata: Metadata = {
   keywords: ["تجارة إلكترونية", "اليمن", "متاجر", "بيع أونلاين", "بايرز", "Buyers", "E-commerce Yemen"],
   authors: [{ name: "Buyers Team" }],
   viewport: "width=device-width, initial-scale=1, maximum-scale=1",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Buyers",
+  },
   openGraph: {
     type: "website",
     locale: "ar_YE",

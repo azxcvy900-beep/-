@@ -49,11 +49,13 @@ interface CartStore {
   manualSARRate: number;
   shippingFee: number;
   isReceiptUploaded: boolean; // For price locking UI
+  storeSlug: string | null;
   setCurrency: (currency: string) => void;
   setRates: (rates: { [key: string]: number }) => void;
   setManualRate: (useManual: boolean, rate: number) => void;
   setShippingFee: (fee: number) => void;
   setReceiptUploaded: (uploaded: boolean) => void;
+  setStoreSlug: (slug: string | null) => void;
   addItem: (item: CartItem) => void;
   removeItem: (id: string, selectedOptions?: Record<string, string>) => void;
   updateQuantity: (id: string, quantity: number, selectedOptions?: Record<string, string>) => void;
@@ -82,11 +84,13 @@ export const useCartStore = create<CartStore>()(
       manualSARRate: 140,
       shippingFee: 0,
       isReceiptUploaded: false,
+      storeSlug: null,
       setCurrency: (currency) => set({ currency }),
       setRates: (rates) => set({ rates }),
       setManualRate: (useManual, rate) => set({ useManualSARRate: useManual, manualSARRate: rate }),
       setShippingFee: (fee) => set({ shippingFee: fee }),
       setReceiptUploaded: (uploaded) => set({ isReceiptUploaded: uploaded }),
+      setStoreSlug: (slug) => set({ storeSlug: slug }),
       
       addItem: (item) => {
         set((state) => {
