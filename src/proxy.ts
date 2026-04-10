@@ -17,7 +17,8 @@ export function proxy(request: NextRequest) {
 
   if (isManagerPath && !isManagerLogin) {
     if (authRole !== 'admin') {
-      const locale = pathname.split('/')[1] || 'ar';
+      const segments = pathname.split('/');
+      const locale = locales.includes(segments[1]) ? segments[1] : 'ar';
       const redirectUrl = new URL(`/${locale}/manager/login`, request.url);
       return NextResponse.redirect(redirectUrl);
     }
@@ -29,7 +30,8 @@ export function proxy(request: NextRequest) {
 
   if (isAdminPath && !isAdminLogin) {
     if (authRole !== 'merchant' && authRole !== 'admin') {
-      const locale = pathname.split('/')[1] || 'ar';
+      const segments = pathname.split('/');
+      const locale = locales.includes(segments[1]) ? segments[1] : 'ar';
       const redirectUrl = new URL(`/${locale}/admin/login`, request.url);
       return NextResponse.redirect(redirectUrl);
     }
