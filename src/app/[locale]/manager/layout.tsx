@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/components/providers/ThemeProvider';
+import { useSessionStore } from '@/lib/session-store';
 import styles from './manager-layout.module.css';
 
 export default function ManagerLayout({ children }: { children: React.ReactNode }) {
@@ -34,14 +35,25 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [mounted, setMounted] = useState(false);
+  const { isLoggedIn, role, username, logout } = useSessionStore();
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const handleLogout = async () => {
-    // Platform manager logout logic
-    router.push(`/${locale}/admin/login`);
+  // If on login page, don't show the manager layout
+  if (pathname.includes('/manager/login')) {
+    return <>{children}</>;
+  }
+
+  // Redirect to manager login if not authenticated as admin
+  if (mounted && (!isLoggedIn || role !== 'admin')) {
+    return <RedirectToLogin locale={locale} />;
+  }
+
+  const handleLogout = () => {
+    logout();
+    router.push(`/${locale}/manager/login`);
   };
 
   const navItems = [
@@ -113,7 +125,7 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
              <div className={styles.adminProfile}>
                <div className={styles.adminInfo}>
                  <p>المدير العام</p>
-                 <span>Super Admin</span>
+                 <span>{username || 'Super Admin'}</span>
                </div>
                <div className={styles.avatar}>
                  <User size={20} />
@@ -136,6 +148,29 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
           </AnimatePresence>
         </div>
       </main>
+    </div>
+  );
+}
+
+/** Helper component that performs redirect inside useEffect */
+function RedirectToLogin({ locale }: { locale: string }) {
+  const router = useRouter();
+  
+  useEffect(() => {
+    router.replace(`/${locale}/manager/login`);
+  }, [router, locale]);
+
+  return (
+    <div style={{ 
+      display: 'flex', 
+      justifyContent: 'center', 
+      alignItems: 'center',
+      minHeight: '100vh',
+      color: '#94a3b8',
+      fontSize: '1.1rem',
+      background: '#030712'
+    }}>
+      جاري التحويل لصفحة الدخول...
     </div>
   );
 }

@@ -22,10 +22,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/components/providers/ThemeProvider';
-import { auth } from '@/lib/firebase';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { getStoreByMerchant } from '@/lib/api';
-import { useAuthStore } from '@/lib/auth-store';
+import { useSessionStore } from '@/lib/session-store';
 import OrderNotification from '@/components/shared/OrderNotification/OrderNotification';
 import styles from './admin-layout.module.css';
 
@@ -37,42 +34,45 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { theme, toggleTheme } = useTheme();
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const { setStoreInfo, isResolved, clearStoreInfo } = useAuthStore();
+  const [checkingStore, setCheckingStore] = useState(true);
+  const { isLoggedIn, role, username, storeSlug, logout } = useSessionStore();
+  
+  const isSetupPage = pathname.includes('/admin/setup');
+  const isLoginPage = pathname.includes('/admin/login');
 
+  // Verify store existence for merchants
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      
-      if (currentUser) {
-        // Resolve store info if not already resolved
-        if (!isResolved) {
-          const store = await getStoreByMerchant(currentUser.uid);
-          setStoreInfo(store);
-        }
-        setLoading(false);
-      } else {
-        clearStoreInfo();
-        setLoading(false);
-        
-        // Redirect to login if not on login page
-        if (!pathname.includes('/admin/login')) {
-          router.push(`/${locale}/admin/login`);
-        }
-      }
-    });
-
-    return () => unsubscribe();
-  }, [pathname, locale, router, isResolved, setStoreInfo, clearStoreInfo]);
-
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      router.push(`/${locale}/admin/login`);
-    } catch (error) {
-      console.error("Logout error:", error);
+    if (isLoggedIn && role === 'merchant' && !isLoginPage) {
+      // In a real app, we'd fetch the store by merchant ID here
+      setCheckingStore(false);
+    } else {
+      setCheckingStore(false);
     }
+  }, [isLoggedIn, role, isLoginPage]);
+
+  // If on login page, don't show the dashboard layout
+  if (isLoginPage) {
+    return <>{children}</>;
+  }
+
+  // Redirect to login if not authenticated as merchant or admin
+  if (!isLoggedIn || (role !== 'merchant' && role !== 'admin')) {
+    return <RedirectToLogin locale={locale} />;
+  }
+
+  // FORCE Setup if no storeSlug and not on setup page
+  if (role === 'merchant' && !storeSlug && !isSetupPage && !checkingStore) {
+    return <RedirectToSetup locale={locale} />;
+  }
+
+  // Minimal layout for Setup Wizard
+  if (isSetupPage) {
+    return <div className={styles.minimalLayout}>{children}</div>;
+  }
+
+  const handleLogout = () => {
+    logout();
+    router.push(`/${locale}/admin/login`);
   };
 
   const navItems = [
@@ -84,15 +84,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: t('sidebar.orders'), href: `/${locale}/admin/orders`, icon: ShoppingBag },
     { name: t('sidebar.settings'), href: `/${locale}/admin/settings`, icon: Settings },
   ];
-
-  // If on login page, don't show the dashboard layout
-  if (pathname.includes('/admin/login')) {
-    return <>{children}</>;
-  }
-
-  if (loading) {
-    return <div className={styles.loading}>جاري التحميل...</div>;
-  }
 
   return (
     <div className={styles.adminLayout}>
@@ -148,7 +139,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           
           <div className={styles.userProfile}>
             <div className={styles.userInfo}>
-              <p className={styles.userName}>{user?.email?.split('@')[0] || 'التاجر'}</p>
+              <p className={styles.userName}>{username || 'التاجر'}</p>
             </div>
             <div className={styles.avatar}>
               <User size={20} />
@@ -170,6 +161,36 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </AnimatePresence>
         </main>
       </div>
+    </div>
+  );
+}
+
+/** Helper component that performs redirect inside useEffect */
+function RedirectToLogin({ locale }: { locale: string }) {
+  const router = useRouter();
+  
+  useEffect(() => {
+    router.replace(`/${locale}/admin/login`);
+  }, [router, locale]);
+
+  return (
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', color: '#64748b' }}>
+      جاري التحويل لصفحة الدخول...
+    </div>
+  );
+}
+
+/** Helper for setup redirection */
+function RedirectToSetup({ locale }: { locale: string }) {
+  const router = useRouter();
+  
+  useEffect(() => {
+    router.replace(`/${locale}/admin/setup`);
+  }, [router, locale]);
+
+  return (
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', color: '#3b82f6' }}>
+      جاري تحويلك لمساعد التأسيس...
     </div>
   );
 }

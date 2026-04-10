@@ -1,7 +1,8 @@
 import { Metadata } from 'next';
 import Header from '@/components/shared/Header/Header';
 import StoreInitializer from '@/components/shared/StoreInitializer/StoreInitializer';
-import { getStoreInfo } from '@/lib/api';
+import { getStoreInfo, getPlatformSettings } from '@/lib/api';
+import MaintenancePage from '@/components/shared/MaintenancePage/MaintenancePage';
 
 interface StoreLayoutProps {
   children: React.ReactNode;
@@ -11,6 +12,12 @@ interface StoreLayoutProps {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const store = await getStoreInfo(slug);
+  const platform = await getPlatformSettings();
+
+  if (platform.maintenanceMode) {
+    return { title: 'المنصة تحت الصيانة | بايرز' };
+  }
+
   const storeName = store?.name || (slug === 'demo' ? 'متجر بايرز التجريبي' : slug.toUpperCase());
   
   const seoTitle = store?.seo?.titleTemplate ? store.seo.titleTemplate.replace('%s', storeName) : storeName;
@@ -42,7 +49,16 @@ function hexToRgb(hex: string) {
 
 export default async function StoreLayout({ children, params }: StoreLayoutProps) {
   const { slug } = await params;
-  const store = await getStoreInfo(slug);
+  
+  const [store, platform] = await Promise.all([
+    getStoreInfo(slug),
+    getPlatformSettings()
+  ]);
+
+  if (platform.maintenanceMode) {
+    return <MaintenancePage />;
+  }
+
   const primaryColor = store?.primaryColor || '#3b82f6';
   const primaryRgb = hexToRgb(primaryColor);
   
