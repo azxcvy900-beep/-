@@ -1,30 +1,30 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { 
+  Ticket, 
   Plus, 
   Trash2, 
-  Clock, 
-  Users, 
-  DollarSign, 
-  Tag, 
-  CheckCircle, 
-  XCircle,
-  X,
-  Calendar,
-  ShoppingBag
+  CheckCircle2, 
+  AlertCircle, 
+  Calendar, 
+  Percent, 
+  DollarSign,
+  Search,
+  ChevronRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  getStoreCoupons, 
+  getStoreInfo, 
   addCoupon, 
-  updateCoupon, 
-  deleteCoupon,
+  deleteCoupon, 
   Coupon 
 } from '@/lib/api';
-import { useStreamingFetch, useProgressiveLoad } from '@/lib/hooks';
+import { db } from '@/lib/firebase';
+import { collection, query, onSnapshot } from 'firebase/firestore';
 import { useAuthStore } from '@/lib/auth-store';
+import { TableSkeleton } from '@/components/shared/Skeletons/Skeletons';
 import styles from './coupons.module.css';
 
 export default function MerchantCoupons() {
@@ -32,264 +32,189 @@ export default function MerchantCoupons() {
   const locale = useLocale();
   const { storeSlug } = useAuthStore();
   
-  const [localCoupons, setLocalCoupons] = useState<Coupon[] | null>(null);
+  const [coupons, setCoupons] = useState<Coupon[] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isAdding, setIsAdding] = useState(false);
+  const [planType, setPlanType] = useState<'free' | 'pro' | 'business'>('free');
   
-  const { data: initialCoupons, loading: couponsLoading } = useStreamingFetch(
-    () => getStoreCoupons(storeSlug || 'demo'), 
-    [storeSlug],
-    `coupons_${storeSlug || 'demo'}`
-  );
-
-  useEffect(() => {
-    if (initialCoupons) setLocalCoupons(initialCoupons);
-  }, [initialCoupons]);
-
-  const { visibleItems: visibleCoupons } = useProgressiveLoad(localCoupons || [], 4, 150);
-  
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
   // Form State
   const [formData, setFormData] = useState({
     code: '',
     type: 'percent' as 'percent' | 'fixed',
-    value: '',
-    minOrderAmount: '',
+    value: 10,
+    minOrderAmount: 0,
     expiryDate: '',
-    usageLimit: '',
-    storeSlug: storeSlug || 'demo'
+    usageLimit: 100
   });
 
-  const handleToggleActive = async (id: string, currentStatus: boolean) => {
-    // Optimistic Update
-    setLocalCoupons(prev => 
-      prev ? prev.map(c => c.id === id ? { ...c, isActive: !currentStatus } : c) : null
-    );
+  useEffect(() => {
+    if (!storeSlug) return;
     
+    // 1. Fetch Plan Type
+    getStoreInfo(storeSlug).then(info => {
+      if (info) setPlanType(info.planType || 'free');
+    });
+
+    // 2. Real-time Coupons Listener
+    const couponsRef = collection(db, 'stores', storeSlug, 'coupons');
+    const q = query(couponsRef);
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const docs = snapshot.docs.map(doc => doc.data() as Coupon);
+      setCoupons(docs);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [storeSlug]);
+
+  const handleAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!storeSlug || planType === 'free') return;
+
     try {
-      await updateCoupon(storeSlug || 'demo', id, { isActive: !currentStatus });
+      await addCoupon({
+        ...formData,
+        code: formData.code.toUpperCase(),
+        storeSlug
+      });
+      setIsAdding(false);
+      setFormData({ code: '', type: 'percent', value: 10, minOrderAmount: 0, expiryDate: '', usageLimit: 100 });
     } catch (error) {
-      alert("حدث خطأ أثناء تحديث حالة الكوبون.");
-      const fresh = await getStoreCoupons(storeSlug || 'demo');
-      setLocalCoupons(fresh);
+      alert("حدث خطأ أثناء إضافة الكوبون");
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("هل أنت متأكد من حذف هذا الكوبون؟")) return;
-    
-    // Optimistic Delete
-    setLocalCoupons(prev => prev ? prev.filter(c => c.id !== id) : null);
-    
-    try {
-      await deleteCoupon(storeSlug || 'demo', id);
-    } catch (error) {
-      alert("حدث خطأ أثناء حذف الكوبون.");
-      const fresh = await getStoreCoupons(storeSlug || 'demo');
-      setLocalCoupons(fresh);
-    }
+    if (!storeSlug || !confirm("هل تريد حذف هذا الكوبون؟")) return;
+    await deleteCoupon(storeSlug, id);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    try {
-      await addCoupon({
-        ...formData,
-        storeSlug: storeSlug || 'demo',
-        value: parseFloat(formData.value),
-        minOrderAmount: formData.minOrderAmount ? parseFloat(formData.minOrderAmount) : undefined,
-        usageLimit: formData.usageLimit ? parseInt(formData.usageLimit) : undefined,
-      });
-      setIsModalOpen(false);
-      setFormData({
-        code: '',
-        type: 'percent',
-        value: '',
-        minOrderAmount: '',
-        expiryDate: '',
-        usageLimit: '',
-        storeSlug: storeSlug || 'demo'
-      });
-    } catch (error) {
-      alert("حدث خطأ أثناء إضافة الكوبون.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  if (planType === 'free') {
+    return (
+      <div className={styles.lockedContainer}>
+        <div className={styles.lockedCard}>
+          <Ticket size={64} className={styles.lockedIcon} />
+          <h2>نظام الكوبونات (برو) 🎫</h2>
+          <p>أطلق حملاتك التسويقية وزد مبيعاتك عبر أكواد الخصم المخصصة. هذه الميزة متاحة فقط لأصحاب الباقات المدفوعة.</p>
+          <button onClick={() => window.location.href = `/${locale}/admin/billing`} className={styles.upgradeBtn}>
+             ترقية الحساب الآن
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.couponsPage}>
       <div className={styles.header}>
-        <h1 className={styles.title}>إدارة الكوبونات</h1>
-        <button className={styles.addBtn} onClick={() => setIsModalOpen(true)}>
-          <Plus size={20} /> إضافة كوبون جديد
+        <div>
+          <h1 className={styles.title}>إدارة الكوبونات 🎫</h1>
+          <p className={styles.subtitle}>أنشئ أكواد خصم مخصصة لجذب المزيد من الزبائن.</p>
+        </div>
+        <button className={styles.addBtn} onClick={() => setIsAdding(true)}>
+          <Plus size={20} /> كوبون جديد
         </button>
       </div>
 
-      {couponsLoading && visibleCoupons.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '4rem' }}>جاري التحميل...</div>
-      ) : visibleCoupons.length > 0 ? (
-        <div className={styles.couponsGrid}>
-          {visibleCoupons.map((coupon: Coupon) => (
-            <motion.div 
-              key={coupon.id}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.2 }}
-              className={styles.couponCard}
-            >
-              <div className={`${styles.badge} ${coupon.isActive ? styles.active : styles.inactive}`}>
-                {coupon.isActive ? <CheckCircle size={12} style={{ verticalAlign: 'middle', marginLeft: '4px' }} /> : <XCircle size={12} style={{ verticalAlign: 'middle', marginLeft: '4px' }} />}
-                {coupon.isActive ? 'نشط' : 'متوقف'}
-              </div>
+      <div className={styles.content}>
+        {loading ? (
+          <TableSkeleton rows={4} />
+        ) : coupons && coupons.length > 0 ? (
+          <div className={styles.grid}>
+            {coupons.map((coupon) => (
+              <motion.div 
+                key={coupon.id}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className={styles.couponCard}
+              >
+                <div className={styles.cardHeader}>
+                  <div className={styles.codeBadge}>{coupon.code}</div>
+                  <button onClick={() => handleDelete(coupon.id)} className={styles.deleteBtn}>
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+                <div className={styles.cardBody}>
+                  <div className={styles.valueRow}>
+                    {coupon.type === 'percent' ? <Percent size={24} /> : <DollarSign size={24} />}
+                    <span className={styles.value}>{coupon.value}{coupon.type === 'percent' ? '%' : ''}</span>
+                  </div>
+                  <div className={styles.stats}>
+                    <div className={styles.stat}>
+                      <span className={styles.statLabel}>الاستخدام</span>
+                      <span className={styles.statVal}>{coupon.usageCount} / {coupon.usageLimit}</span>
+                    </div>
+                    {coupon.expiryDate && (
+                      <div className={styles.stat}>
+                        <span className={styles.statLabel}>ينتهي في</span>
+                        <span className={styles.statVal}>{new Date(coupon.expiryDate).toLocaleDateString(locale)}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        ) : (
+          <div className={styles.emptyState}>
+            <Ticket size={48} />
+            <p>لا يوجد كوبونات فعالة حالياً. ابدأ بإضافة أول كوبون!</p>
+          </div>
+        )}
+      </div>
 
-              <div className={styles.mainInfo}>
-                <div className={styles.code}>{coupon.code}</div>
-                <div className={styles.discount}>
-                  {coupon.type === 'percent' ? `خصم ${coupon.value}%` : `خصم بقيمة ${coupon.value.toLocaleString()} ر.ي`}
-                </div>
-              </div>
-
-              <div className={styles.details}>
-                <div className={styles.detailItem}>
-                  <span>تاريخ الانتهاء</span>
-                  <span className={styles.detailVal}>
-                    {coupon.expiryDate ? new Date(coupon.expiryDate).toLocaleDateString(locale) : 'لا ينتهي'}
-                  </span>
-                </div>
-                <div className={styles.detailItem}>
-                  <span>الاستخدام</span>
-                  <span className={styles.detailVal}>{coupon.usageCount} / {coupon.usageLimit || '∞'}</span>
-                </div>
-                <div className={styles.detailItem}>
-                  <span>الحد الأدنى</span>
-                  <span className={styles.detailVal}>{coupon.minOrderAmount?.toLocaleString() || 0} ر.ي</span>
-                </div>
-                <div className={styles.detailItem}>
-                  <span>النوع</span>
-                  <span className={styles.detailVal}>{coupon.type === 'percent' ? 'نسبة مئوية' : 'مبلغ ثابت'}</span>
-                </div>
-              </div>
-
-              <div className={styles.actions}>
-                <button 
-                  className={styles.actionBtn} 
-                  onClick={() => handleToggleActive(coupon.id, coupon.isActive)}
-                  title={coupon.isActive ? "تعطيل" : "تفعيل"}
-                  style={{ background: coupon.isActive ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)', color: coupon.isActive ? '#ef4444' : '#10b981' }}
-                >
-                  {coupon.isActive ? <XCircle size={16} /> : <CheckCircle size={16} />}
-                </button>
-                <button 
-                  className={`${styles.actionBtn} ${styles.deleteBtn}`} 
-                  onClick={() => handleDelete(coupon.id)}
-                  title="حذف"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      ) : (
-        <div style={{ textAlign: 'center', padding: '4rem', background: 'var(--bg-paper)', borderRadius: '24px', border: '1px dashed rgba(128,128,128,0.2)' }}>
-          <Tag size={48} style={{ color: 'var(--text-secondary)', marginBottom: '1rem', opacity: 0.3 }} />
-          <p style={{ color: 'var(--text-secondary)' }}>{!couponsLoading && "لا توجد كوبونات فعالة حالياً. ابدأ بإنشاء أول عرض لزبائنك!"}</p>
-        </div>
-      )}
-
-      {/* Add Coupon Modal */}
       <AnimatePresence>
-        {isModalOpen && (
-          <div className={styles.modalOverlay} onClick={() => setIsModalOpen(false)}>
+        {isAdding && (
+          <div className={styles.modalOverlay}>
             <motion.div 
-              initial={{ opacity: 0, y: 30, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 30, scale: 0.95 }}
-              className={styles.modal} 
-              onClick={e => e.stopPropagation()}
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 50 }}
+              className={styles.modal}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                <h3 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 900, color: 'var(--text-primary)' }}>إضافة كوبون جديد</h3>
-                <button className={styles.closeBtn} onClick={() => setIsModalOpen(false)}>
-                  <X size={20} />
-                </button>
+              <div className={styles.modalHeader}>
+                <h3>إضافة كوبون جديد</h3>
+                <button onClick={() => setIsAdding(false)}><Plus size={24} style={{ transform: 'rotate(45deg)' }} /></button>
               </div>
-
-              <form onSubmit={handleSubmit} className={styles.form}>
-                <div className={styles.inputGroup}>
-                  <label><Tag size={16} /> كود الكوبون (باللغة الإنجليزية)</label>
+              <form onSubmit={handleAdd} className={styles.modalBody}>
+                <div className={styles.formGroup}>
+                  <label>كود الخصم (مثل: SAVE20)</label>
                   <input 
-                    className={styles.input}
-                    placeholder="مثال: SAVE20"
-                    value={formData.code}
-                    onChange={e => setFormData({...formData, code: e.target.value.toUpperCase()})}
-                    required
+                    type="text" 
+                    required 
+                    value={formData.code} 
+                    onChange={e => setFormData({...formData, code: e.target.value})} 
+                    placeholder="SAVE20"
                   />
                 </div>
-
-                <div className={styles.row}>
-                  <div className={styles.inputGroup}>
-                    <label><Tag size={16} /> نوع الخصم</label>
-                    <select 
-                      className={styles.input}
-                      value={formData.type}
-                      onChange={e => setFormData({...formData, type: e.target.value as 'percent' | 'fixed'})}
-                    >
+                <div className={styles.formGrid}>
+                  <div className={styles.formGroup}>
+                    <label>نوع الخصم</label>
+                    <select value={formData.type} onChange={e => setFormData({...formData, type: e.target.value as any})}>
                       <option value="percent">نسبة مئوية (%)</option>
-                      <option value="fixed">مبلغ ثابت (ر.ي)</option>
+                      <option value="fixed">قيمة ثابتة (YER)</option>
                     </select>
                   </div>
-                  <div className={styles.inputGroup}>
-                    <label><DollarSign size={16} /> القيمة</label>
-                    <input 
-                      type="number"
-                      className={styles.input}
-                      placeholder="0.00"
-                      value={formData.value}
-                      onChange={e => setFormData({...formData, value: e.target.value})}
-                      required
-                    />
+                  <div className={styles.formGroup}>
+                    <label>القيمة</label>
+                    <input type="number" required value={formData.value} onChange={e => setFormData({...formData, value: parseFloat(e.target.value)})} />
                   </div>
                 </div>
-
-                <div className={styles.row}>
-                  <div className={styles.inputGroup}>
-                    <label><ShoppingBag size={16} /> الحد الأدنى للطلب</label>
-                    <input 
-                      type="number"
-                      className={styles.input}
-                      placeholder="0"
-                      value={formData.minOrderAmount}
-                      onChange={e => setFormData({...formData, minOrderAmount: e.target.value})}
-                    />
+                <div className={styles.formGrid}>
+                  <div className={styles.formGroup}>
+                    <label>أقل قيمة طلب (اختياري)</label>
+                    <input type="number" value={formData.minOrderAmount} onChange={e => setFormData({...formData, minOrderAmount: parseFloat(e.target.value)})} />
                   </div>
-                  <div className={styles.inputGroup}>
-                    <label><Users size={16} /> حد الاستخدام</label>
-                    <input 
-                      type="number"
-                      className={styles.input}
-                      placeholder="لا محدود"
-                      value={formData.usageLimit}
-                      onChange={e => setFormData({...formData, usageLimit: e.target.value})}
-                    />
+                  <div className={styles.formGroup}>
+                    <label>أقصى عدد مرات استخدام</label>
+                    <input type="number" value={formData.usageLimit} onChange={e => setFormData({...formData, usageLimit: parseFloat(e.target.value)})} />
                   </div>
                 </div>
-
-                <div className={styles.inputGroup}>
-                  <label><Calendar size={16} /> تاريخ الانتهاء</label>
-                  <input 
-                    type="date"
-                    className={styles.input}
-                    value={formData.expiryDate}
-                    onChange={e => setFormData({...formData, expiryDate: e.target.value})}
-                  />
+                <div className={styles.formGroup}>
+                  <label>تاريخ الانتهاء</label>
+                  <input type="date" value={formData.expiryDate} onChange={e => setFormData({...formData, expiryDate: e.target.value})} />
                 </div>
-
-                <button type="submit" className={styles.saveBtn} disabled={isSubmitting}>
-                  {isSubmitting ? 'جاري الحفظ...' : 'حفظ الكوبون وتفعيله'}
-                </button>
+                <button type="submit" className={styles.submitBtn}>تفعيل الكوبون</button>
               </form>
             </motion.div>
           </div>

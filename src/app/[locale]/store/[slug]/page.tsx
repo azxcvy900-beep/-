@@ -38,7 +38,7 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
   const [searchQuery, setSearchQuery] = useState('');
 
   // Cart Sync Actions
-  const { setRates, setManualRate, setShippingFee } = useCartStore();
+  const { setRates, setManualRate, setShippingFee, setStoreSlug } = useCartStore();
 
   // Each data source loads INDEPENDENTLY
   const { data: products, loading: productsLoading } = useStreamingFetch(

@@ -61,6 +61,8 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
 
   const primaryColor = store?.primaryColor || '#3b82f6';
   const primaryRgb = hexToRgb(primaryColor);
+  const secondaryColor = store?.secondaryColor || '#64748b';
+  const secondaryRgb = hexToRgb(secondaryColor);
   
   return (
     <>
@@ -68,6 +70,8 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
         :root {
           --primary: ${primaryColor} !important;
           --primary-rgb: ${primaryRgb} !important;
+          --secondary: ${secondaryColor} !important;
+          --secondary-rgb: ${secondaryRgb} !important;
         }
       `}} />
       <StoreInitializer 

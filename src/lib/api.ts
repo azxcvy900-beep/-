@@ -394,21 +394,47 @@ export async function deleteCoupon(storeSlug: string, id: string): Promise<void>
   await deleteDoc(couponRef);
 }
 
-export async function validateCoupon(storeSlug: string, code: string, totalAmount?: number): Promise<Coupon | null> {
-  try {
-    const couponsRef = collection(db, 'stores', storeSlug, 'coupons');
-    const q = query(couponsRef, where('code', '==', code.toUpperCase()), where('isActive', '==', true));
-    const querySnapshot = await getDocs(q);
-    if (querySnapshot.empty) return null;
-    const coupon = querySnapshot.docs[0].data() as Coupon;
-    
-    if (totalAmount !== undefined && coupon.minOrderAmount && totalAmount < coupon.minOrderAmount) {
-      return null;
-    }
-    
     return coupon;
   } catch (error) {
     return null;
+  }
+}
+
+export type AnalyticsData = {
+  date: string;
+  sales: number;
+  orders: number;
+};
+
+export async function getStoreAnalyticsData(storeSlug: string, period: 'day' | 'week' | 'month' = 'month'): Promise<AnalyticsData[]> {
+  try {
+    const orders = await getStoreOrders(storeSlug);
+    const now = new Date();
+    const dataMap: Record<string, AnalyticsData> = {};
+    
+    // Filter and aggregate orders based on period
+    const filteredOrders = orders.filter(o => {
+      const orderDate = new Date(o.date);
+      const diffTime = Math.abs(now.getTime() - orderDate.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (period === 'day') return diffDays <= 1;
+      if (period === 'week') return diffDays <= 7;
+      return diffDays <= 30; // default month
+    });
+
+    filteredOrders.forEach(order => {
+      const dateKey = new Date(order.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      if (!dataMap[dateKey]) {
+        dataMap[dateKey] = { date: dateKey, sales: 0, orders: 0 };
+      }
+      dataMap[dateKey].sales += order.total;
+      dataMap[dateKey].orders += 1;
+    });
+
+    return Object.values(dataMap).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  } catch (error) {
+    return [];
   }
 }
 

@@ -198,7 +198,28 @@ export default function MerchantSettings() {
                  />
                  <div style={{ display: 'flex', flexDirection: 'column' }}>
                     <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>{storeData?.primaryColor || '#3b82f6'}</span>
-                    <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>سيتم تطبيق هذا اللون على الأزرار والعناصر الرئيسية.</span>
+                    <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>يستخدم في الأزرار والعناصر الرئيسية.</span>
+                 </div>
+               </div>
+             </div>
+
+             <div className={styles.inputGroup}>
+               <label>اللون الثانوي (باقة بزنس 💎)</label>
+               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', opacity: storeData?.planType === 'business' ? 1 : 0.6 }}>
+                 <input 
+                   type="color"
+                   disabled={storeData?.planType !== 'business'}
+                   style={{ width: '50px', height: '50px', border: 'none', borderRadius: '8px', cursor: storeData?.planType === 'business' ? 'pointer' : 'not-allowed', padding: '0', background: 'none' }}
+                   value={storeData?.secondaryColor || '#64748b'}
+                   onChange={(e) => setStoreData(prev => prev ? {...prev, secondaryColor: e.target.value} : null)}
+                 />
+                 <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>{storeData?.secondaryColor || '#64748b'}</span>
+                    {storeData?.planType !== 'business' ? (
+                      <span style={{ fontSize: '0.75rem', color: '#3b82f6', fontWeight: 700 }}>قم بالترقية لتفعيل هذا اللون</span>
+                    ) : (
+                      <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>يستخدم في العناصر الفرعية والتذييل.</span>
+                    )}
                  </div>
                </div>
              </div>

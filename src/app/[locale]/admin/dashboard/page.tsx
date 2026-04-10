@@ -14,16 +14,33 @@ import {
   Users,
   Wallet,
   Lock,
+  Crown,
   ChevronLeft,
   Loader2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { getStoreOrders, getStoreProducts, Product, getStoreInfo, StoreInfo } from '@/lib/api';
-import { Order } from '@/lib/store';
+import { 
+  getStoreOrders, 
+  getStoreProducts, 
+  getStoreInfo, 
+  getStoreAnalyticsData,
+  AnalyticsData,
+  Order, 
+  Product 
+} from '@/lib/api';
 import { useStreamingFetch, useProgressiveLoad } from '@/lib/hooks';
 import { useAuthStore } from '@/lib/auth-store';
 import { StatSkeleton, ListSkeleton, TableSkeleton } from '@/components/shared/Skeletons/Skeletons';
 import UsageGuard from '@/components/shared/UsageGuard/UsageGuard';
+import { 
+  AreaChart, 
+  Area, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer 
+} from 'recharts';
 import styles from './dashboard.module.css';
 
 function SectionLoader({ label }: { label: string }) {
@@ -57,6 +74,12 @@ export default function MerchantDashboard() {
     () => getStoreInfo(storeSlug || 'demo'), 
     [storeSlug], 
     `store_${storeSlug || 'demo'}`
+  );
+
+  const { data: analytics } = useStreamingFetch(
+    () => getStoreAnalyticsData(storeSlug || 'demo', 'month'),
+    [storeSlug],
+    `analytics_${storeSlug || 'demo'}`
   );
 
   // Progressive loading for visible orders
