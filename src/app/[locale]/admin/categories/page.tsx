@@ -163,7 +163,7 @@ export default function AdminCategories() {
             >
               <div className={styles.categoryIcon} style={{ borderRadius: '50%', overflow: 'hidden', width: '64px', height: '64px', border: '2px solid rgba(var(--primary-rgb), 0.1)' }}>
                 {cat.image ? (
-                  <img src={cat.image} alt={cat.name} style={{ width: '100%', height: '100%', object-fit: 'cover' }} />
+                  <img src={cat.image} alt={cat.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
                   <Grid size={32} color="var(--primary)" />
                 )}
