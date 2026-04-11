@@ -445,10 +445,10 @@ export async function uploadCategoryImage(file: File | Blob, storeSlug: string):
 export async function getStoreCategories(storeSlug: string): Promise<Category[]> {
   if (storeSlug === 'demo') {
     return [
-      { id: 'cat-phones', name: 'هواتف ذكية', storeSlug: 'demo' },
-      { id: 'cat-audio', name: 'سماعات وإكسسوارات', storeSlug: 'demo' },
-      { id: 'cat-gaming', name: 'أجهزة ألعاب', storeSlug: 'demo' },
-      { id: 'cat-computers', name: 'حواسيب', storeSlug: 'demo' },
+      { id: 'cat-phones', name: 'هواتف ذكية', storeSlug: 'demo', image: '/assets/demo/iphone_15.png' },
+      { id: 'cat-audio', name: 'سماعات وإكسسوارات', storeSlug: 'demo', image: '/assets/demo/airpods.png' },
+      { id: 'cat-gaming', name: 'أجهزة ألعاب', storeSlug: 'demo', image: '/assets/demo/ps5.png' },
+      { id: 'cat-computers', name: 'حواسيب', storeSlug: 'demo', image: '/assets/demo/macbook.png' },
     ];
   }
 
