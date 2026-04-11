@@ -17,7 +17,7 @@ interface HeaderProps {
   isLanding?: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ storeName, storeLogo }) => {
+const Header: React.FC<HeaderProps> = ({ storeName, storeLogo, isLanding }) => {
   const t = useTranslations('Header');
   const ot = useTranslations('Orders');
   const locale = useLocale();
