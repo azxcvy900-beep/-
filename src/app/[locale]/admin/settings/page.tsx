@@ -37,6 +37,9 @@ export default function MerchantSettings() {
   const [showCropModal, setShowCropModal] = useState(false);
   const [tempLogoUrl, setTempLogoUrl] = useState<string | null>(null);
   const [isCropping, setIsCropping] = useState(false);
+  
+  // Progress tracking
+  const [saveStep, setSaveStep] = useState<'' | 'compressing' | 'uploading' | 'saving'>('');
 
   useEffect(() => {
     async function loadStore() {
@@ -107,17 +110,20 @@ export default function MerchantSettings() {
 
     setSaving(true);
     setSuccess(false);
+    setSaveStep('compressing');
 
     try {
       let finalLogoUrl = storeData.logo;
 
       // 1. Upload new logo if selected
       if (selectedLogo) {
+        setSaveStep('uploading');
         // Optimized: Compress logo before upload for speed
         const compressed = await compressImage(selectedLogo, 400, 0.7);
         finalLogoUrl = await uploadStoreLogo(compressed, storeSlug || 'demo');
       }
 
+      setSaveStep('saving');
       const updatedData = {
         ...storeData,
         logo: finalLogoUrl || storeData.logo || ''
@@ -126,11 +132,13 @@ export default function MerchantSettings() {
       // 2. Save all info
       await updateStoreInfo(storeSlug || 'demo', updatedData);
       setStoreData(updatedData);
+      
+      setSaveStep('');
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (error: any) {
+      setSaveStep('');
       console.error("Save error:", error);
-      // Detailed error for debugging the 'not completing' issue
       alert("⚠️ عذراً، فشل الحفظ! السبب الفني: " + (error.message || "خطأ غير معروف في الاتصال"));
     } finally {
       setSaving(false);
@@ -496,7 +504,14 @@ export default function MerchantSettings() {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
           <button type="submit" className={styles.saveBtn} disabled={saving}>
-            {saving ? 'جاري الحفظ...' : (
+            {saving ? (
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                {saveStep === 'compressing' && 'جاري معالجة الصورة...'}
+                {saveStep === 'uploading' && 'جاري الرفع للسحابة...'}
+                {saveStep === 'saving' && 'جاري حفظ البيانات...'}
+                {!saveStep && 'جاري الحفظ...'}
+              </span>
+            ) : (
               <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <Save size={20} /> حفظ الإعدادات
               </span>
