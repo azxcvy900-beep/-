@@ -158,8 +158,10 @@ export default function AdminLoginPage() {
               className={`${styles.tab} ${mode === 'login' ? styles.activeTab : ''}`}
               onClick={() => { setMode('login'); setError(''); setSuccess(''); }}
             >
-              <LogIn size={18} />
-              دخول
+              <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <LogIn size={18} />
+                دخول
+              </div>
               {mode === 'login' && (
                 <motion.div 
                   layoutId="tab-underline"
@@ -173,8 +175,10 @@ export default function AdminLoginPage() {
               className={`${styles.tab} ${mode === 'register' ? styles.activeTab : ''}`}
               onClick={() => { setMode('register'); setError(''); setSuccess(''); }}
             >
-              <UserPlus size={18} />
-              اشتراك جديد
+              <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <UserPlus size={18} />
+                اشتراك جديد
+              </div>
               {mode === 'register' && (
                 <motion.div 
                   layoutId="tab-underline"
@@ -346,7 +350,7 @@ export default function AdminLoginPage() {
                 }}
               >
                 <ArrowLeft size={16} style={{ transform: locale === 'ar' ? 'rotate(180deg)' : 'none' }} /> 
-                {t('common.backToHome') || 'العودة للموقع الرئيسي'}
+                {t('backToHome')}
               </button>
           </footer>
         </div>
