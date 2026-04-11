@@ -893,16 +893,16 @@ export async function loginMerchant(username: string, password: string): Promise
   }
 }
 
-/**
- * Check if a username is already taken.
- */
 export async function checkUsernameAvailability(username: string): Promise<boolean> {
   try {
     const merchantDoc = doc(db, 'merchants', username.toLowerCase());
     const merchantSnap = await getDoc(merchantDoc);
     return !merchantSnap.exists();
-  } catch (error) {
-    return false;
+  } catch (error: any) {
+    console.error("Non-fatal error checking username availability:", error);
+    // If permission is denied (unauthenticated check), we don't assume it's taken.
+    // The final setDoc in registerMerchant will throw a real error if there's a collision.
+    return true; 
   }
 }
 
