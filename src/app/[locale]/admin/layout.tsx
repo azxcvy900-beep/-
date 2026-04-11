@@ -46,7 +46,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const isLoginPage = pathname.includes('/admin/login');
 
   // Sync session storeSlug with authStore
-  const { setStoreInfo } = useAuthStore();
   
   useEffect(() => {
     if (storeSlug && isLoggedIn) {
