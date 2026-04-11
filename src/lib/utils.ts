@@ -90,3 +90,34 @@ export const compressImage = async (file: File, maxWidth: number = 800, quality:
     reader.onerror = () => reject(new Error('File reading failed'));
   });
 };
+
+/**
+ * Shared helper to crop an image to a square and return a blob.
+ */
+export const getSquareCroppedImg = async (imageSrc: string): Promise<Blob> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.src = imageSrc;
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const size = Math.min(img.width, img.height);
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return reject(new Error('Could not get canvas context'));
+
+      // Center crop to square
+      const offsetX = (img.width - size) / 2;
+      const offsetY = (img.height - size) / 2;
+
+      ctx.drawImage(img, offsetX, offsetY, size, size, 0, 0, size, size);
+
+      canvas.toBlob((blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error('Canvas toBlob failed'));
+      }, 'image/jpeg', 0.9);
+    };
+    img.onerror = () => reject(new Error('Image failed to load for cropping'));
+  });
+};

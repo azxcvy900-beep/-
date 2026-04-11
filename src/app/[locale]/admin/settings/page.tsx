@@ -18,7 +18,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { getStoreInfo, updateStoreInfo, uploadStoreLogo, StoreInfo } from '@/lib/api';
 import { useAuthStore } from '@/lib/auth-store';
-import { compressImage } from '@/lib/utils';
+import { compressImage, getSquareCroppedImg } from '@/lib/utils';
 import styles from './settings.module.css';
 
 export default function MerchantSettings() {
@@ -34,6 +34,9 @@ export default function MerchantSettings() {
   // Logo States
   const [selectedLogo, setSelectedLogo] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [showCropModal, setShowCropModal] = useState(false);
+  const [tempLogoUrl, setTempLogoUrl] = useState<string | null>(null);
+  const [isCropping, setIsCropping] = useState(false);
 
   useEffect(() => {
     async function loadStore() {
@@ -66,12 +69,35 @@ export default function MerchantSettings() {
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setSelectedLogo(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setLogoPreview(reader.result as string);
+        setTempLogoUrl(reader.result as string);
+        setShowCropModal(true);
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleConfirmCrop = async () => {
+    if (!tempLogoUrl) return;
+    
+    setIsCropping(true);
+    try {
+      // 1. Crop to square
+      const croppedBlob = await getSquareCroppedImg(tempLogoUrl);
+      const croppedFile = new File([croppedBlob], 'logo_cropped.jpg', { type: 'image/jpeg' });
+      
+      // 2. Further compress for speed
+      const finalizedFile = await compressImage(croppedFile, 400, 0.7);
+      
+      setSelectedLogo(finalizedFile);
+      setLogoPreview(URL.createObjectURL(finalizedFile));
+      setShowCropModal(false);
+    } catch (error) {
+      console.error("Crop error:", error);
+      alert("حدث خطأ أثناء معالجة الصورة");
+    } finally {
+      setIsCropping(false);
     }
   };
 
@@ -491,6 +517,56 @@ export default function MerchantSettings() {
           </AnimatePresence>
         </div>
       </form>
+
+      {/* Professional Crop Modal */}
+      <AnimatePresence>
+        {showCropModal && (
+          <div className={styles.modalOverlay}>
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className={styles.cropModal}
+            >
+              <div className={styles.modalHeader}>
+                <h3>محرر الشعار الذكي</h3>
+                <button type="button" onClick={() => setShowCropModal(false)} className={styles.closeBtn}>
+                  <X size={20} />
+                </button>
+              </div>
+              
+              <div className={styles.modalBody}>
+                <p>سيتم قص الصورة لتصبح مربعة وتلقائية التوسيط. تأكد من أن الجزء الأهم في المنتصف.</p>
+                
+                <div className={styles.cropPreviewContainer}>
+                  <div className={styles.cropCircle}>
+                    <img src={tempLogoUrl || ''} alt="Preview" />
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.modalActions}>
+                <button 
+                  type="button"
+                  onClick={() => setShowCropModal(false)} 
+                  className={styles.cancelButton}
+                  disabled={isCropping}
+                >
+                  إلغاء
+                </button>
+                <button 
+                  type="button"
+                  onClick={handleConfirmCrop} 
+                  className={styles.confirmButton}
+                  disabled={isCropping}
+                >
+                  {isCropping ? 'جاري المعالجة...' : 'قص واعتماد الشعار'}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
