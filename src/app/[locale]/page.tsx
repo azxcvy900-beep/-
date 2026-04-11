@@ -29,96 +29,129 @@ export default function Home() {
       <main className={styles.main}>
         {/* Hero Section */}
         <section className={styles.hero}>
+          <div className={styles.heroGradient} />
           <div className={styles.bgGrid} />
           <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1, ease: "easeOut" }}
             className={styles.heroContent}
           >
-            <div className={styles.badge}>
-              <Zap size={14} />
-              <span>أول منصة يمنية بنظام SaaS العالمي</span>
-            </div>
+            <motion.div 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className={styles.badge}
+            >
+              <Zap size={14} className={styles.pulse} />
+              <span>الجيل الجديد من التجارة الإلكترونية في اليمن</span>
+            </motion.div>
             <h1 className={styles.title}>
-              ابنِ إمبراطوريتك التجارية <br />
-              <span>بسهولة واحترافية</span>
+              حوّل شغفك إلى <span>أرباح حقيقية </span> <br />
+              أنشئ متجرك في دقائق
             </h1>
             <p className={styles.subtitle}>
-              منصة "بايرز" تمنحك متجراً متكاملاً، لوحة تحكم ذكية، ونظام طلبات مباشر عبر واتساب. ابدأ اليوم وحوّل زوارك إلى عملاء دائمين.
+              لا تحتاج لخبرة برمجية. منصة "بايرز" توفر لك كل الأدوات اللازمة للبيع، الإدارة، والنمو. ابدأ الآن وانضم لنخبة التجار المبدعين.
             </p>
             <div className={styles.ctas}>
               <Link href={`/${locale}/admin/login`} className={styles.primaryBtn}>
-                ابدأ تجربتك المجانية <ArrowRight size={20} />
+                ابدأ رحلتك المجانية <ArrowRight size={20} />
               </Link>
               <Link href={`/${locale}/store/demo`} className={styles.secondaryBtn}>
-                شاهد متجراً تجريبياً
+                <Globe size={18} /> شاهد متجراً حقيقياً
               </Link>
             </div>
           </motion.div>
         </section>
 
+        {/* How It Works - New Section */}
+        <section className={styles.steps}>
+          <div className={styles.sectionHeader}>
+            <span className={styles.preTitle}>رحلتك تبدأ هنا</span>
+            <h2>ثلاث خطوات لتكون في القمة</h2>
+          </div>
+          <div className={styles.stepsGrid}>
+            <div className={styles.stepCard}>
+              <div className={styles.stepNumber}>1</div>
+              <h3>أنشئ حسابك</h3>
+              <p>سجل في ثوانٍ واختر رابط متجرك الفريد الذي يعبر عن اسم علامتك التجارية.</p>
+            </div>
+            <div className={styles.stepArrow}><ArrowRight /></div>
+            <div className={styles.stepCard}>
+              <div className={styles.stepNumber}>2</div>
+              <h3>أضف منتجاتك</h3>
+              <p>ارفع صور منتجاتك بضغطة زر، حدد الأسعار، وخصص مظهر متجرك بما يناسب ذوقك.</p>
+            </div>
+            <div className={styles.stepArrow}><ArrowRight /></div>
+            <div className={styles.stepCard}>
+              <div className={styles.stepNumber}>3</div>
+              <h3>ابدأ بالبيع</h3>
+              <p>استقبل الطلبات مباشرة على واتساب، وقم بإدارة مبيعاتك من لوحة تحكم ذكية وشاملة.</p>
+            </div>
+          </div>
+        </section>
+
         {/* Stats Preview */}
         <section className={styles.stats}>
-          <div className={styles.statCard}>
+          <motion.div whileInView={{ opacity: 1, y: 0 }} initial={{ opacity: 0, y: 20 }} className={styles.statCard}>
             <h3>+500</h3>
-            <p>متجر مشترك</p>
-          </div>
+            <p>تاجر يمني يثق بنا</p>
+          </motion.div>
           <div className={styles.statLine} />
-          <div className={styles.statCard}>
+          <motion.div whileInView={{ opacity: 1, y: 0 }} initial={{ opacity: 0, y: 20 }} transition={{ delay: 0.1 }} className={styles.statCard}>
             <h3>+10k</h3>
-            <p>طلب شهري</p>
-          </div>
+            <p>طلب ناجح شهرياً</p>
+          </motion.div>
           <div className={styles.statLine} />
-          <div className={styles.statCard}>
-            <h3>99.9%</h3>
-            <p>وقت التشغيل</p>
-          </div>
+          <motion.div whileInView={{ opacity: 1, y: 0 }} initial={{ opacity: 0, y: 20 }} transition={{ delay: 0.2 }} className={styles.statCard}>
+            <h3>100%</h3>
+            <p>دعم فني متواصل</p>
+          </motion.div>
         </section>
 
         {/* Features Section */}
         <section className={styles.features}>
           <div className={styles.featuresHeader}>
-            <span className={styles.preTitle}>لماذا بايرز؟</span>
-            <h2>كل ما تحتاجه لإدارة تجارتك</h2>
+            <span className={styles.preTitle}>مميزات لا تضاهى</span>
+            <h2>لماذا يفضل التجار "بايرز"؟</h2>
           </div>
 
           <div className={styles.featureGrid}>
-            <motion.div whileHover={{ y: -10 }} className={styles.featureCard}>
-              <div className={styles.featureIcon}><LayoutDashboard /></div>
-              <h3>لوحة تحكم رادارية</h3>
-              <p>شاهد نمو مبيعاتك، أداء منتجاتك، وتفاعل عملائك في الوقت الفعلي ومن مكان واحد.</p>
+            <motion.div whileHover={{ y: -12, scale: 1.02 }} className={styles.featureCard}>
+              <div className={styles.featureIcon}><Rocket /></div>
+              <h3>سرعة وأداء خارق</h3>
+              <p>متجرك يفتح في أقل من ثانية، مما يضمن عدم ضياع أي عميل وبقاءهم أطول فترة ممكنة.</p>
             </motion.div>
 
-            <motion.div whileHover={{ y: -10 }} className={styles.featureCard}>
+            <motion.div whileHover={{ y: -12, scale: 1.02 }} className={styles.featureCard}>
               <div className={styles.featureIcon}><MessageCircle /></div>
-              <h3>طلبات واتساب فورية</h3>
-              <p>تصلك الطلبات بكامل تفاصيلها مباشرة إلى واتساب، مما يسهل عليك خدمة العملاء.</p>
+              <h3>تكامل تام مع واتساب</h3>
+              <p>إدارة الطلبات عبر واتساب تزيد من ثقة العملاء وتجعل التواصل أسرع من أي وقت مضى.</p>
             </motion.div>
 
-            <motion.div whileHover={{ y: -10 }} className={styles.featureCard}>
-              <div className={styles.featureIcon}><Globe /></div>
-              <h3>رابط خاص بك</h3>
-              <p>احصل على رابط متجر خاص (slug) يعكس هويتك، وسهّل على عملائك العثور عليك.</p>
+            <motion.div whileHover={{ y: -12, scale: 1.02 }} className={styles.featureCard}>
+              <div className={styles.featureIcon}><LayoutDashboard /></div>
+              <h3>ذكاء في الإدارة</h3>
+              <p>تقارير يومية عن الأرباح، الزوار، والمنتجات الأكثر طلباً لمساعدتك في اتخاذ قراراتك.</p>
             </motion.div>
 
-            <motion.div whileHover={{ y: -10 }} className={styles.featureCard}>
-              <div className={styles.featureIcon}><ShieldCheck /></div>
-              <h3>أمان وموثوقية</h3>
-              <p>بيانات متجرك وعملائك في أمان تام مع أنظمة حماية متقدمة ودعم فني على مدار الساعة.</p>
+            <motion.div whileHover={{ y: -12, scale: 1.02 }} className={styles.featureCard}>
+              <div className={styles.featureIcon}><Zap /></div>
+              <h3>سهولة الاستخدام</h3>
+              <p>صممنا واجهة التحكم لتكون بسيطة حتى للمبتدئين، لا حاجة لمهارات تقنية معقدة.</p>
             </motion.div>
           </div>
         </section>
 
         {/* CTA Section */}
         <section className={styles.finalCta}>
-          <div className={styles.ctaCard}>
-            <h2>هل أنت مستعد لإطلاق متجرك؟</h2>
-            <p>انضم إلى مئات التجار في اليمن وبروز علامتك التجارية اليوم.</p>
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} className={styles.ctaCard}>
+            <h2>كن جزءاً من مستقبل التجارة في اليمن</h2>
+            <p>انضم اليوم واستفد من كافة المميزات مجاناً لفترة محدودة.</p>
             <Link href={`/${locale}/admin/login`} className={styles.primaryBtnLarge}>
-              سجل الآن وابدأ البيع <Rocket size={20} />
+              أسس متجرك الآن <ArrowRight size={20} />
             </Link>
-          </div>
+          </motion.div>
         </section>
       </main>
 

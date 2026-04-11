@@ -1,65 +1,74 @@
 .header {
   background: var(--header-bg);
   border-bottom: 1px solid var(--card-border);
-  padding: 1rem 0;
+  padding: 0.75rem 0;
   position: sticky;
   top: 0;
   z-index: 100;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--shadow-sm);
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 0 1.5rem;
+  padding: 0 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .logo {
-  font-size: 1.5rem;
-  font-weight: 800;
+  font-size: 1.75rem;
+  font-weight: 900;
   color: var(--primary);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.04em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .nav {
   display: flex;
-  gap: 1.5rem;
+  gap: 2rem;
   align-items: center;
 }
 
 .iconButton {
   font-size: 1.25rem;
-  padding: 0.5rem;
-  border-radius: 50%;
+  padding: 0.6rem;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s ease, color 0.2s ease;
+  transition: all 0.3s ease;
   color: var(--foreground);
+  background: var(--muted);
 }
 
 .iconButton:hover {
-  background: var(--muted);
-  color: var(--primary);
+  background: var(--primary);
+  color: white;
+  transform: translateY(-2px);
 }
 
 .localeLink {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--secondary);
-  padding: 0.25rem 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--foreground);
+  padding: 0.5rem 1rem;
   border: 1px solid var(--card-border);
-  border-radius: 6px;
-  transition: all 0.2s ease;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  background: white;
 }
 
 .localeLink:hover {
-  background: var(--muted);
-  color: var(--primary);
+  background: var(--primary);
+  color: white;
   border-color: var(--primary);
+  transform: translateY(-2px);
 }
 
 .cartLink {
@@ -102,19 +111,31 @@
 .adminLink {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  color: var(--text-primary);
-  font-weight: 500;
-  transition: all 0.2s;
+  gap: 0.6rem;
+  background: var(--foreground);
+  color: white !important;
+  padding: 0.6rem 1.25rem;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow);
 }
 
 .adminLink:hover {
-  color: var(--primary);
-  transform: translateY(-1px);
+  background: var(--accent);
+  color: white !important;
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 10px 20px -5px rgba(245, 158, 11, 0.4);
 }
 
-.adminLink i, .adminLink svg {
-  color: var(--primary);
+.adminLink svg {
+  color: var(--accent);
+  transition: color 0.3s;
+}
+
+.adminLink:hover svg {
+  color: white;
 }
 
 @media (max-width: 768px) {
