@@ -293,7 +293,9 @@ export const DUMMY_STORES: StoreInfo[] = [
     heroBanners: [
       { image: '/assets/demo/banner.png', title: 'عالم الهواتف الذكية', subtitle: 'أحدث الابتكارات بين يديك' },
       { image: 'https://images.unsplash.com/photo-1621336304646-6fc1473ae74b?w=2000&q=80', title: 'عالم الألعاب', subtitle: 'انغمس في التجربة مع PS5' },
-      { image: 'https://images.unsplash.com/photo-1618366712214-8c075189d0ad?w=2000&q=80', title: 'صوت مذهل', subtitle: 'استمتع بنقاوة الصوت مع AirPods Pro' }
+      { image: 'https://images.unsplash.com/photo-1618366712214-8c075189d0ad?w=2000&q=80', title: 'صوت مذهل', subtitle: 'استمتع بنقاوة الصوت مع AirPods Pro' },
+      { image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=2000&q=80', title: 'القوة والإنتاجية', subtitle: 'أقوى أجهزة اللابتوب للأعمال والتصميم' },
+      { image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=2000&q=80', title: 'أناقة ذكية', subtitle: 'ساعات ذكية تتبع نمط حياتك' }
     ],
     phone: '967771234567',
     description: 'وجهتك الأولى لأحدث التقنيات بأسعار منافسة في اليمن.',

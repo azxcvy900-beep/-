@@ -70,7 +70,7 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
     
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % storeInfo.heroBanners!.length);
-    }, 6000); 
+    }, 3000); 
     
     return () => clearInterval(interval);
   }, [storeInfo?.heroBanners]);
