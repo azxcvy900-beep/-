@@ -101,9 +101,10 @@ export default function MerchantSettings() {
       setStoreData(updatedData);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Save error:", error);
-      alert("حدث خطأ أثناء حفظ الإعدادات. يرجى المحاولة مرة أخرى.");
+      // Detailed error for debugging the 'not completing' issue
+      alert("⚠️ عذراً، فشل الحفظ! السبب الفني: " + (error.message || "خطأ غير معروف في الاتصال"));
     } finally {
       setSaving(false);
     }

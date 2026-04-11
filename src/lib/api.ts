@@ -587,6 +587,8 @@ export async function updateStoreInfo(slug: string, updates: Partial<StoreInfo>)
   try {
     const storeRef = doc(db, 'stores', slug);
     await setDoc(storeRef, updates, { merge: true });
+    // Clear cache to ensure the new info is refetched immediately
+    dataCache.invalidate(`store_${slug}`);
   } catch (error) {
     console.error("Firestore Error (Update Store):", error);
     throw error;
