@@ -40,7 +40,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [checkingStore, setCheckingStore] = useState(true);
   const { isLoggedIn, role, username, storeSlug, permissions, logout } = useSessionStore();
-  const { storeInfo, setStoreInfo } = useAuthStore();
+  const { storeLogo, storeName, setStoreInfo } = useAuthStore();
   
   const isSetupPage = pathname.includes('/admin/setup');
   const isLoginPage = pathname.includes('/admin/login');
@@ -209,10 +209,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <p className={styles.userName}>{username || 'التاجر'}</p>
             </div>
             <div className={styles.avatar}>
-              {storeInfo?.logo ? (
+              {storeLogo ? (
                 <img 
-                  src={storeInfo.logo} 
-                  alt={storeInfo.name} 
+                  src={storeLogo} 
+                  alt={storeName || ''} 
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
               ) : (
