@@ -36,6 +36,7 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
   const [activeCategory, setActiveCategory] = useState('all');
   const [viewMode, setViewMode] = useState<'categories' | 'products'>('categories');
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   // Cart Sync Actions
   const { setRates, setManualRate, setShippingFee, setStoreSlug } = useCartStore();
@@ -61,7 +62,18 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
       }
       if (storeInfo.shippingFee !== undefined) setShippingFee(storeInfo.shippingFee);
     }
-  }, [storeInfo, setRates, setManualRate, setShippingFee]);
+  }, [storeInfo]);
+
+  // Auto-slide logic for Hero Banner
+  useEffect(() => {
+    if (!storeInfo?.heroBanners || storeInfo.heroBanners.length <= 1) return;
+    
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % storeInfo.heroBanners!.length);
+    }, 6000); 
+    
+    return () => clearInterval(interval);
+  }, [storeInfo?.heroBanners]);
 
   const filteredProducts = useMemo(() => {
     return (products || []).filter((p: Product) => {
@@ -74,92 +86,119 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
 
   // Progressive rendering for products
   const { visibleItems: visibleProducts, isStreaming } = useProgressiveLoad(filteredProducts, 4, 150);
-  const { visibleItems: visibleCategories } = useProgressiveLoad(storeCategories || [], 3, 200);
-
-  const handleCategoryClick = (categoryName: string) => {
-    setActiveCategory(categoryName);
-    setViewMode('products');
-  };
 
   return (
     <div className={styles.container}>
-      {/* Store Header with Logo */}
-      <motion.header 
-        className={styles.header}
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-      >
+      {/* Sleek Brand Header */}
+      <header className={styles.header}>
         <div className={styles.headerContent}>
           {storeInfo?.logo && (
-            <motion.img 
-              src={storeInfo.logo} 
-              alt={storeInfo.name} 
-              className={styles.logo}
-              initial={{ scale: 0.8 }}
-              animate={{ scale: 1 }}
-            />
+            <img src={storeInfo.logo} alt={storeInfo.name} className={styles.logo} />
           )}
           <div className={styles.titleGroup}>
-            <h1 className={styles.title}>{storeInfo?.name || t('title')}</h1>
-            <p className={styles.subtitle}>{storeInfo?.description || t('subtitle')}</p>
+            <h1 className={styles.title}>{storeInfo?.name}</h1>
+            <p className={styles.subtitle}>{storeInfo?.description}</p>
           </div>
         </div>
-      </motion.header>
+      </header>
 
-      {/* Hero Banner Section */}
-      {storeInfo?.heroBanner && (
-        <motion.div 
-          className={styles.heroBanner}
-          initial={{ opacity: 0, scale: 0.98 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2, duration: 0.8 }}
-        >
-          <img src={storeInfo.heroBanner} alt="Hero Banner" />
-          <div className={styles.bannerOverlay}>
-            <div className={styles.bannerBadge}>وصل حديثاً</div>
-            <h2>اكتشف أحدث التقنيات</h2>
-            <p>أفضل العروض والأسعار في اليمن</p>
-          </div>
-        </motion.div>
-      )}
-      
-      {/* Search Bar - Permanent */}
+      {/* Dynamic Hero Slider */}
+      <section className={styles.heroSection}>
+        <div className={styles.heroBanner}>
+          <AnimatePresence mode="wait">
+            {storeInfo?.heroBanners && storeInfo.heroBanners.length > 0 ? (
+              <motion.div 
+                key={currentSlide}
+                className={styles.slide}
+                initial={{ opacity: 0, scale: 1.05 }}
+                animate={{ opacity: 1, scale: 1.0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 1.2 }}
+              >
+                <img 
+                  src={storeInfo.heroBanners[currentSlide].image} 
+                  alt={storeInfo.heroBanners[currentSlide].title} 
+                />
+                <div className={styles.bannerOverlay}>
+                  <motion.span 
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className={styles.bannerBadge}
+                  >
+                    عروض حصرية
+                  </motion.span>
+                  <motion.h2
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                  >
+                    {storeInfo.heroBanners[currentSlide].title}
+                  </motion.h2>
+                  <motion.p
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                  >
+                    {storeInfo.heroBanners[currentSlide].subtitle}
+                  </motion.p>
+                </div>
+              </motion.div>
+            ) : (
+              <div className={styles.slide}>
+                <img src={storeInfo?.heroBanner || '/assets/demo/banner.png'} alt="Banner" />
+              </div>
+            )}
+          </AnimatePresence>
+
+          {/* Slider Indicators (Dots) */}
+          {storeInfo?.heroBanners && storeInfo.heroBanners.length > 1 && (
+            <div className={styles.sliderControls}>
+              {storeInfo.heroBanners.map((_, idx) => (
+                <div 
+                  key={idx} 
+                  className={`${styles.dot} ${currentSlide === idx ? styles.activeDot : ''}`}
+                  onClick={() => setCurrentSlide(idx)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
       <div className={styles.searchWrapper}>
          <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder={t('searchPlaceholder')} />
       </div>
 
-      {/* Modern Circle Category Bar */}
+      {/* Professional Glass Category Bar */}
       <div className={styles.categoryBarWrapper}>
         <div className={styles.categoryBar}>
-           {/* 'All' Category */}
-           <div 
-             className={`${styles.categoryCircle} ${activeCategory === 'all' ? styles.activeCircle : ''}`}
-             onClick={() => setActiveCategory('all')}
-           >
-             <div className={styles.circleIcon}>
-                <Grid size={32} color={activeCategory === 'all' ? '#fff' : '#94a3b8'} />
-             </div>
-             <span className={styles.categoryCircleName}>الكل</span>
-           </div>
+          <div 
+            className={`${styles.categoryCircle} ${activeCategory === 'all' ? styles.activeCircle : ''}`}
+            onClick={() => setActiveCategory('all')}
+          >
+            <div className={styles.circleIcon}>
+              <Grid size={32} />
+            </div>
+            <span className={styles.categoryCircleName}>الكل</span>
+          </div>
 
-           {/* Dynamic Categories */}
-           {(storeCategories || []).map((cat: Category) => (
-             <div 
-               key={cat.id}
-               className={`${styles.categoryCircle} ${activeCategory === cat.name ? styles.activeCircle : ''}`}
-               onClick={() => setActiveCategory(cat.name)}
-             >
-               <div className={styles.circleIcon}>
-                  {cat.image ? (
-                    <img src={cat.image} alt={cat.name} />
-                  ) : (
-                    <Package size={28} color={activeCategory === cat.name ? '#fff' : '#94a3b8'} />
-                  )}
-               </div>
-               <span className={styles.categoryCircleName}>{cat.name}</span>
-             </div>
-           ))}
+          {(storeCategories || []).map((cat: Category) => (
+            <div 
+              key={cat.id}
+              className={`${styles.categoryCircle} ${activeCategory === cat.name ? styles.activeCircle : ''}`}
+              onClick={() => setActiveCategory(cat.name)}
+            >
+              <div className={styles.circleIcon}>
+                {cat.image ? (
+                  <img src={cat.image} alt={cat.name} />
+                ) : (
+                  <Package size={28} />
+                )}
+              </div>
+              <span className={styles.categoryCircleName}>{cat.name}</span>
+            </div>
+          ))}
         </div>
       </div>
 
