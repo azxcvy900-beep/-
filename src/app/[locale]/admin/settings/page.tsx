@@ -50,6 +50,7 @@ export default function MerchantSettings() {
             phone: '',
             description: '',
             primaryColor: '#3b82f6', // Default blue
+            logo: null,
             social: { instagram: '', twitter: '', facebook: '' }
           });
         }
@@ -93,7 +94,7 @@ export default function MerchantSettings() {
 
       const updatedData = {
         ...storeData,
-        logo: finalLogoUrl
+        logo: finalLogoUrl || storeData.logo || null
       };
 
       // 2. Save all info

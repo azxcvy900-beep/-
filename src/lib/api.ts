@@ -586,7 +586,13 @@ export async function updateOrderStatus(orderId: string, status: Order['status']
 export async function updateStoreInfo(slug: string, updates: Partial<StoreInfo>): Promise<void> {
   try {
     const storeRef = doc(db, 'stores', slug);
-    await setDoc(storeRef, updates, { merge: true });
+    
+    // Sanitize: Firestore doesn't accept 'undefined'. Convert to null or remove.
+    const sanitizedUpdates = Object.fromEntries(
+      Object.entries(updates).filter(([_, v]) => v !== undefined)
+    );
+
+    await setDoc(storeRef, sanitizedUpdates, { merge: true });
     // Clear cache to ensure the new info is refetched immediately
     dataCache.invalidate(`store_${slug}`);
   } catch (error) {
