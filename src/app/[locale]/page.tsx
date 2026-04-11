@@ -24,7 +24,7 @@ export default function Home() {
 
   return (
     <div className={styles.container}>
-      <Header storeName="بايرز / Buyers" />
+      <Header storeName="بايرز / Buyers" isLanding={true} />
       
       <main className={styles.main}>
         {/* Hero Section */}

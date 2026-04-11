@@ -99,6 +99,24 @@
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
+.adminLink {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-primary);
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.adminLink:hover {
+  color: var(--primary);
+  transform: translateY(-1px);
+}
+
+.adminLink i, .adminLink svg {
+  color: var(--primary);
+}
+
 @media (max-width: 768px) {
   .logo {
     font-size: 1.25rem;

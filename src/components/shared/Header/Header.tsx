@@ -14,6 +14,7 @@ import styles from './Header.module.css';
 interface HeaderProps {
   storeName: string;
   storeLogo?: string | null;
+  isLanding?: boolean;
 }
 
 const Header: React.FC<HeaderProps> = ({ storeName, storeLogo }) => {
@@ -74,38 +75,49 @@ const Header: React.FC<HeaderProps> = ({ storeName, storeLogo }) => {
             </AnimatePresence>
           </motion.button>
 
-          <Link href={`/${locale}/orders`} className={styles.navLink}>
-            <ShoppingBag size={18} style={{ margin: '0 4px', verticalAlign: 'middle' }} />
-            <span className={styles.hideOnMobile}>{t('myOrders')}</span>
-          </Link>
-          
-          <Link href={`/${locale}/track`} className={styles.navLink}>
-            <ClipboardList size={18} style={{ margin: '0 4px', verticalAlign: 'middle' }} />
-            <span className={styles.hideOnMobile}>{t('trackOrder')}</span>
-          </Link>
+          {!isLanding && (
+            <>
+              <Link href={`/${locale}/orders`} className={styles.navLink}>
+                <ShoppingBag size={18} style={{ margin: '0 4px', verticalAlign: 'middle' }} />
+                <span className={styles.hideOnMobile}>{t('myOrders')}</span>
+              </Link>
+              
+              <Link href={`/${locale}/track`} className={styles.navLink}>
+                <ClipboardList size={18} style={{ margin: '0 4px', verticalAlign: 'middle' }} />
+                <span className={styles.hideOnMobile}>{t('trackOrder')}</span>
+              </Link>
 
-          <Link href={`/${locale}/cart`} className={styles.cartLink}>
-            <ShoppingCart size={18} />
-            <span className={`${styles.cartText} ${styles.hideOnMobile}`}>{t('cart')}</span>
-            <AnimatePresence>
-              {mounted && totalItems > 0 && (
-                <motion.span 
-                  key="cart-badge"
-                  className={styles.cartCount}
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0, opacity: 0 }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                >
-                  {totalItems}
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </Link>
-          
-          <div className={styles.hideOnMobile}>
-            <CurrencySwitcher />
-          </div>
+              <Link href={`/${locale}/cart`} className={styles.cartLink}>
+                <ShoppingCart size={18} />
+                <span className={`${styles.cartText} ${styles.hideOnMobile}`}>{t('cart')}</span>
+                <AnimatePresence>
+                  {mounted && totalItems > 0 && (
+                    <motion.span 
+                      key="cart-badge"
+                      className={styles.cartCount}
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0, opacity: 0 }}
+                      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                    >
+                      {totalItems}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </Link>
+              
+              <div className={styles.hideOnMobile}>
+                <CurrencySwitcher />
+              </div>
+            </>
+          )}
+
+          {isLanding && (
+            <Link href={`/${locale}/admin/login`} className={styles.adminLink}>
+              <LayoutDashboard size={18} />
+              <span>لوحة التحكم</span>
+            </Link>
+          )}
 
           <Link href={`/${nextLocale}`} className={styles.localeLink}>
             <Globe size={16} />
