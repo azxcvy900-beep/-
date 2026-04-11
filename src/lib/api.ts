@@ -45,6 +45,7 @@ export interface StoreInfo {
   name: string;
   logo?: string;
   heroBanner?: string; // High-quality promotional banner
+  heroBanners?: { image: string; title: string; subtitle: string }[];
   description?: string;
   phone: string;
   primaryColor?: string; // Custom store theme color
@@ -289,6 +290,11 @@ export const DUMMY_STORES: StoreInfo[] = [
     name: 'يمن ديجيتال - Yemen Digital',
     logo: '/assets/demo/logo.png',
     heroBanner: '/assets/demo/banner.png',
+    heroBanners: [
+      { image: '/assets/demo/banner.png', title: 'عالم الهواتف الذكية', subtitle: 'أحدث الابتكارات بين يديك' },
+      { image: 'https://images.unsplash.com/photo-1621336304646-6fc1473ae74b?w=2000&q=80', title: 'عالم الألعاب', subtitle: 'انغمس في التجربة مع PS5' },
+      { image: 'https://images.unsplash.com/photo-1618366712214-8c075189d0ad?w=2000&q=80', title: 'صوت مذهل', subtitle: 'استمتع بنقاوة الصوت مع AirPods Pro' }
+    ],
     phone: '967771234567',
     description: 'وجهتك الأولى لأحدث التقنيات بأسعار منافسة في اليمن.',
     primaryColor: '#007AFF',
@@ -303,6 +309,11 @@ export const DUMMY_STORES: StoreInfo[] = [
     name: 'يمن ديجيتال (ديمو)',
     logo: '/assets/demo/logo.png',
     heroBanner: '/assets/demo/banner.png',
+    heroBanners: [
+      { image: '/assets/demo/banner.png', title: 'عالم الهواتف الذكية', subtitle: 'أحدث الابتكارات بين يديك' },
+      { image: 'https://images.unsplash.com/photo-1621336304646-6fc1473ae74b?w=2000&q=80', title: 'عالم الألعاب', subtitle: 'انغمس في التجربة مع PS5' },
+      { image: 'https://images.unsplash.com/photo-1618366712214-8c075189d0ad?w=2000&q=80', title: 'صوت مذهل', subtitle: 'استمتع بنقاوة الصوت مع AirPods Pro' }
+    ],
     phone: '967770000000',
     description: 'استكشف قوة منصة بايرز بنظام تسعير الريال السعودي (رس).',
     currencySettings: {
