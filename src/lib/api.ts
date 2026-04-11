@@ -333,16 +333,23 @@ export async function getRelatedProducts(category: string, excludeId: string, st
 
 // --- MERCHANT API ---
 
-export async function uploadProductImage(file: File, storeSlug: string): Promise<string> {
-  const fileName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
-  const storageRef = ref(storage, `stores/${storeSlug}/products/${fileName}`);
-  const snapshot = await uploadBytes(storageRef, file);
-  return await getDownloadURL(snapshot.ref);
+export async function uploadProductImage(file: File | Blob, storeSlug: string): Promise<string> {
+  try {
+    const originalName = (file as any).name || 'product.jpg';
+    const fileName = `${Date.now()}_prod_${originalName.replace(/\s+/g, '_')}`;
+    const storageRef = ref(storage, `stores/${storeSlug}/products/${fileName}`);
+    const snapshot = await uploadBytes(storageRef, file);
+    return await getDownloadURL(snapshot.ref);
+  } catch (error) {
+    console.error("Storage Error (Product Image):", error);
+    throw error;
+  }
 }
 
-export async function uploadStoreLogo(file: File, storeSlug: string): Promise<string> {
+export async function uploadStoreLogo(file: File | Blob, storeSlug: string): Promise<string> {
   try {
-    const fileName = `${Date.now()}_logo_${file.name.replace(/\s+/g, '_')}`;
+    const originalName = (file as any).name || 'logo.jpg';
+    const fileName = `${Date.now()}_logo_${originalName.replace(/\s+/g, '_')}`;
     const storageRef = ref(storage, `stores/${storeSlug}/logo/${fileName}`);
     const snapshot = await uploadBytes(storageRef, file);
     return await getDownloadURL(snapshot.ref);
@@ -352,11 +359,17 @@ export async function uploadStoreLogo(file: File, storeSlug: string): Promise<st
   }
 }
 
-export async function uploadCategoryImage(file: File, storeSlug: string): Promise<string> {
-  const fileName = `${Date.now()}_cat_${file.name.replace(/\s+/g, '_')}`;
-  const storageRef = ref(storage, `stores/${storeSlug}/categories/${fileName}`);
-  const snapshot = await uploadBytes(storageRef, file);
-  return await getDownloadURL(snapshot.ref);
+export async function uploadCategoryImage(file: File | Blob, storeSlug: string): Promise<string> {
+  try {
+    const originalName = (file as any).name || 'category.jpg';
+    const fileName = `${Date.now()}_cat_${originalName.replace(/\s+/g, '_')}`;
+    const storageRef = ref(storage, `stores/${storeSlug}/categories/${fileName}`);
+    const snapshot = await uploadBytes(storageRef, file);
+    return await getDownloadURL(snapshot.ref);
+  } catch (error) {
+    console.error("Storage Error (Category Image):", error);
+    throw error;
+  }
 }
 
 export async function getStoreCategories(storeSlug: string): Promise<Category[]> {
