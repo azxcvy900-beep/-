@@ -11,9 +11,11 @@ import {
   MessageCircle, 
   Store, 
   ArrowRight,
-  ChevronDown,
   Globe,
-  LayoutDashboard
+  LayoutDashboard,
+  CheckCircle2,
+  XCircle,
+  TrendingUp
 } from "lucide-react";
 import Header from "@/components/shared/Header/Header";
 import styles from "./page.module.css";
@@ -27,140 +29,157 @@ export default function Home() {
       <Header storeName="بايرز / Buyers" isLanding={true} />
       
       <main className={styles.main}>
-        {/* Hero Section */}
+        {/* Premium Hero Section */}
         <section className={styles.hero}>
           <div className={styles.heroGradient} />
           <div className={styles.bgGrid} />
           <motion.div 
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1, ease: "easeOut" }}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
             className={styles.heroContent}
           >
             <motion.div 
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3 }}
               className={styles.badge}
             >
-              <Zap size={14} className={styles.pulse} />
-              <span>الجيل الجديد من التجارة الإلكترونية في اليمن</span>
+              <Zap size={16} className={styles.pulse} />
+              <span>أقوى منصة سحابية في اليمن</span>
             </motion.div>
+            
             <h1 className={styles.title}>
-              حوّل شغفك إلى <span>أرباح حقيقية </span> <br />
-              أنشئ متجرك في دقائق
+              امتلك متجراً احترافياً <br/>
+              <span>وضاعف مبيعاتك اليوم</span>
             </h1>
+            
             <p className={styles.subtitle}>
-              لا تحتاج لخبرة برمجية. منصة "بايرز" توفر لك كل الأدوات اللازمة للبيع، الإدارة، والنمو. ابدأ الآن وانضم لنخبة التجار المبدعين.
+              توقف عن تلقي الطلبات بعشوائية. "بايرز" توفر لك نظاماً الكترونياً متكاملاً لإدارة متجرك، عرض منتجاتك، وخدمة عملائك باحترافية تبني الثقة.
             </p>
+            
             <div className={styles.ctas}>
               <Link href={`/${locale}/admin/login`} className={styles.primaryBtn}>
-                ابدأ رحلتك المجانية <ArrowRight size={20} />
+                سجل وابدأ الآن <ArrowRight size={22} />
               </Link>
               <Link href={`/${locale}/store/demo`} className={styles.secondaryBtn}>
-                <Globe size={18} /> شاهد متجراً حقيقياً
+                <Globe size={20} /> تصفح متجراً حقيقياً
               </Link>
             </div>
+            
+            <div className={styles.heroProof}>
+              <div className={styles.avatars}>
+                <div className={styles.avatar}>T</div>
+                <div className={styles.avatar}>M</div>
+                <div className={styles.avatar}>S</div>
+              </div>
+              <p>انضم لأكثر من <strong>500+</strong> تاجر ذكي</p>
+            </div>
           </motion.div>
         </section>
 
-        {/* How It Works - New Section */}
-        <section className={styles.steps}>
+        {/* The "Why Us" Comparison Section (Crucial for Conversion) */}
+        <section className={styles.comparison}>
           <div className={styles.sectionHeader}>
-            <span className={styles.preTitle}>رحلتك تبدأ هنا</span>
-            <h2>ثلاث خطوات لتكون في القمة</h2>
+            <span className={styles.preTitle}>لماذا تختار منصتنا؟</span>
+            <h2>الفرق بين العمل العشوائي والعمل الاحترافي</h2>
           </div>
-          <div className={styles.stepsGrid}>
-            <div className={styles.stepCard}>
-              <div className={styles.stepNumber}>1</div>
-              <h3>أنشئ حسابك</h3>
-              <p>سجل في ثوانٍ واختر رابط متجرك الفريد الذي يعبر عن اسم علامتك التجارية.</p>
-            </div>
-            <div className={styles.stepArrow}><ArrowRight /></div>
-            <div className={styles.stepCard}>
-              <div className={styles.stepNumber}>2</div>
-              <h3>أضف منتجاتك</h3>
-              <p>ارفع صور منتجاتك بضغطة زر، حدد الأسعار، وخصص مظهر متجرك بما يناسب ذوقك.</p>
-            </div>
-            <div className={styles.stepArrow}><ArrowRight /></div>
-            <div className={styles.stepCard}>
-              <div className={styles.stepNumber}>3</div>
-              <h3>ابدأ بالبيع</h3>
-              <p>استقبل الطلبات مباشرة على واتساب، وقم بإدارة مبيعاتك من لوحة تحكم ذكية وشاملة.</p>
-            </div>
+          
+          <div className={styles.comparisonGrid}>
+            <motion.div whileHover={{ y: -5 }} className={`${styles.compareCard} ${styles.compareBad}`}>
+              <div className={styles.compareHeader}>
+                <XCircle size={32} color="#ef4444" />
+                <h3>البيع التقليدي (انستجرام/واتساب فقط)</h3>
+              </div>
+              <ul>
+                <li><XCircle size={18} /> ضياع تفاصيل الطلبات وسط الرسائل</li>
+                <li><XCircle size={18} /> العميل ينتظر طويلاً ليعرف السعر والتوفر</li>
+                <li><XCircle size={18} /> صعوبة حساب الأرباح وإدارة المخزون</li>
+                <li><XCircle size={18} /> عدم وجود واجهة تعكس احترافيتك</li>
+              </ul>
+            </motion.div>
+
+            <motion.div whileHover={{ y: -5 }} className={`${styles.compareCard} ${styles.compareGood}`}>
+              <div className={styles.compareBadge}>الخيار الأمثل</div>
+              <div className={styles.compareHeader}>
+                <CheckCircle2 size={32} color="#10b981" />
+                <h3>البيع عبر منصة <span>بايرز</span></h3>
+              </div>
+              <ul>
+                <li><CheckCircle2 size={18} /> نظام آلي يستقبل الطلبات بكفاءة عالية</li>
+                <li><CheckCircle2 size={18} /> شراء مباشر ومريح للعميل من متجرك المخصص</li>
+                <li><CheckCircle2 size={18} /> تقارير أرباح وإدارة مخزون بضغطة زر</li>
+                <li><CheckCircle2 size={18} /> واجهة عالمية تبني ثقة مطلقة مع المشترين</li>
+              </ul>
+            </motion.div>
           </div>
         </section>
 
-        {/* Stats Preview */}
-        <section className={styles.stats}>
-          <motion.div whileInView={{ opacity: 1, y: 0 }} initial={{ opacity: 0, y: 20 }} className={styles.statCard}>
-            <h3>+500</h3>
-            <p>تاجر يمني يثق بنا</p>
-          </motion.div>
-          <div className={styles.statLine} />
-          <motion.div whileInView={{ opacity: 1, y: 0 }} initial={{ opacity: 0, y: 20 }} transition={{ delay: 0.1 }} className={styles.statCard}>
-            <h3>+10k</h3>
-            <p>طلب ناجح شهرياً</p>
-          </motion.div>
-          <div className={styles.statLine} />
-          <motion.div whileInView={{ opacity: 1, y: 0 }} initial={{ opacity: 0, y: 20 }} transition={{ delay: 0.2 }} className={styles.statCard}>
-            <h3>100%</h3>
-            <p>دعم فني متواصل</p>
-          </motion.div>
-        </section>
-
-        {/* Features Section */}
+        {/* Benefits/Features */}
         <section className={styles.features}>
-          <div className={styles.featuresHeader}>
-            <span className={styles.preTitle}>مميزات لا تضاهى</span>
-            <h2>لماذا يفضل التجار "بايرز"؟</h2>
+          <div className={styles.sectionHeader}>
+            <span className={styles.preTitle}>كل ما تحتاجه للنجاح</span>
+            <h2>صُممت خصيصاً لتنمية تجارتك</h2>
           </div>
 
           <div className={styles.featureGrid}>
-            <motion.div whileHover={{ y: -12, scale: 1.02 }} className={styles.featureCard}>
+            <motion.div whileHover={{ y: -10 }} className={styles.featureCard}>
               <div className={styles.featureIcon}><Rocket /></div>
-              <h3>سرعة وأداء خارق</h3>
-              <p>متجرك يفتح في أقل من ثانية، مما يضمن عدم ضياع أي عميل وبقاءهم أطول فترة ممكنة.</p>
+              <h3>إطلاق فوري وسريع</h3>
+              <p>لن تنتظر أياماً لبرمجة موقعك، فقط سجل وجهز منتجاتك وابدأ باستقبال عملائك خلال دقائق.</p>
             </motion.div>
 
-            <motion.div whileHover={{ y: -12, scale: 1.02 }} className={styles.featureCard}>
-              <div className={styles.featureIcon}><MessageCircle /></div>
-              <h3>تكامل تام مع واتساب</h3>
-              <p>إدارة الطلبات عبر واتساب تزيد من ثقة العملاء وتجعل التواصل أسرع من أي وقت مضى.</p>
+            <motion.div whileHover={{ y: -10 }} className={styles.featureCard}>
+              <div className={styles.featureIcon}><ShieldCheck /></div>
+              <h3>حماية وثقة للعميل</h3>
+              <p>نظام إتمام طلبات آمن مع إثباتات الدفع والحوالات لضمان حقوقك وحقوق المشتري بالكامل.</p>
             </motion.div>
 
-            <motion.div whileHover={{ y: -12, scale: 1.02 }} className={styles.featureCard}>
+            <motion.div whileHover={{ y: -10 }} className={styles.featureCard}>
               <div className={styles.featureIcon}><LayoutDashboard /></div>
-              <h3>ذكاء في الإدارة</h3>
-              <p>تقارير يومية عن الأرباح، الزوار، والمنتجات الأكثر طلباً لمساعدتك في اتخاذ قراراتك.</p>
+              <h3>لوحة تحكم ذكية</h3>
+              <p>تتبع كل زيارة، راقب المبيعات، وعدل الأسعار بسهولة تامة من جوالك أو حاسوبك شخصياً.</p>
             </motion.div>
 
-            <motion.div whileHover={{ y: -12, scale: 1.02 }} className={styles.featureCard}>
-              <div className={styles.featureIcon}><Zap /></div>
-              <h3>سهولة الاستخدام</h3>
-              <p>صممنا واجهة التحكم لتكون بسيطة حتى للمبتدئين، لا حاجة لمهارات تقنية معقدة.</p>
+            <motion.div whileHover={{ y: -10 }} className={styles.featureCard}>
+              <div className={styles.featureIcon}><TrendingUp /></div>
+              <h3>أدوات تسويقية متقدمة</h3>
+              <p>أكواد خصم لعملائك، تقسيم الفئات، ودعم كامل للغات يتيح لك استهداف شرائح مختلفة بفعالية.</p>
             </motion.div>
           </div>
         </section>
 
-        {/* CTA Section */}
+        {/* Final CTA */}
         <section className={styles.finalCta}>
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} className={styles.ctaCard}>
-            <h2>كن جزءاً من مستقبل التجارة في اليمن</h2>
-            <p>انضم اليوم واستفد من كافة المميزات مجاناً لفترة محدودة.</p>
-            <Link href={`/${locale}/admin/login`} className={styles.primaryBtnLarge}>
-              أسس متجرك الآن <ArrowRight size={20} />
-            </Link>
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} className={styles.ctaCard}>
+            <div className={styles.ctaContent}>
+              <h2>لا تترك أرباحك على الطاولة!</h2>
+              <p>المئات من التجار اليمنيّين نقلوا أعمالهم إلى مستوى آخر عبر بايرز. ماذا تنتظر؟</p>
+              <Link href={`/${locale}/admin/login`} className={styles.primaryBtnLarge}>
+                اشترك وافتح متجرك مجاناً <ArrowRight size={22} />
+              </Link>
+            </div>
+            <div className={styles.ctaGraphic}>
+              <Store size={150} opacity={0.1} />
+            </div>
           </motion.div>
         </section>
       </main>
 
       <footer className={styles.footer}>
-        <div className={styles.footerBrand}>بايرز &copy; {new Date().getFullYear()}</div>
+        <div className={styles.footerBrand}>
+          <span className={styles.footerLogo}>بايرز</span>
+          <p>منصة التجارة الإلكترونية الأكثر تطوراً في اليمن</p>
+        </div>
         <div className={styles.footerLinks}>
-          <Link href={`/${locale}/manager/login`}>إدارة المنصة</Link>
+          <Link href={`/${locale}/manager/login`}>بوابة الإدارة</Link>
           <span>•</span>
           <Link href="#">الشروط والأحكام</Link>
+          <span>•</span>
+          <Link href={`/${locale}/store/demo`}>النماذج التجريبية</Link>
+        </div>
+        <div className={styles.footerCopyright}>
+          &copy; {new Date().getFullYear()} Buyers Platform. جميع الحقوق محفوظة.
         </div>
       </footer>
     </div>
