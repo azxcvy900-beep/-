@@ -178,7 +178,7 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
             onClick={() => setActiveCategory('all')}
           >
             <div className={styles.circleIcon}>
-              <Grid size={32} />
+              <Grid size={32} strokeWidth={2.5} />
             </div>
             <span className={styles.categoryCircleName}>الكل</span>
           </div>

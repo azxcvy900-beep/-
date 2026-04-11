@@ -227,6 +227,7 @@
   object-fit: contain;
   transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   filter: drop-shadow(0 8px 15px rgba(0,0,0,0.12));
+  border-radius: 50%; /* Force image to be circular to prevent square corners */
 }
 
 .circleIcon :global(svg) {
@@ -361,6 +362,7 @@
   .circleIcon img {
     width: 40px;
     height: 40px;
+    border-radius: 50%;
   }
   .activeCircle .circleIcon {
     transform: translateY(-8px) scale(1.08);
