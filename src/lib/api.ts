@@ -44,6 +44,7 @@ export interface StoreInfo {
   slug: string;
   name: string;
   logo?: string;
+  heroBanner?: string; // High-quality promotional banner
   description?: string;
   phone: string;
   primaryColor?: string; // Custom store theme color
@@ -116,111 +117,180 @@ export interface Category {
 }
 
 const DUMMY_PRODUCTS: Product[] = [
+  // --- Smartphones Section ---
   {
-    id: 'iphone-15-pro',
+    id: 'iphone-15-pro-max',
     name: 'iPhone 15 Pro Max - 256GB',
     price: 1250000,
     originalPrice: 1350000,
-    category: 'إلكترونيات',
-    image: 'https://images.unsplash.com/photo-1696446701796-da61225697cc?w=800&q=80',
-    description: 'يتميز iPhone 15 Pro بتصميم من التيتانيوم القوي والخفيف، مع زر الإجراءات القابل للتخصيص، ونظام الكاميرا الأكثر تقدماً في iPhone حتى الآن.',
+    category: 'هواتف ذكية',
+    image: 'https://raw.githubusercontent.com/azxcvy900-beep/assets/main/iphone_15_pro_max_demo_1775923497298.png',
+    description: 'الأداء الفائق مع شريحة A17 Pro، تصميم من التيتانيوم الخفيف والقوي، ونظام كاميرا احترافي مطور.',
     storeSlug: 'demo',
-    options: [
-      { name: 'اللون', values: ['تيتانيوم طبيعي', 'تيتانيوم أزرق', 'تيتانيوم أسود'] }
-    ],
-    stockCount: 15,
-    inStock: true
+    options: [{ name: 'اللون', values: ['تيتانيوم طبيعي', 'أسود', 'أزرق'] }],
+    stockCount: 15, inStock: true
   },
   {
-    id: 'sony-xm5',
-    name: 'Sony WH-1000XM5 Headphones',
-    price: 380000,
-    originalPrice: 420000,
-    category: 'إلكترونيات',
-    image: 'https://images.unsplash.com/photo-1675243048035-9051873b624d?w=800&q=80',
-    description: 'سماعات الرأس الرائدة عالمياً في إلغاء الضوضاء، تمنحك تجربة استماع غامرة ونقاء صوت لا يضاهى مع عمر بطارية يصل لـ 30 ساعة.',
-    storeSlug: 'demo',
-    stockCount: 8,
-    inStock: true
-  },
-  {
-    id: 'macbook-m3',
-    name: 'MacBook Air M3 - 13 inch',
+    id: 'samsung-s24-ultra',
+    name: 'Samsung Galaxy S24 Ultra - 512GB',
     price: 1100000,
+    originalPrice: 1200000,
+    category: 'هواتف ذكية',
+    image: 'https://raw.githubusercontent.com/azxcvy900-beep/assets/main/samsung_s24_ultra_demo_1775923795846.png',
+    description: 'أذكى هاتف في العالم مع تقنيات AI المتطورة، قلم S-Pen مدمج، وكاميرا 200 ميجابكسل لجودة تصوير خرافية.',
+    storeSlug: 'demo',
+    stockCount: 10, inStock: true
+  },
+  {
+    id: 'lt-m50-plus',
+    name: 'LT M50 Plus - 256GB/16GB',
+    price: 135000,
+    originalPrice: 150000,
+    category: 'هواتف ذكية',
+    image: 'https://raw.githubusercontent.com/azxcvy900-beep/assets/main/lt_m50_plus_demo_1775923650030.png',
+    description: 'الهاتف اليمني الأول يدعم نظامين، شاشة 120Hz، بطارية ضخمة وأداء سلس جداً في التطبيقات والألعاب.',
+    storeSlug: 'demo',
+    stockCount: 45, inStock: true
+  },
+  {
+    id: 'redmi-note-13-pro',
+    name: 'Redmi Note 13 Pro 4G - 256GB',
+    price: 165000,
+    originalPrice: 180000,
+    category: 'هواتف ذكية',
+    image: 'https://raw.githubusercontent.com/azxcvy900-beep/assets/main/redmi_note_13_pro_demo_1775923665869.png',
+    description: 'كاميرا 200 ميجابكسل، شاشة AMOLED مذهلة، وشحن سريع جداً. القوة الحقيقية في الفئة المتوسطة.',
+    storeSlug: 'demo',
+    stockCount: 30, inStock: true
+  },
+  {
+    id: 'samsung-a55',
+    name: 'Samsung Galaxy A55 5G - 128GB',
+    price: 215000,
+    category: 'هواتف ذكية',
+    image: 'https://raw.githubusercontent.com/azxcvy900-beep/assets/main/samsung_a55_demo_1775923682226.png',
+    description: 'تصميم زجاجي فاخر، مقاوم للماء والغبار، أداء قوي وكاميرات رائعة لمن يبحث عن الجودة والاستقرار.',
+    storeSlug: 'demo',
+    stockCount: 20, inStock: true
+  },
+  {
+    id: 'lt-note-20',
+    name: 'LT Note 20 Pro - 128GB',
+    price: 98000,
+    category: 'هواتف ذكية',
+    image: 'https://raw.githubusercontent.com/azxcvy900-beep/assets/main/lt_note_20_demo_1775923811242.png',
+    description: 'أناقة الـ Note وقوة الـ LT. جوال مثالي للعمل والدراسة مع ضمان محلي معتمد.',
+    storeSlug: 'demo',
+    stockCount: 25, inStock: true
+  },
+  
+  // --- Audio & Accessories Section ---
+  {
+    id: 'airpods-pro-2',
+    name: 'Apple AirPods Pro 2 - Magsafe',
+    price: 135000,
+    originalPrice: 155000,
+    category: 'سماعات وإكسسوارات',
+    image: 'https://raw.githubusercontent.com/azxcvy900-beep/assets/main/airpods_pro_2_demo_1775923547456.png',
+    description: 'أفضل تجربة عزل ضوضاء في العالم مع نقاء صوت لا يوصف وتكامل تام مع نظام Apple.',
+    storeSlug: 'demo',
+    stockCount: 12, inStock: true
+  },
+  {
+    id: 'redmi-buds-5-pro',
+    name: 'Redmi Buds 5 Pro - Noise Cancelling',
+    price: 32000,
+    category: 'سماعات وإكسسوارات',
+    image: 'https://raw.githubusercontent.com/azxcvy900-beep/assets/main/redmi_buds_5_pro_demo_1775923699009.png',
+    description: 'عزل ضوضاء ذكي، بطارية تدوم طويلاً، وجودة صوت تنافس السماعات الرائدة بسعر مغري.',
+    storeSlug: 'demo',
+    stockCount: 40, inStock: true
+  },
+  {
+    id: 'apple-watch-9',
+    name: 'Apple Watch Series 9 - 45mm',
+    price: 245000,
+    category: 'سماعات وإكسسوارات',
+    image: 'https://images.unsplash.com/photo-1434493907317-a46b53b81882?w=800&q=80',
+    description: 'ساعتك الصحية والتقنية المتكاملة مع مستشعرات متطورة للأكسجين والقلب وأداء البرق.',
+    storeSlug: 'demo',
+    stockCount: 8, inStock: true
+  },
+  {
+    id: 'anker-65w',
+    name: 'Anker Nano II 65W Fast Charger',
+    price: 18000,
+    category: 'سماعات وإكسسوارات',
+    image: 'https://images.unsplash.com/photo-1619130730344-f2a75936a827?w=800&q=80',
+    description: 'شاحن صغير الحجم فائق القوة، يشحن جوالك ولابتوبك بسرعة فائقة بأمان تام.',
+    storeSlug: 'demo',
+    stockCount: 60, inStock: true
+  },
+
+  // --- Gaming Section ---
+  {
+    id: 'ps5-slim',
+    name: 'PlayStation 5 Slim - Digital Edition',
+    price: 580000,
+    originalPrice: 620000,
+    category: 'أجهزة ألعاب',
+    image: 'https://raw.githubusercontent.com/azxcvy900-beep/assets/main/ps5_console_demo_1775923516576.png',
+    description: 'عالم الألعاب القادم بين يديك بدقة 4K وسرعة تحميل فورية وتصميم نحيف جديد.',
+    storeSlug: 'demo',
+    stockCount: 5, inStock: true
+  },
+  {
+    id: 'dualsense-edge',
+    name: 'DualSense Edge Pro Controller',
+    price: 115000,
+    category: 'أجهزة ألعاب',
+    image: 'https://images.unsplash.com/photo-1627932306571-6387063fe453?w=800&q=80',
+    description: 'التحكم المطلق لمحترفي اللعب. أزرار قابلة للتخصيص الكامل لضمان التفوق في كل مباراة.',
+    storeSlug: 'demo',
+    stockCount: 15, inStock: true
+  },
+
+  // --- Computers Section ---
+  {
+    id: 'macbook-m3-pro',
+    name: 'MacBook Pro M3 Max - 14.2 inch',
+    price: 1850000,
     category: 'حواسيب',
-    image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&q=80',
-    description: 'لابتوب نحيف وخفيف الوزن بشكل مذهل، وبقوة شريحة M3 الجديدة كلياً التي تمنحك سرعة فائقة وكفاءة عالية في إنجاز المهام.',
+    image: 'https://raw.githubusercontent.com/azxcvy900-beep/assets/main/macbook_m3_pro_demo_1775923532391.png',
+    description: 'الوحش الكاسر للمبدعين والمهندسين. شاشة XDR مذهلة وأداء لا يمكن إيقافه مع شريحة M3 Max.',
     storeSlug: 'demo',
-    options: [
-      { name: 'الذاكرة', values: ['8GB', '16GB', '24GB'] }
-    ],
-    stockCount: 0,
-    inStock: false
+    stockCount: 3, inStock: true
   },
   {
-    id: 'yemeni-honey',
-    name: 'عسل سدر ملكي فاخر دوعني',
-    price: 45000,
-    category: 'منتجات محلية',
-    image: 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=800&q=80',
-    description: 'عسل سدر يمني طبيعي 100% من وادي دوعن، يتميز بطعمه الفريد وخصائصه العلاجية النادرة وجودته العالية جداً.',
+    id: 'ipad-pro-m4',
+    name: 'iPad Pro M4 - 13 inch 512GB',
+    price: 850000,
+    category: 'حواسيب',
+    image: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=800&q=80',
+    description: 'أنحف وأقوى آيباد في التاريخ مع شاشة OLED مذهلة ومعالج M4 الجديد كلياً.',
     storeSlug: 'demo',
-    options: [
-      { name: 'الحجم', values: ['500 جرام', '1 كيلوجرام'] }
-    ],
-    stockCount: 50,
-    inStock: true
-  },
-  {
-    id: 'playstation-5',
-    name: 'PlayStation 5 Console',
-    price: 550000,
-    originalPrice: 600000,
-    category: 'ألعاب',
-    image: 'https://images.unsplash.com/photo-1606813907291-d86efa9b94db?w=800&q=80',
-    description: 'انطلق في مغامرات لا حدود لها مع منصة الألعاب الأقوى في العالم، والتي توفر تجربة لعب بدقة 4K وسرعات تحميل فائقة.',
-    storeSlug: 'demo',
-    stockCount: 5,
-    inStock: true
-  },
-  {
-    id: 'al-kbous-coffee',
-    name: 'قهوة الكبوس - خلطة عربية',
-    price: 1500,
-    category: 'منتجات محلية',
-    image: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=800&q=80',
-    description: 'قهوة الكبوس الشهيرة بعبقها الأصيل ونكهتها الغنية التي تعكس تراث القهوة اليمنية وتمنحك بداية يوم مثالية.',
-    storeSlug: 'demo',
-    stockCount: 100,
-    inStock: true
+    stockCount: 7, inStock: true
   }
 ];
 
 export const DUMMY_STORES: StoreInfo[] = [
   {
-    slug: 'boun',
-    name: 'متجر بون (سعيد)',
-    logo: 'https://cdn-icons-png.flaticon.com/512/3120/3120516.png',
+    slug: 'yemen-digital',
+    name: 'يمن ديجيتال - Yemen Digital',
+    logo: 'https://raw.githubusercontent.com/azxcvy900-beep/assets/main/yemen_digital_logo_1775923481216.png',
+    heroBanner: 'https://raw.githubusercontent.com/azxcvy900-beep/assets/main/electronics_hero_banner_demo_1775923560293.png',
     phone: '967771234567',
-    description: 'أجود أنواع القهوة المختصة لمتذوقي الطعم الأصيل.',
-    primaryColor: '#6F4E37',
-    social: { instagram: 'boun_coffee' }
-  },
-  {
-    slug: 'smart-phone',
-    name: 'سمارت فون (صالح)',
-    logo: 'https://cdn-icons-png.flaticon.com/512/2586/2586488.png',
-    phone: '967777777777',
-    description: 'عالمك المتكامل لأحدث الهواتف الذكية والإكسسوارات.',
+    description: 'وجهتك الأولى لأحدث التقنيات بأسعار منافسة في اليمن.',
     primaryColor: '#007AFF',
-    social: { twitter: 'smart_tech' }
+    social: { instagram: 'yemen_digital', whatsapp: '967771234567' }
   },
   {
     slug: 'demo',
-    name: 'متجر بايرز التجريبي',
-    logo: 'https://cdn-icons-png.flaticon.com/512/1162/1162456.png',
+    name: 'يمن ديجيتال (متجر تجريبي)',
+    logo: 'https://raw.githubusercontent.com/azxcvy900-beep/assets/main/yemen_digital_logo_1775923481216.png',
+    heroBanner: 'https://raw.githubusercontent.com/azxcvy900-beep/assets/main/electronics_hero_banner_demo_1775923560293.png',
     phone: '967770000000',
-    description: 'أفضل المنتجات العالمية والمحلية في مكان واحد.',
+    description: 'استكشف قوة منصة بايرز من خلال هذا المتجر التقني المتكامل.',
     social: {
       instagram: 'buyers_ye',
       twitter: 'buyers_ye',
@@ -373,6 +443,15 @@ export async function uploadCategoryImage(file: File | Blob, storeSlug: string):
 }
 
 export async function getStoreCategories(storeSlug: string): Promise<Category[]> {
+  if (storeSlug === 'demo') {
+    return [
+      { id: 'cat-phones', name: 'هواتف ذكية', storeSlug: 'demo' },
+      { id: 'cat-audio', name: 'سماعات وإكسسوارات', storeSlug: 'demo' },
+      { id: 'cat-gaming', name: 'أجهزة ألعاب', storeSlug: 'demo' },
+      { id: 'cat-computers', name: 'حواسيب', storeSlug: 'demo' },
+    ];
+  }
+
   const cacheKey = `categories_${storeSlug}`;
   const cached = dataCache.get<Category[]>(cacheKey);
   if (cached) return cached;

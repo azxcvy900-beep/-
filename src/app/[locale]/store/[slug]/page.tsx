@@ -83,18 +83,49 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
 
   return (
     <div className={styles.container}>
+      {/* Store Header with Logo */}
       <motion.header 
         className={styles.header}
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <h1 className={styles.title}>{t('title')}</h1>
-        <p className={styles.subtitle}>{t('subtitle')}</p>
+        <div className={styles.headerContent}>
+          {storeInfo?.logo && (
+            <motion.img 
+              src={storeInfo.logo} 
+              alt={storeInfo.name} 
+              className={styles.logo}
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+            />
+          )}
+          <div className={styles.titleGroup}>
+            <h1 className={styles.title}>{storeInfo?.name || t('title')}</h1>
+            <p className={styles.subtitle}>{storeInfo?.description || t('subtitle')}</p>
+          </div>
+        </div>
       </motion.header>
+
+      {/* Hero Banner Section */}
+      {storeInfo?.heroBanner && (
+        <motion.div 
+          className={styles.heroBanner}
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.2, duration: 0.8 }}
+        >
+          <img src={storeInfo.heroBanner} alt="Hero Banner" />
+          <div className={styles.bannerOverlay}>
+            <div className={styles.bannerBadge}>وصل حديثاً</div>
+            <h2>اكتشف أحدث التقنيات</h2>
+            <p>أفضل العروض والأسعار في اليمن</p>
+          </div>
+        </motion.div>
+      )}
       
       {/* Search Bar - Permanent */}
-      <div style={{ maxWidth: '600px', margin: '0 auto 2rem auto' }}>
+      <div className={styles.searchWrapper}>
          <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder={t('searchPlaceholder')} />
       </div>
 
@@ -107,7 +138,7 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
              onClick={() => setActiveCategory('all')}
            >
              <div className={styles.circleIcon}>
-                <Grid size={32} color={activeCategory === 'all' ? 'var(--primary)' : '#94a3b8'} />
+                <Grid size={32} color={activeCategory === 'all' ? '#fff' : '#94a3b8'} />
              </div>
              <span className={styles.categoryCircleName}>الكل</span>
            </div>
@@ -123,7 +154,7 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
                   {cat.image ? (
                     <img src={cat.image} alt={cat.name} />
                   ) : (
-                    <Package size={28} color="#94a3b8" />
+                    <Package size={28} color={activeCategory === cat.name ? '#fff' : '#94a3b8'} />
                   )}
                </div>
                <span className={styles.categoryCircleName}>{cat.name}</span>
