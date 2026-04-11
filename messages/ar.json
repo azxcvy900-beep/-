@@ -49,7 +49,21 @@
     "total": "الإجمالي",
     "placeOrder": "تأكيد الطلب الآن",
     "secureCheckout": "عملية دفع آمنة ومشفرة",
-    "errorReceiptRequired": "يرجى رفع صورة سند الحوالة أولاً"
+    "errorReceiptRequired": "يرجى رفع صورة سند الحوالة أولاً",
+    "couponPlaceholder": "كود الخصم (مثل: SAVE20)",
+    "apply": "تطبيق",
+    "remove": "إزالة",
+    "couponApplied": "تم تطبيق الكوبون:",
+    "subtotal": "المجموع الفرعي",
+    "shippingFee": "رسوم التوصيل",
+    "discount": "الخصم",
+    "priceFrozen": "سعر مجمد",
+    "priceFrozenDesc": "تم تجميد السعر لضمان حقوقك المالية",
+    "exchangeRateAdopted": "تم اعتماد سعر صرف الريال السعودي:",
+    "outOfStock": "عذراً، نفدت كمية المنتج ({product}) حالاً. يرجى تعديل السلة.",
+    "orderError": "حدث خطأ أثناء إرسال الطلب، يرجى المحاولة مرة أخرى.",
+    "invalidCoupon": "كوبون غير صالح.",
+    "errorCheckCoupon": "حدث خطأ أثناء التحقق من الكوبون."
   },
   "Success": {
     "thankYou": "شكراً لك على طلبك!",

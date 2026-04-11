@@ -1,6 +1,6 @@
 import "../globals.css";
 import { Inter, Cairo } from "next/font/google";
-import { Metadata } from "next";
+import { Metadata, Viewport } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
@@ -18,6 +18,12 @@ const cairo = Cairo({
   weight: ["300", "400", "500", "600", "700"],
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+};
+
 export const metadata: Metadata = {
   title: {
     default: "بايرز - منصة التجارة الإلكترونية الشاملة",
@@ -26,7 +32,6 @@ export const metadata: Metadata = {
   description: "المنصة الرائدة لإنشاء وإدارة المتاجر الإلكترونية في اليمن. ابدأ تجارتك الآن بكل سهولة واحترافية.",
   keywords: ["تجارة إلكترونية", "اليمن", "متاجر", "بيع أونلاين", "بايرز", "Buyers", "E-commerce Yemen"],
   authors: [{ name: "Buyers Team" }],
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,

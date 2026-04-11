@@ -144,7 +144,7 @@ export default function CheckoutPage() {
   const handleAddAddress = (e: React.MouseEvent) => {
     e.preventDefault();
     if (!formData.fullName || !formData.phone || !formData.city || !formData.region) {
-      alert('الرجاء ملء جميع الحقول المطلوبة');
+      alert(t('errorIncompleteInfo'));
       return;
     }
 
@@ -168,10 +168,10 @@ export default function CheckoutPage() {
         setAppliedCoupon(coupon);
         setCouponError(null);
       } else {
-        setCouponError(t('invalidCoupon') || 'كوبون غير صالح.');
+        setCouponError(t('invalidCoupon'));
       }
     } catch (error) {
-      setCouponError('حدث خطأ أثناء التحقق من الكوبون.');
+      setCouponError(t('errorCheckCoupon'));
     } finally {
       setIsCheckingCoupon(false);
     }
@@ -263,9 +263,9 @@ export default function CheckoutPage() {
       console.error("Order submission failed:", error);
       if (error.message?.startsWith('out_of_stock:')) {
         const productName = error.message.split(':')[1];
-        alert(`عذراً، نفدت كمية المنتج (${productName}) حالاً. يرجى تعديل السلة.`);
+        alert(t('outOfStock', { product: productName }));
       } else {
-        alert("حدث خطأ أثناء إرسال الطلب، يرجى المحاولة مرة أخرى.");
+        alert(t('orderError'));
       }
     } finally {
       setIsSubmitting(false);
@@ -499,7 +499,7 @@ export default function CheckoutPage() {
                       className={styles.lockedBadge}
                     >
                       <CheckCircle2 size={14} />
-                      تم تجميد السعر لضمان حقوقك المالية
+                      {t('priceFrozenDesc')}
                     </motion.div>
                   )}
                 </motion.div>
@@ -516,7 +516,7 @@ export default function CheckoutPage() {
               <div className={styles.couponInputWrapper}>
                 <input 
                   type="text" 
-                  placeholder="كود الخصم (مثل: SAVE20)" 
+                  placeholder={t('couponPlaceholder')} 
                   value={couponCode}
                   onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                   className={styles.couponInput}
@@ -528,14 +528,14 @@ export default function CheckoutPage() {
                   className={styles.couponBtn}
                   disabled={!couponCode || !!appliedCoupon || isCheckingCoupon}
                 >
-                  {isCheckingCoupon ? '...' : (appliedCoupon ? <CheckCircle2 size={18} /> : 'تطبيق')}
+                  {isCheckingCoupon ? '...' : (appliedCoupon ? <CheckCircle2 size={18} /> : t('apply'))}
                 </button>
               </div>
               {couponError && <p className={styles.couponError}>{couponError}</p>}
               {appliedCoupon && (
                 <div className={styles.appliedCoupon}>
-                  <span>تم تطبيق الكوبون: <strong>{appliedCoupon.code}</strong></span>
-                  <button type="button" onClick={() => { setAppliedCoupon(null); setCouponCode(''); }} className={styles.removeCoupon}>إزالة</button>
+                  <span>{t('couponApplied')} <strong>{appliedCoupon.code}</strong></span>
+                  <button type="button" onClick={() => { setAppliedCoupon(null); setCouponCode(''); }} className={styles.removeCoupon}>{t('remove')}</button>
                 </div>
               )}
             </div>
@@ -551,18 +551,18 @@ export default function CheckoutPage() {
 
             <div className={styles.summaryTotal}>
               <div className={styles.summaryRow}>
-                <span>المجموع الفرعي</span>
+                <span>{t('subtotal')}</span>
                 <span>{formatPriceLocal(getTotalPrice())}</span>
               </div>
 
               <div className={styles.summaryRow}>
-                <span>رسوم التوصيل</span>
-                <span>{shippingFee > 0 ? formatPriceLocal(shippingFee) : 'مجاني'}</span>
+                <span>{t('shippingFee')}</span>
+                <span>{shippingFee > 0 ? formatPriceLocal(shippingFee) : t('free')}</span>
               </div>
               
               {appliedCoupon && (
                 <div className={`${styles.summaryRow} ${styles.discountRow}`}>
-                  <span>الخصم ({appliedCoupon.code})</span>
+                  <span>{t('discount')} ({appliedCoupon.code})</span>
                   <span>-{formatPriceLocal(calculateDiscount())}</span>
                 </div>
               )}
@@ -571,13 +571,13 @@ export default function CheckoutPage() {
                 <span>{t('total')}</span>
                 <span className={`${styles.totalPrice} ${lockedPrice !== null ? styles.priceLocked : ''}`}>
                   {formatPriceLocal(lockedPrice !== null ? lockedPrice : (getTotalPrice() - calculateDiscount() + shippingFee))}
-                  {lockedPrice !== null && <span title="سعر مجمد"><CheckCircle2 size={16} /></span>}
+                  {lockedPrice !== null && <span title={t('priceFrozen')}><CheckCircle2 size={16} /></span>}
                 </span>
               </div>
               
               {lockedRate !== null && lockedPrice !== null && (
                 <div className={styles.exchangeRateNote}>
-                  تم اعتماد سعر صرف الريال السعودي: {lockedRate} ريال يمني
+                  {t('exchangeRateAdopted')} {lockedRate}
                 </div>
               )}
             </div>

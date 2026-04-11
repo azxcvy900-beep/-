@@ -41,7 +41,22 @@
     "total": "Total",
     "placeOrder": "Complete Order Now",
     "secureCheckout": "Secure and encrypted checkout process",
-    "errorReceiptRequired": "Please upload the transfer receipt first"
+    "errorReceiptRequired": "Please upload the transfer receipt first",
+    "couponPlaceholder": "Discount code (e.g. SAVE20)",
+    "apply": "Apply",
+    "remove": "Remove",
+    "couponApplied": "Coupon applied:",
+    "subtotal": "Subtotal",
+    "shippingFee": "Delivery Fee",
+    "free": "Free",
+    "discount": "Discount",
+    "priceFrozen": "Frozen Price",
+    "priceFrozenDesc": "Price has been frozen to guarantee your financial rights",
+    "exchangeRateAdopted": "Adopted Saudi Riyal exchange rate:",
+    "outOfStock": "Sorry, the product ({product}) just went out of stock. Please adjust your cart.",
+    "orderError": "An error occurred while submitting the order, please try again.",
+    "invalidCoupon": "Invalid coupon.",
+    "errorCheckCoupon": "An error occurred while checking the coupon."
   },
   "Success": {
     "thankYou": "Thank you for your order!",
