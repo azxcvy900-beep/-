@@ -25,6 +25,7 @@ import {
 } from '@/lib/api';
 import { useStreamingFetch, useProgressiveLoad } from '@/lib/hooks';
 import { useAuthStore } from '@/lib/auth-store';
+import { compressImage } from '@/lib/utils';
 import { TableSkeleton } from '@/components/shared/Skeletons/Skeletons';
 import styles from './products.module.css';
 
@@ -158,7 +159,9 @@ export default function MerchantProducts() {
 
       // 1. Upload image if a new file is selected
       if (selectedFile) {
-        finalImageUrl = await uploadProductImage(selectedFile, formData.storeSlug);
+        // Optimized: Compress product image before upload (1024px limit for quality+speed)
+        const compressed = await compressImage(selectedFile, 1024, 0.7);
+        finalImageUrl = await uploadProductImage(compressed, formData.storeSlug);
       }
 
       const stockNum = parseInt(formData.stockCount) || 0;

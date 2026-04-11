@@ -37,3 +37,56 @@ export const formatPrice = (
 
   return `${converted.toFixed(2)} ${symbol}`;
 };
+
+/**
+ * Compresses an image file on the client side using Canvas API.
+ * Reducing dimensions and quality to make uploads lightning fast.
+ */
+export const compressImage = async (file: File, maxWidth: number = 800, quality: number = 0.7): Promise<File> => {
+  if (!file.type.startsWith('image/')) return file;
+  
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        // Maintain aspect ratio
+        if (width > maxWidth) {
+          height = (maxWidth / width) * height;
+          width = maxWidth;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return reject(new Error('Could not get canvas context'));
+        
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
+                type: 'image/jpeg',
+                lastModified: Date.now(),
+              });
+              resolve(compressedFile);
+            } else {
+              reject(new Error('Canvas blob construction failed'));
+            }
+          },
+          'image/jpeg',
+          quality
+        );
+      };
+      img.onerror = () => reject(new Error('Image loading failed'));
+    };
+    reader.onerror = () => reject(new Error('File reading failed'));
+  });
+};

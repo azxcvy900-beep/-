@@ -18,6 +18,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { getStoreInfo, updateStoreInfo, uploadStoreLogo, StoreInfo } from '@/lib/api';
 import { useAuthStore } from '@/lib/auth-store';
+import { compressImage } from '@/lib/utils';
 import styles from './settings.module.css';
 
 export default function MerchantSettings() {
@@ -85,7 +86,9 @@ export default function MerchantSettings() {
 
       // 1. Upload new logo if selected
       if (selectedLogo) {
-        finalLogoUrl = await uploadStoreLogo(selectedLogo, storeSlug || 'demo');
+        // Optimized: Compress logo before upload for speed
+        const compressed = await compressImage(selectedLogo, 400, 0.7);
+        finalLogoUrl = await uploadStoreLogo(compressed, storeSlug || 'demo');
       }
 
       const updatedData = {
