@@ -148,6 +148,7 @@
   justify-content: center;
   gap: 0.5rem;
   transition: color 0.3s;
+  position: relative;
 }
 
 .activeTab {
@@ -156,14 +157,11 @@
 
 .tabUnderline {
   position: absolute;
-  top: 0.35rem;
-  bottom: 0.35rem;
-  left: 0.35rem;
-  width: calc(50% - 0.35rem);
+  inset: 0;
   background: #ffffff;
   border-radius: 11px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  z-index: 0;
+  z-index: -1;
 }
 
 .header {

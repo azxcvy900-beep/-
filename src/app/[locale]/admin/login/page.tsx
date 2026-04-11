@@ -160,6 +160,14 @@ export default function AdminLoginPage() {
             >
               <LogIn size={18} />
               دخول
+              {mode === 'login' && (
+                <motion.div 
+                  layoutId="tab-underline"
+                  className={styles.tabUnderline}
+                  initial={false}
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                />
+              )}
             </button>
             <button 
               className={`${styles.tab} ${mode === 'register' ? styles.activeTab : ''}`}
@@ -167,12 +175,15 @@ export default function AdminLoginPage() {
             >
               <UserPlus size={18} />
               اشتراك جديد
+              {mode === 'register' && (
+                <motion.div 
+                  layoutId="tab-underline"
+                  className={styles.tabUnderline}
+                  initial={false}
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                />
+              )}
             </button>
-            <motion.div 
-              layoutId="tab-underline"
-              className={styles.tabUnderline}
-              animate={{ x: mode === 'login' ? '0%' : '100%' }}
-            />
           </div>
 
           <header className={styles.header}>
@@ -321,21 +332,22 @@ export default function AdminLoginPage() {
           </form>
 
           <footer style={{ marginTop: '2rem', textAlign: 'center' }}>
-             <button 
-               onClick={() => router.push(`/${locale}`)}
-               style={{ 
-                 background: 'none', 
-                 border: 'none', 
-                 color: '#64748b', 
-                 fontSize: '0.85rem', 
-                 display: 'inline-flex', 
-                 alignItems: 'center', 
-                 gap: '0.5rem', 
-                 cursor: 'pointer' 
-               }}
-             >
-               <ArrowLeft size={16} /> العودة للموقع الرئيسي
-             </button>
+              <button 
+                onClick={() => router.push(`/${locale}`)}
+                style={{ 
+                  background: 'none', 
+                  border: 'none', 
+                  color: '#64748b', 
+                  fontSize: '0.85rem', 
+                  display: 'inline-flex', 
+                  alignItems: 'center', 
+                  gap: '0.5rem', 
+                  cursor: 'pointer' 
+                }}
+              >
+                <ArrowLeft size={16} style={{ transform: locale === 'ar' ? 'rotate(180deg)' : 'none' }} /> 
+                {t('common.backToHome') || 'العودة للموقع الرئيسي'}
+              </button>
           </footer>
         </div>
       </section>
