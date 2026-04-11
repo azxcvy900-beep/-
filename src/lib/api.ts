@@ -341,10 +341,15 @@ export async function uploadProductImage(file: File, storeSlug: string): Promise
 }
 
 export async function uploadStoreLogo(file: File, storeSlug: string): Promise<string> {
-  const fileName = `${Date.now()}_logo_${file.name.replace(/\s+/g, '_')}`;
-  const storageRef = ref(storage, `stores/${storeSlug}/logo/${fileName}`);
-  const snapshot = await uploadBytes(storageRef, file);
-  return await getDownloadURL(snapshot.ref);
+  try {
+    const fileName = `${Date.now()}_logo_${file.name.replace(/\s+/g, '_')}`;
+    const storageRef = ref(storage, `stores/${storeSlug}/logo/${fileName}`);
+    const snapshot = await uploadBytes(storageRef, file);
+    return await getDownloadURL(snapshot.ref);
+  } catch (error) {
+    console.error("Storage Error (Store Logo):", error);
+    throw error;
+  }
 }
 
 export async function uploadCategoryImage(file: File, storeSlug: string): Promise<string> {
@@ -579,8 +584,13 @@ export async function updateOrderStatus(orderId: string, status: Order['status']
 }
 
 export async function updateStoreInfo(slug: string, updates: Partial<StoreInfo>): Promise<void> {
-  const storeRef = doc(db, 'stores', slug);
-  await setDoc(storeRef, updates, { merge: true });
+  try {
+    const storeRef = doc(db, 'stores', slug);
+    await setDoc(storeRef, updates, { merge: true });
+  } catch (error) {
+    console.error("Firestore Error (Update Store):", error);
+    throw error;
+  }
 }
 
 export async function incrementStoreOrderCount(slug: string): Promise<void> {
