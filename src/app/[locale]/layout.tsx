@@ -50,6 +50,8 @@ export function generateStaticParams() {
   return [{ locale: 'ar' }, { locale: 'en' }];
 }
 
+import { Toaster } from "sonner";
+
 export default async function RootLayout({
   children,
   params,
@@ -69,6 +71,7 @@ export default async function RootLayout({
             <main style={{ minHeight: 'calc(100vh - 400px)' }}>
               {children}
             </main>
+            <Toaster richColors position="top-center" />
             <WhatsAppSupport />
             <Footer />
           </ThemeProvider>

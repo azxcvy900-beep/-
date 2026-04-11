@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { getPlatformSettings, updatePlatformSettings, PlatformSettings } from '@/lib/api';
+import { toast } from 'sonner';
 import styles from './settings.module.css';
 
 export default function ManagerSettings() {
@@ -54,10 +55,10 @@ export default function ManagerSettings() {
     setLoading(true);
     try {
       await updatePlatformSettings(settings);
-      alert('تم حفظ الإعدادات العالمية بنجاح!');
+      toast.success('تم حفظ الإعدادات العالمية بنجاح!');
     } catch (error) {
       console.error("Save error:", error);
-      alert('حدث خطأ أثناء حفظ الإعدادات.');
+      toast.error('حدث خطأ أثناء حفظ الإعدادات.');
     } finally {
       setLoading(false);
     }

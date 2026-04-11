@@ -9,6 +9,7 @@ import { useCartStore, UserInfo, Order } from '@/lib/store';
 import { formatPrice } from '@/lib/utils';
 import BackButton from '@/components/shared/BackButton/BackButton';
 import { validateCoupon, Coupon } from '@/lib/api';
+import { toast } from 'sonner';
 import styles from './checkout.module.css';
 
 type PaymentMethod = 'electronic' | 'transfer';
@@ -144,7 +145,7 @@ export default function CheckoutPage() {
   const handleAddAddress = (e: React.MouseEvent) => {
     e.preventDefault();
     if (!formData.fullName || !formData.phone || !formData.city || !formData.region) {
-      alert(t('errorIncompleteInfo'));
+      toast.error(t('errorIncompleteInfo'));
       return;
     }
 
@@ -215,12 +216,12 @@ export default function CheckoutPage() {
     e.preventDefault();
     
     if (!selectedAddressId && (!formData.fullName || !formData.phone)) {
-      alert(t('errorIncompleteInfo'));
+      toast.error(t('errorIncompleteInfo'));
       return;
     }
 
     if (paymentMethod === 'transfer' && !receipt) {
-      alert(t('errorReceiptRequired'));
+      toast.error(t('errorReceiptRequired'));
       return;
     }
 
@@ -262,10 +263,10 @@ export default function CheckoutPage() {
     } catch (error: any) {
       console.error("Order submission failed:", error);
       if (error.message?.startsWith('out_of_stock:')) {
-        const productName = error.message.split(':')[1];
-        alert(t('outOfStock', { product: productName }));
+        const productName = error.message.split(':')[1] || '';
+        toast.error(t('outOfStock', { product: productName }));
       } else {
-        alert(t('orderError'));
+        toast.error(t('orderError'));
       }
     } finally {
       setIsSubmitting(false);
