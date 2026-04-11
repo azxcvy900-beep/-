@@ -124,7 +124,7 @@ const DUMMY_PRODUCTS: Product[] = [
     price: 1250000,
     originalPrice: 1350000,
     category: 'هواتف ذكية',
-    image: 'https://raw.githubusercontent.com/azxcvy900-beep/assets/main/iphone_15_pro_max_demo_1775923497298.png',
+    image: '/assets/demo/iphone_15.png',
     description: 'الأداء الفائق مع شريحة A17 Pro، تصميم من التيتانيوم الخفيف والقوي، ونظام كاميرا احترافي مطور.',
     storeSlug: 'demo',
     options: [{ name: 'اللون', values: ['تيتانيوم طبيعي', 'أسود', 'أزرق'] }],
@@ -136,7 +136,7 @@ const DUMMY_PRODUCTS: Product[] = [
     price: 1100000,
     originalPrice: 1200000,
     category: 'هواتف ذكية',
-    image: 'https://raw.githubusercontent.com/azxcvy900-beep/assets/main/samsung_s24_ultra_demo_1775923795846.png',
+    image: '/assets/demo/samsung_s24.png',
     description: 'أذكى هاتف في العالم مع تقنيات AI المتطورة، قلم S-Pen مدمج، وكاميرا 200 ميجابكسل لجودة تصوير خرافية.',
     storeSlug: 'demo',
     stockCount: 10, inStock: true
@@ -147,7 +147,7 @@ const DUMMY_PRODUCTS: Product[] = [
     price: 135000,
     originalPrice: 150000,
     category: 'هواتف ذكية',
-    image: 'https://raw.githubusercontent.com/azxcvy900-beep/assets/main/lt_m50_plus_demo_1775923650030.png',
+    image: '/assets/demo/lt_m50.png',
     description: 'الهاتف اليمني الأول يدعم نظامين، شاشة 120Hz، بطارية ضخمة وأداء سلس جداً في التطبيقات والألعاب.',
     storeSlug: 'demo',
     stockCount: 45, inStock: true
@@ -158,7 +158,7 @@ const DUMMY_PRODUCTS: Product[] = [
     price: 165000,
     originalPrice: 180000,
     category: 'هواتف ذكية',
-    image: 'https://raw.githubusercontent.com/azxcvy900-beep/assets/main/redmi_note_13_pro_demo_1775923665869.png',
+    image: '/assets/demo/redmi_note_13.png',
     description: 'كاميرا 200 ميجابكسل، شاشة AMOLED مذهلة، وشحن سريع جداً. القوة الحقيقية في الفئة المتوسطة.',
     storeSlug: 'demo',
     stockCount: 30, inStock: true
@@ -168,7 +168,7 @@ const DUMMY_PRODUCTS: Product[] = [
     name: 'Samsung Galaxy A55 5G - 128GB',
     price: 215000,
     category: 'هواتف ذكية',
-    image: 'https://raw.githubusercontent.com/azxcvy900-beep/assets/main/samsung_a55_demo_1775923682226.png',
+    image: '/assets/demo/samsung_a55.png',
     description: 'تصميم زجاجي فاخر، مقاوم للماء والغبار، أداء قوي وكاميرات رائعة لمن يبحث عن الجودة والاستقرار.',
     storeSlug: 'demo',
     stockCount: 20, inStock: true
@@ -178,7 +178,7 @@ const DUMMY_PRODUCTS: Product[] = [
     name: 'LT Note 20 Pro - 128GB',
     price: 98000,
     category: 'هواتف ذكية',
-    image: 'https://raw.githubusercontent.com/azxcvy900-beep/assets/main/lt_note_20_demo_1775923811242.png',
+    image: '/assets/demo/lt_note_20.png',
     description: 'أناقة الـ Note وقوة الـ LT. جوال مثالي للعمل والدراسة مع ضمان محلي معتمد.',
     storeSlug: 'demo',
     stockCount: 25, inStock: true
@@ -191,7 +191,7 @@ const DUMMY_PRODUCTS: Product[] = [
     price: 135000,
     originalPrice: 155000,
     category: 'سماعات وإكسسوارات',
-    image: 'https://raw.githubusercontent.com/azxcvy900-beep/assets/main/airpods_pro_2_demo_1775923547456.png',
+    image: '/assets/demo/airpods.png',
     description: 'أفضل تجربة عزل ضوضاء في العالم مع نقاء صوت لا يوصف وتكامل تام مع نظام Apple.',
     storeSlug: 'demo',
     stockCount: 12, inStock: true
@@ -201,7 +201,7 @@ const DUMMY_PRODUCTS: Product[] = [
     name: 'Redmi Buds 5 Pro - Noise Cancelling',
     price: 32000,
     category: 'سماعات وإكسسوارات',
-    image: 'https://raw.githubusercontent.com/azxcvy900-beep/assets/main/redmi_buds_5_pro_demo_1775923699009.png',
+    image: '/assets/demo/redmi_buds.png',
     description: 'عزل ضوضاء ذكي، بطارية تدوم طويلاً، وجودة صوت تنافس السماعات الرائدة بسعر مغري.',
     storeSlug: 'demo',
     stockCount: 40, inStock: true
@@ -234,7 +234,7 @@ const DUMMY_PRODUCTS: Product[] = [
     price: 580000,
     originalPrice: 620000,
     category: 'أجهزة ألعاب',
-    image: 'https://raw.githubusercontent.com/azxcvy900-beep/assets/main/ps5_console_demo_1775923516576.png',
+    image: '/assets/demo/ps5.png',
     description: 'عالم الألعاب القادم بين يديك بدقة 4K وسرعة تحميل فورية وتصميم نحيف جديد.',
     storeSlug: 'demo',
     stockCount: 5, inStock: true
@@ -256,7 +256,7 @@ const DUMMY_PRODUCTS: Product[] = [
     name: 'MacBook Pro M3 Max - 14.2 inch',
     price: 1850000,
     category: 'حواسيب',
-    image: 'https://raw.githubusercontent.com/azxcvy900-beep/assets/main/macbook_m3_pro_demo_1775923532391.png',
+    image: '/assets/demo/macbook.png',
     description: 'الوحش الكاسر للمبدعين والمهندسين. شاشة XDR مذهلة وأداء لا يمكن إيقافه مع شريحة M3 Max.',
     storeSlug: 'demo',
     stockCount: 3, inStock: true
@@ -277,8 +277,8 @@ export const DUMMY_STORES: StoreInfo[] = [
   {
     slug: 'yemen-digital',
     name: 'يمن ديجيتال - Yemen Digital',
-    logo: 'https://raw.githubusercontent.com/azxcvy900-beep/assets/main/yemen_digital_logo_1775923481216.png',
-    heroBanner: 'https://raw.githubusercontent.com/azxcvy900-beep/assets/main/electronics_hero_banner_demo_1775923560293.png',
+    logo: '/assets/demo/logo.png',
+    heroBanner: '/assets/demo/banner.png',
     phone: '967771234567',
     description: 'وجهتك الأولى لأحدث التقنيات بأسعار منافسة في اليمن.',
     primaryColor: '#007AFF',
@@ -287,8 +287,8 @@ export const DUMMY_STORES: StoreInfo[] = [
   {
     slug: 'demo',
     name: 'يمن ديجيتال (متجر تجريبي)',
-    logo: 'https://raw.githubusercontent.com/azxcvy900-beep/assets/main/yemen_digital_logo_1775923481216.png',
-    heroBanner: 'https://raw.githubusercontent.com/azxcvy900-beep/assets/main/electronics_hero_banner_demo_1775923560293.png',
+    logo: '/assets/demo/logo.png',
+    heroBanner: '/assets/demo/banner.png',
     phone: '967770000000',
     description: 'استكشف قوة منصة بايرز من خلال هذا المتجر التقني المتكامل.',
     social: {
