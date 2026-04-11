@@ -187,20 +187,19 @@
 }
 
 .circleIcon {
-  width: 100px;
-  height: 100px;
+  width: 115px;
+  height: 115px;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.3) 100%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.4) 100%);
   backdrop-filter: blur(16px) saturate(180%);
   -webkit-backdrop-filter: blur(16px) saturate(180%);
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow: 
-    0 10px 25px -5px rgba(0, 0, 0, 0.05),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.5),
-    inset 0 2px 4px rgba(255, 255, 255, 0.3);
-  border: 1.5px solid rgba(255, 255, 255, 0.4);
+    0 10px 30px -5px rgba(0, 0, 0, 0.1),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
   transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   overflow: hidden;
   position: relative;
@@ -222,11 +221,11 @@
 }
 
 .circleIcon img {
-  width: 55px;
-  height: 55px;
-  object-fit: contain;
+  width: 94%;
+  height: 94%;
+  object-fit: cover;
   transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-  filter: drop-shadow(0 8px 15px rgba(0,0,0,0.12));
+  filter: drop-shadow(0 5px 15px rgba(0,0,0,0.08));
   border-radius: 50%; /* Force image to be circular to prevent square corners */
 }
 
