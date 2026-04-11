@@ -119,33 +119,33 @@ export interface Category {
 const DUMMY_PRODUCTS: Product[] = [
   // --- Smartphones Section ---
   {
-    id: 'iphone-15-pro-max',
-    name: 'iPhone 15 Pro Max - 256GB',
-    price: 1250000,
-    originalPrice: 1350000,
+    id: 'iphone-12-clean',
+    name: 'iPhone 12 - 128GB (مستخدم نظيف)',
+    price: 1450,
+    originalPrice: 1600,
     category: 'هواتف ذكية',
     image: '/assets/demo/iphone_15.png',
-    description: 'الأداء الفائق مع شريحة A17 Pro، تصميم من التيتانيوم الخفيف والقوي، ونظام كاميرا احترافي مطور.',
+    description: 'آيفون 12 بحالة ممتازة، بطارية فوق 90%، ضمان فحص وتجربة. الأداء القوي بسعر منافس.',
     storeSlug: 'demo',
-    options: [{ name: 'اللون', values: ['تيتانيوم طبيعي', 'أسود', 'أزرق'] }],
-    stockCount: 15, inStock: true
+    options: [{ name: 'اللون', values: ['أزرق', 'أسود', 'أبيض'] }],
+    stockCount: 5, inStock: true
   },
   {
-    id: 'samsung-s24-ultra',
-    name: 'Samsung Galaxy S24 Ultra - 512GB',
-    price: 1100000,
-    originalPrice: 1200000,
+    id: 'samsung-s24-demo',
+    name: 'Samsung Galaxy S24 (نسخة ديمو)',
+    price: 1750,
+    originalPrice: 1800,
     category: 'هواتف ذكية',
     image: '/assets/demo/samsung_s24.png',
-    description: 'أذكى هاتف في العالم مع تقنيات AI المتطورة، قلم S-Pen مدمج، وكاميرا 200 ميجابكسل لجودة تصوير خرافية.',
+    description: 'أقوى أداء من سامسونج مع معالج سناب دراجون، شاشة مذهلة وكاميرا احترافية بسعر العرض.',
     storeSlug: 'demo',
-    stockCount: 10, inStock: true
+    stockCount: 3, inStock: true
   },
   {
     id: 'lt-m50-plus',
     name: 'LT M50 Plus - 256GB/16GB',
-    price: 135000,
-    originalPrice: 150000,
+    price: 640,
+    originalPrice: 700,
     category: 'هواتف ذكية',
     image: '/assets/demo/lt_m50.png',
     description: 'الهاتف اليمني الأول يدعم نظامين، شاشة 120Hz، بطارية ضخمة وأداء سلس جداً في التطبيقات والألعاب.',
@@ -155,8 +155,8 @@ const DUMMY_PRODUCTS: Product[] = [
   {
     id: 'redmi-note-13-pro',
     name: 'Redmi Note 13 Pro 4G - 256GB',
-    price: 165000,
-    originalPrice: 180000,
+    price: 920,
+    originalPrice: 980,
     category: 'هواتف ذكية',
     image: '/assets/demo/redmi_note_13.png',
     description: 'كاميرا 200 ميجابكسل، شاشة AMOLED مذهلة، وشحن سريع جداً. القوة الحقيقية في الفئة المتوسطة.',
@@ -166,7 +166,7 @@ const DUMMY_PRODUCTS: Product[] = [
   {
     id: 'samsung-a55',
     name: 'Samsung Galaxy A55 5G - 128GB',
-    price: 215000,
+    price: 1280,
     category: 'هواتف ذكية',
     image: '/assets/demo/samsung_a55.png',
     description: 'تصميم زجاجي فاخر، مقاوم للماء والغبار، أداء قوي وكاميرات رائعة لمن يبحث عن الجودة والاستقرار.',
@@ -176,7 +176,7 @@ const DUMMY_PRODUCTS: Product[] = [
   {
     id: 'lt-note-20',
     name: 'LT Note 20 Pro - 128GB',
-    price: 98000,
+    price: 490,
     category: 'هواتف ذكية',
     image: '/assets/demo/lt_note_20.png',
     description: 'أناقة الـ Note وقوة الـ LT. جوال مثالي للعمل والدراسة مع ضمان محلي معتمد.',
@@ -187,9 +187,9 @@ const DUMMY_PRODUCTS: Product[] = [
   // --- Audio & Accessories Section ---
   {
     id: 'airpods-pro-2',
-    name: 'Apple AirPods Pro 2 - Magsafe',
-    price: 135000,
-    originalPrice: 155000,
+    name: 'Apple AirPods Pro 2 (أصلي)',
+    price: 850,
+    originalPrice: 950,
     category: 'سماعات وإكسسوارات',
     image: '/assets/demo/airpods.png',
     description: 'أفضل تجربة عزل ضوضاء في العالم مع نقاء صوت لا يوصف وتكامل تام مع نظام Apple.',
@@ -198,8 +198,8 @@ const DUMMY_PRODUCTS: Product[] = [
   },
   {
     id: 'redmi-buds-5-pro',
-    name: 'Redmi Buds 5 Pro - Noise Cancelling',
-    price: 32000,
+    name: 'Redmi Buds 5 Pro - Global',
+    price: 115,
     category: 'سماعات وإكسسوارات',
     image: '/assets/demo/redmi_buds.png',
     description: 'عزل ضوضاء ذكي، بطارية تدوم طويلاً، وجودة صوت تنافس السماعات الرائدة بسعر مغري.',
@@ -207,69 +207,79 @@ const DUMMY_PRODUCTS: Product[] = [
     stockCount: 40, inStock: true
   },
   {
-    id: 'apple-watch-9',
-    name: 'Apple Watch Series 9 - 45mm',
-    price: 245000,
-    category: 'سماعات وإكسسوارات',
-    image: 'https://images.unsplash.com/photo-1434493907317-a46b53b81882?w=800&q=80',
-    description: 'ساعتك الصحية والتقنية المتكاملة مع مستشعرات متطورة للأكسجين والقلب وأداء البرق.',
-    storeSlug: 'demo',
-    stockCount: 8, inStock: true
-  },
-  {
     id: 'anker-65w',
     name: 'Anker Nano II 65W Fast Charger',
-    price: 18000,
+    price: 140,
     category: 'سماعات وإكسسوارات',
     image: 'https://images.unsplash.com/photo-1619130730344-f2a75936a827?w=800&q=80',
     description: 'شاحن صغير الحجم فائق القوة، يشحن جوالك ولابتوبك بسرعة فائقة بأمان تام.',
     storeSlug: 'demo',
     stockCount: 60, inStock: true
   },
+  {
+    id: 'iphone-case',
+    name: 'كفر حماية فخم للايفون',
+    price: 25,
+    category: 'سماعات وإكسسوارات',
+    image: 'https://images.unsplash.com/photo-1603313011101-31c72ee78242?w=800&q=80',
+    description: 'حماية كاملة من الصدمات بتصميم أنيق وخامات عالية الجودة.',
+    storeSlug: 'demo',
+    stockCount: 100, inStock: true
+  },
+  {
+    id: 'screen-protector',
+    name: 'لاصق حماية زجاجي (Original)',
+    price: 10,
+    category: 'سماعات وإكسسوارات',
+    image: 'https://images.unsplash.com/photo-1616423641322-96b6f7e8a93e?w=800&q=80',
+    description: 'حماية فائقة لشاشة هاتفك من الكسر والخدوش بدقة ووضوح عالي.',
+    storeSlug: 'demo',
+    stockCount: 200, inStock: true
+  },
 
   // --- Gaming Section ---
   {
-    id: 'ps5-slim',
-    name: 'PlayStation 5 Slim - Digital Edition',
-    price: 580000,
-    originalPrice: 620000,
+    id: 'ps5-slim-sale',
+    name: 'PlayStation 5 Slim (عرض محدود)',
+    price: 1780,
+    originalPrice: 1850,
     category: 'أجهزة ألعاب',
     image: '/assets/demo/ps5.png',
     description: 'عالم الألعاب القادم بين يديك بدقة 4K وسرعة تحميل فورية وتصميم نحيف جديد.',
     storeSlug: 'demo',
-    stockCount: 5, inStock: true
+    stockCount: 2, inStock: true
   },
   {
-    id: 'dualsense-edge',
-    name: 'DualSense Edge Pro Controller',
-    price: 115000,
+    id: 'game-card',
+    name: 'بطاقة شدات / رصيد ألعاب',
+    price: 45,
     category: 'أجهزة ألعاب',
-    image: 'https://images.unsplash.com/photo-1627932306571-6387063fe453?w=800&q=80',
-    description: 'التحكم المطلق لمحترفي اللعب. أزرار قابلة للتخصيص الكامل لضمان التفوق في كل مباراة.',
+    image: 'https://images.unsplash.com/photo-1612287230202-1ff1d85d1bdf?w=800&q=80',
+    description: 'اشحن رصيدك فوراً وابدأ اللعب والاستمتاع بمميزات متقدمة.',
     storeSlug: 'demo',
-    stockCount: 15, inStock: true
+    stockCount: 500, inStock: true
   },
 
   // --- Computers Section ---
   {
-    id: 'macbook-m3-pro',
-    name: 'MacBook Pro M3 Max - 14.2 inch',
-    price: 1850000,
+    id: 'ipad-air-4',
+    name: 'iPad Air (الجيل الرابع) - 64GB',
+    price: 1650,
     category: 'حواسيب',
     image: '/assets/demo/macbook.png',
-    description: 'الوحش الكاسر للمبدعين والمهندسين. شاشة XDR مذهلة وأداء لا يمكن إيقافه مع شريحة M3 Max.',
+    description: 'مثالي للدراسة والتصميم مع شاشة مذهلة ودعم قلم أبل. أداء اللابتوب في حجم التابلت.',
     storeSlug: 'demo',
-    stockCount: 3, inStock: true
+    stockCount: 4, inStock: true
   },
   {
-    id: 'ipad-pro-m4',
-    name: 'iPad Pro M4 - 13 inch 512GB',
-    price: 850000,
+    id: 'redmi-pad-se',
+    name: 'Redmi Pad SE - 11 inch',
+    price: 820,
     category: 'حواسيب',
     image: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=800&q=80',
-    description: 'أنحف وأقوى آيباد في التاريخ مع شاشة OLED مذهلة ومعالج M4 الجديد كلياً.',
+    description: 'تابلت عملي جداً لمشاهدة الأفلام والدراسة، بطارية تدوم طويلاً وشاشة FHD.',
     storeSlug: 'demo',
-    stockCount: 7, inStock: true
+    stockCount: 15, inStock: true
   }
 ];
 
@@ -282,15 +292,23 @@ export const DUMMY_STORES: StoreInfo[] = [
     phone: '967771234567',
     description: 'وجهتك الأولى لأحدث التقنيات بأسعار منافسة في اليمن.',
     primaryColor: '#007AFF',
+    currencySettings: {
+      default: 'SAR',
+      rates: { 'YER': 530, 'USD': 3.75 }
+    },
     social: { instagram: 'yemen_digital', whatsapp: '967771234567' }
   },
   {
     slug: 'demo',
-    name: 'يمن ديجيتال (متجر تجريبي)',
+    name: 'يمن ديجيتال (ديمو)',
     logo: '/assets/demo/logo.png',
     heroBanner: '/assets/demo/banner.png',
     phone: '967770000000',
-    description: 'استكشف قوة منصة بايرز من خلال هذا المتجر التقني المتكامل.',
+    description: 'استكشف قوة منصة بايرز بنظام تسعير الريال السعودي (رس).',
+    currencySettings: {
+      default: 'SAR',
+      rates: { 'YER': 530, 'USD': 3.75 }
+    },
     social: {
       instagram: 'buyers_ye',
       twitter: 'buyers_ye',
