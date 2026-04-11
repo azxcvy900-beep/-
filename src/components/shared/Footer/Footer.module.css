@@ -1,5 +1,5 @@
 .footer {
-  background: var(--bg-card);
+  background: var(--card-bg);
   border-top: 1px solid var(--card-border);
   margin-top: 5rem;
   color: var(--foreground);
@@ -12,7 +12,8 @@
 }
 
 .topSection {
-  background: rgba(var(--primary-rgb), 0.03);
+  background: var(--muted);
+  opacity: 0.8;
   padding: 3rem 0;
   border-bottom: 1px solid var(--card-border);
 }
@@ -121,6 +122,19 @@
   background: var(--primary);
 }
 
+.tooltip {
+  position: absolute;
+  bottom: 80px;
+  right: 0;
+  background: var(--card-bg);
+  padding: 0.75rem 1.25rem;
+  border-radius: 15px;
+  box-shadow: var(--shadow);
+  min-width: 180px;
+  border: 1px solid var(--card-border);
+  backdrop-filter: blur(12px);
+}
+
 .linksCol ul {
   list-style: none;
   padding: 0;
@@ -172,7 +186,7 @@
   padding: 2rem 0;
   border-top: 1px solid var(--card-border);
   text-align: center;
-  background: rgba(0,0,0,0.02);
+  background: var(--background);
 }
 
 .bottomSection p {

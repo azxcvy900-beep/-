@@ -61,7 +61,7 @@
   border: 1px solid var(--card-border);
   border-radius: 12px;
   transition: all 0.3s ease;
-  background: white;
+  background: var(--muted);
 }
 
 .localeLink:hover {
@@ -112,8 +112,8 @@
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  background: var(--foreground);
-  color: white !important;
+  background: var(--primary);
+  color: var(--primary-foreground) !important;
   padding: 0.6rem 1.25rem;
   border-radius: 14px;
   font-weight: 700;
@@ -130,7 +130,7 @@
 }
 
 .adminLink svg {
-  color: var(--accent);
+  color: var(--primary-foreground);
   transition: color 0.3s;
 }
 
