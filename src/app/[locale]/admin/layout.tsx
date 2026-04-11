@@ -25,6 +25,8 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/components/providers/ThemeProvider';
 import { useSessionStore } from '@/lib/session-store';
+import { useAuthStore } from '@/lib/auth-store';
+import { getStoreInfo } from '@/lib/api';
 import OrderNotification from '@/components/shared/OrderNotification/OrderNotification';
 import styles from './admin-layout.module.css';
 
@@ -41,6 +43,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   
   const isSetupPage = pathname.includes('/admin/setup');
   const isLoginPage = pathname.includes('/admin/login');
+
+  // Sync session storeSlug with authStore
+  const { setStoreInfo } = useAuthStore();
+  
+  useEffect(() => {
+    if (storeSlug && isLoggedIn) {
+      // Background fetch or just set slug
+      getStoreInfo(storeSlug).then(info => {
+        if (info) setStoreInfo(info);
+      });
+    }
+  }, [storeSlug, isLoggedIn, setStoreInfo]);
 
   // Verify access for merchants, admins, or employees
   useEffect(() => {
