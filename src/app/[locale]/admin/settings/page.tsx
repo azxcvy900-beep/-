@@ -18,7 +18,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { getStoreInfo, updateStoreInfo, uploadStoreLogo, StoreInfo } from '@/lib/api';
 import { useAuthStore } from '@/lib/auth-store';
-import { compressImage, getSquareCroppedImg } from '@/lib/utils';
+import { compressImage, getSquareCroppedImg, fileToBase64 } from '@/lib/utils';
 import styles from './settings.module.css';
 
 export default function MerchantSettings() {
@@ -115,21 +115,22 @@ export default function MerchantSettings() {
     try {
       let finalLogoUrl = storeData.logo;
 
-      // 1. Upload new logo if selected
+      // 1. Convert new logo to Base64 (Instant & Stable Fallback)
       if (selectedLogo) {
-        setSaveStep('uploading');
-        // Optimized: Compress logo before upload for speed
+        setSaveStep('saving'); // Skip uploading cloud
+        // Optimized: Compress logo before conversion
         const compressed = await compressImage(selectedLogo, 400, 0.7);
-        finalLogoUrl = await uploadStoreLogo(compressed, storeSlug || 'demo');
+        finalLogoUrl = await fileToBase64(compressed);
+      } else {
+        setSaveStep('saving');
       }
 
-      setSaveStep('saving');
       const updatedData = {
         ...storeData,
         logo: finalLogoUrl || storeData.logo || ''
       };
 
-      // 2. Save all info
+      // 2. Save all info directly to Firestore
       await updateStoreInfo(storeSlug || 'demo', updatedData);
       setStoreData(updatedData);
       

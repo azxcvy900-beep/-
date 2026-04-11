@@ -121,3 +121,15 @@ export const getSquareCroppedImg = async (imageSrc: string): Promise<Blob> => {
     img.onerror = () => reject(new Error('Image failed to load for cropping'));
   });
 };
+
+/**
+ * Convert a file or blob to base64 string
+ */
+export const fileToBase64 = (file: Blob | File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
+    reader.readAsDataURL(file);
+  });
+};
