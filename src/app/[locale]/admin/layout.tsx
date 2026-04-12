@@ -103,37 +103,37 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       name: 'الأقسام', 
       href: `/${locale}/admin/categories`, 
       icon: Grid,
-      show: hasAll || permissions?.includes('products.view') || role === 'admin'
+      show: hasAll || permissions?.includes('products.view') || role === 'admin' || role === 'merchant'
     },
     { 
       name: t('sidebar.products'), 
       href: `/${locale}/admin/products`, 
       icon: Package,
-      show: hasAll || permissions?.includes('products.view') || role === 'admin'
+      show: hasAll || permissions?.includes('products.view') || role === 'admin' || role === 'merchant'
     },
     { 
       name: 'الكوبونات', 
       href: `/${locale}/admin/coupons`, 
       icon: Ticket,
-      show: hasAll || permissions?.includes('marketing.view') || role === 'admin'
+      show: hasAll || permissions?.includes('marketing.view') || role === 'admin' || role === 'merchant'
     },
     { 
       name: 'التقييمات', 
       href: `/${locale}/admin/reviews`, 
       icon: MessageSquare,
-      show: hasAll || permissions?.includes('reviews.view') || role === 'admin'
+      show: hasAll || permissions?.includes('reviews.view') || role === 'admin' || role === 'merchant'
     },
     { 
       name: t('sidebar.orders'), 
       href: `/${locale}/admin/orders`, 
       icon: ShoppingBag,
-      show: hasAll || permissions?.includes('orders.view') || role === 'admin'
+      show: hasAll || permissions?.includes('orders.view') || role === 'admin' || role === 'merchant'
     },
     { 
       name: 'العملاء', 
       href: `/${locale}/admin/customers`, 
       icon: UsersRound,
-      show: hasAll || permissions?.includes('customers.view') || role === 'admin'
+      show: hasAll || permissions?.includes('customers.view') || role === 'admin' || role === 'merchant'
     },
     { 
       name: 'الموظفين', 
@@ -145,7 +145,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       name: t('sidebar.settings'), 
       href: `/${locale}/admin/settings`, 
       icon: Settings,
-      show: hasAll || permissions?.includes('settings.manage') || role === 'admin'
+      show: hasAll || permissions?.includes('settings.manage') || role === 'admin' || role === 'merchant'
     },
   ];
 
