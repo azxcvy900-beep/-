@@ -444,33 +444,21 @@ async function bulletproofUpload(file: File | Blob, storeSlug: string, folder: s
   let processedFile = file;
 
   try {
-    // 1. Compress image to keep it lean (especially if it ends up as Base64)
+    // 1. Compress image heavily to guarantee it stays below Firestore's 1MB document limit
     if (fileToCompress) {
-      // Products might need slightly higher resolution than icons
-      const size = folder === 'categories' ? 400 : 800;
-      processedFile = await compressImage(fileToCompress, size, 0.7);
+      // Very small size for Base64 (Product and categories)
+      const size = folder === 'categories' ? 300 : 500;
+      processedFile = await compressImage(fileToCompress, size, 0.6);
     }
 
-    const storageRef = ref(storage, `stores/${storeSlug}/${folder}/${fileName}`);
+    // 2. IMMEDIATE FALLBACK TO BASE64
+    // Temporary bypass for Firebase Storage until platform launch, since user encountered region errors.
+    console.log(`Bypassing Storage for ${folder}, directly converting to Base64...`);
+    return await fileToBase64(processedFile);
     
-    // 2. Race the upload against a 6-second timeout
-    const uploadPromise = uploadBytes(storageRef, processedFile);
-    const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Upload Timeout')), 6000)
-    );
-
-    const snapshot = await Promise.race([uploadPromise, timeoutPromise]) as any;
-    return await getDownloadURL(snapshot.ref);
   } catch (error) {
-    console.error(`Storage Error/Timeout in ${folder}, failing back to Base64:`, error);
-    
-    // 3. Fallback to Base64 (100% reliable for demo/MVP)
-    try {
-      return await fileToBase64(processedFile);
-    } catch (b64Error) {
-      console.error("Critical Failure: Base64 conversion failed", b64Error);
-      throw error;
-    }
+    console.error("Critical Failure: Base64 conversion failed", error);
+    throw error;
   }
 }
 
