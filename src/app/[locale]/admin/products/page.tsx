@@ -166,15 +166,20 @@ export default function MerchantProducts() {
 
       const stockNum = parseInt(formData.stockCount) || 0;
 
-      const productData = {
+      const productData: any = {
         ...formData,
         image: finalImageUrl,
         price: parseFloat(formData.price),
-        originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
         stockCount: stockNum,
         inStock: stockNum > 0,
         currency: formData.currency
       };
+
+      if (formData.originalPrice) {
+        productData.originalPrice = parseFloat(formData.originalPrice);
+      } else {
+        productData.originalPrice = null; // Firestore accepts null
+      }
 
       if (editingProduct) {
         await updateProduct(editingProduct.id, productData as any);
