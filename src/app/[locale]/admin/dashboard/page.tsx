@@ -218,6 +218,7 @@ export default function MerchantDashboard() {
               <Wallet size={18} /> المحفظة
             </Link>
           </div>
+        </div>
         <div className={styles.shareCard}>
           <div className={styles.shareInfo}>
              <div className={styles.shareLogo}>
