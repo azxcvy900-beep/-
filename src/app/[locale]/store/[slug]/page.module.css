@@ -257,23 +257,28 @@
 }
 
 .activeCircle .circleIcon {
-  background: #3b82f6;
+  background: var(--card-bg);
   border-color: #3b82f6;
   box-shadow: 
-    0 25px 45px -10px rgba(59, 130, 246, 0.5),
-    0 0 0 6px rgba(59, 130, 246, 0.15);
-  transform: translateY(-15px) scale(1.1);
-  animation: float 3s ease-in-out infinite;
+    0 15px 35px -5px rgba(59, 130, 246, 0.4),
+    0 0 0 4px rgba(59, 130, 246, 0.15);
+  transform: translateY(-12px) scale(1.05);
+  animation: float 4s ease-in-out infinite;
+}
+
+/* Background for 'All' category and icons without images */
+.activeCircle .circleIcon:not(:has(img)) {
+  background: #3b82f6;
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(-15px) scale(1.1); }
-  50% { transform: translateY(-22px) scale(1.12); }
+  0%, 100% { transform: translateY(-12px) scale(1.05); }
+  50% { transform: translateY(-18px) scale(1.07); }
 }
 
 .activeCircle .circleIcon img {
-  filter: brightness(0) invert(1) drop-shadow(0 5px 10px rgba(0,0,0,0.2));
-  transform: scale(1.1);
+  transform: scale(1.05);
+  filter: drop-shadow(0 8px 20px rgba(0,0,0,0.15));
 }
 
 .activeCircle .circleIcon :global(svg) {
