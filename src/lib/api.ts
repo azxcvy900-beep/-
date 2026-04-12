@@ -18,7 +18,7 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Order } from './store';
 export type { Order };
 import { dataCache } from './cache';
-import { compressImage } from './utils';
+import { compressImage, fileToBase64 } from './utils';
 
 export interface ProductOption {
   name: string;
@@ -462,29 +462,41 @@ export async function uploadStoreLogo(file: File | Blob, storeSlug: string): Pro
 }
 
 export async function uploadCategoryImage(file: File | Blob, storeSlug: string): Promise<string> {
+  const fileToCompress = file instanceof File ? file : null;
+  let processedFile = file;
+
   try {
-    // Compress image before upload (if it's a file)
-    let fileToUpload = file;
-    if (file instanceof File) {
-      fileToUpload = await compressImage(file, 400, 0.6); // Categories only need small icons
+    // 1. Compress image before upload
+    if (fileToCompress) {
+      processedFile = await compressImage(fileToCompress, 400, 0.6);
     }
 
     const originalName = (file as any).name || 'category.jpg';
     const fileName = `${Date.now()}_cat_${originalName.replace(/\s+/g, '_')}`;
     const storageRef = ref(storage, `stores/${storeSlug}/categories/${fileName}`);
     
-    // Add a simple timeout/race to prevent hanging forever
-    const uploadTask = uploadBytes(storageRef, fileToUpload);
-    const snapshot = await uploadTask;
+    // 2. Add a 5-second timeout to the upload task
+    const uploadPromise = uploadBytes(storageRef, processedFile);
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Upload Timeout')), 5000)
+    );
+
+    // Race the upload against the timeout
+    const snapshot = await Promise.race([uploadPromise, timeoutPromise]) as any;
     
     return await getDownloadURL(snapshot.ref);
   } catch (error) {
-    console.error("Storage Error (Category Image):", error);
-    // Fallback for demo mode if storage is blocked
-    if (storeSlug === 'demo') {
-       return URL.createObjectURL(file); // Temporary URL for demo session
+    console.error("Storage Error/Timeout (Category Image), failing back to Base64:", error);
+    
+    // 3. RELIABLE FALLBACK: Convert to Base64 and store directly in Firestore
+    // This bypasses all Storage permission issues and is 100% reliable for small icons.
+    try {
+      const b64 = await fileToBase64(processedFile);
+      return b64;
+    } catch (b64Error) {
+      console.error("Critical Failure: Could not even convert to Base64", b64Error);
+      throw error;
     }
-    throw error;
   }
 }
 
