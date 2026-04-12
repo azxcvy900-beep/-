@@ -100,8 +100,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       show: true 
     },
     { 
-      name: 'الأقسام', 
-      href: `/${locale}/admin/categories`, 
+      name: t('sidebar.categories') || 'الأقسام', 
+      href: `/${locale || 'ar'}/admin/categories`, 
       icon: LayoutGrid,
       show: hasAll || permissions?.includes('products.view') || role === 'admin' || role === 'merchant'
     },
@@ -143,7 +143,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     },
     { 
       name: t('sidebar.settings'), 
-      href: `/${locale}/admin/settings`, 
+      href: `/${locale || 'ar'}/admin/settings`, 
       icon: Settings,
       show: hasAll || permissions?.includes('settings.manage') || role === 'admin' || role === 'merchant'
     },

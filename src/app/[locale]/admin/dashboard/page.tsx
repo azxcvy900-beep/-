@@ -19,7 +19,9 @@ import {
   Loader2,
   Share2,
   Copy,
-  ExternalLink
+  ExternalLink,
+  LayoutGrid,
+  Settings
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { 
@@ -163,7 +165,8 @@ export default function MerchantDashboard() {
       subValue: ordersLoading ? '' : `~${totalSalesSAR.toLocaleString(undefined, { maximumFractionDigits: 0 })} ر.س`,
       icon: TrendingUp, 
       color: '#10b981',
-      ready: !ordersLoading
+      ready: !ordersLoading,
+      href: `/${locale}/admin/orders`
     },
     { 
       label: 'مبالغ مجمّدة', 
@@ -171,7 +174,8 @@ export default function MerchantDashboard() {
       subValue: 'بانتظار تأكيد الحوالات',
       icon: Lock, 
       color: '#f59e0b',
-      ready: !ordersLoading
+      ready: !ordersLoading,
+      href: `/${locale}/admin/orders` 
     },
     { 
       label: 'مبالغ مؤكدة', 
@@ -179,7 +183,8 @@ export default function MerchantDashboard() {
       subValue: 'تم التأكد والتحصيل',
       icon: CheckCircle2, 
       color: '#3b82f6',
-      ready: !ordersLoading
+      ready: !ordersLoading,
+      href: `/${locale}/admin/orders`
     },
     { 
       label: 'تحتاج تنبيه', 
@@ -187,8 +192,16 @@ export default function MerchantDashboard() {
       subValue: productsLoading ? '' : `${outOfStockCount} نفدت تماماً`,
       icon: AlertCircle, 
       color: '#ef4444',
-      ready: !productsLoading
+      ready: !productsLoading,
+      href: `/${locale}/admin/products`
     },
+  ];
+
+  const quickActions = [
+    { label: 'الأقسام', icon: LayoutGrid, href: `/${locale}/admin/categories`, color: '#3b82f6' },
+    { label: 'المنتجات', icon: Package, href: `/${locale}/admin/products`, color: '#8b5cf6' },
+    { label: 'الطلبات', icon: ShoppingBag, href: `/${locale}/admin/orders`, color: '#10b981' },
+    { label: 'الإعدادات', icon: Settings, href: `/${locale}/admin/settings`, color: '#64748b' },
   ];
 
   return (
@@ -253,24 +266,39 @@ export default function MerchantDashboard() {
           Array.from({ length: 4 }).map((_, i) => <StatSkeleton key={i} />)
         ) : (
           stats.map((stat, i) => (
-            <motion.div 
-              key={i} 
-              className={styles.statCard}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.08 }}
-            >
-              <div className={styles.statInfo}>
-                <p className={styles.statLabel}>{stat.label}</p>
-                <h2 className={styles.statValue} style={{ opacity: stat.ready ? 1 : 0.3, transition: 'opacity 0.3s' }}>{stat.value}</h2>
-                <p className={styles.statSub}>{stat.subValue}</p>
-              </div>
-              <div className={styles.statIcon} style={{ backgroundColor: `${stat.color}15`, color: stat.color }}>
-                <stat.icon size={26} />
-              </div>
-            </motion.div>
+            <Link key={i} href={stat.href} style={{ textDecoration: 'none' }}>
+              <motion.div 
+                className={styles.statCard}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.08 }}
+              >
+                <div className={styles.statInfo}>
+                  <p className={styles.statLabel}>{stat.label}</p>
+                  <h2 className={styles.statValue} style={{ opacity: stat.ready ? 1 : 0.3, transition: 'opacity 0.3s' }}>{stat.value}</h2>
+                  <p className={styles.statSub}>{stat.subValue}</p>
+                </div>
+                <div className={styles.statIcon} style={{ backgroundColor: `${stat.color}15`, color: stat.color }}>
+                  <stat.icon size={26} />
+                </div>
+              </motion.div>
+            </Link>
           ))
         )}
+      </div>
+
+      <div className={styles.quickActionsSection}>
+        <h3 className={styles.quickActionsTitle}>الوصول السريع للمنصة ⚡</h3>
+        <div className={styles.quickGrid}>
+          {quickActions.map((action, i) => (
+            <Link key={i} href={action.href} className={styles.quickActionCard}>
+              <div className={styles.quickIcon} style={{ backgroundColor: `${action.color}10`, color: action.color }}>
+                 <action.icon size={28} />
+              </div>
+              <span className={styles.quickLabel}>{action.label}</span>
+            </Link>
+          ))}
+        </div>
       </div>
 
       <div className={styles.mainGrid}>
