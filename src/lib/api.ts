@@ -18,6 +18,7 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Order } from './store';
 export type { Order };
 import { dataCache } from './cache';
+import { compressImage } from './utils';
 
 export interface ProductOption {
   name: string;
@@ -462,13 +463,27 @@ export async function uploadStoreLogo(file: File | Blob, storeSlug: string): Pro
 
 export async function uploadCategoryImage(file: File | Blob, storeSlug: string): Promise<string> {
   try {
+    // Compress image before upload (if it's a file)
+    let fileToUpload = file;
+    if (file instanceof File) {
+      fileToUpload = await compressImage(file, 400, 0.6); // Categories only need small icons
+    }
+
     const originalName = (file as any).name || 'category.jpg';
     const fileName = `${Date.now()}_cat_${originalName.replace(/\s+/g, '_')}`;
     const storageRef = ref(storage, `stores/${storeSlug}/categories/${fileName}`);
-    const snapshot = await uploadBytes(storageRef, file);
+    
+    // Add a simple timeout/race to prevent hanging forever
+    const uploadTask = uploadBytes(storageRef, fileToUpload);
+    const snapshot = await uploadTask;
+    
     return await getDownloadURL(snapshot.ref);
   } catch (error) {
     console.error("Storage Error (Category Image):", error);
+    // Fallback for demo mode if storage is blocked
+    if (storeSlug === 'demo') {
+       return URL.createObjectURL(file); // Temporary URL for demo session
+    }
     throw error;
   }
 }

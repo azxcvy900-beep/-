@@ -7,10 +7,11 @@ import {
   Edit, 
   Trash2, 
   X, 
-  Image as ImageIcon, 
   Upload,
   Grid,
-  Loader2
+  Loader2,
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -31,6 +32,7 @@ export default function AdminCategories() {
   const { storeSlug } = useAuthStore();
   
   const [localCategories, setLocalCategories] = useState<Category[] | null>(null);
+  const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   
   const { data: initialCategories, loading: categoriesLoading } = useStreamingFetch(
     () => getStoreCategories(storeSlug || 'demo'), 
@@ -42,7 +44,7 @@ export default function AdminCategories() {
     if (initialCategories) setLocalCategories(initialCategories);
   }, [initialCategories]);
 
-  const { visibleItems: visibleCategories } = useProgressiveLoad(localCategories || [], 4, 150);
+  const { visibleItems: visibleCategories } = useProgressiveLoad(localCategories || [], 6, 100);
   
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -69,6 +71,7 @@ export default function AdminCategories() {
   };
 
   const handleCloseModal = () => {
+    if (isSubmitting) return;
     setIsModalOpen(false);
     setEditingCategory(null);
     setCategoryName('');
@@ -79,6 +82,10 @@ export default function AdminCategories() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        alert("حجم الصورة كبير جداً. يرجى اختيار صورة أقل من 2 ميجابايت.");
+        return;
+      }
       setSelectedFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -93,11 +100,13 @@ export default function AdminCategories() {
     if (!categoryName) return;
     
     setIsSubmitting(true);
+    setStatusMessage(null);
     
     try {
       let iconUrl = editingCategory?.image || '';
 
       if (selectedFile) {
+        // uploadCategoryImage now includes client-side compression (handled in api.ts)
         iconUrl = await uploadCategoryImage(selectedFile, storeSlug || 'demo');
       }
 
@@ -113,10 +122,15 @@ export default function AdminCategories() {
         await addCategory(categoryData);
       }
       
-      handleCloseModal();
+      // Refresh local state
+      const fresh = await getStoreCategories(storeSlug || 'demo');
+      setLocalCategories(fresh);
+      
+      setStatusMessage({ type: 'success', text: 'تم حفظ القسم بنجاح' });
+      setTimeout(() => handleCloseModal(), 1000);
     } catch (error) {
       console.error("Error saving category:", error);
-      alert("حدث خطأ أثناء حفظ القسم.");
+      setStatusMessage({ type: 'error', text: 'حدث خطأ أثناء الحفظ. يرجى المحاولة مرة أخرى.' });
     } finally {
       setIsSubmitting(false);
     }
@@ -124,88 +138,123 @@ export default function AdminCategories() {
 
   const handleDelete = async (id: string) => {
     if (confirm("هل أنت متأكد من حذف هذا القسم؟ سيتم إلغاء ربطه بالمنتجات التابعة له.")) {
-      // Optimistic delete
+      const originalCategories = [...(localCategories || [])];
       setLocalCategories(prev => prev ? prev.filter(c => c.id !== id) : null);
       
       try {
         await deleteCategory(storeSlug || 'demo', id);
+        setStatusMessage({ type: 'success', text: 'تم حذف القسم بنجاح' });
+        setTimeout(() => setStatusMessage(null), 3000);
       } catch (error) {
         alert("حدث خطأ أثناء الحذف.");
-        const fresh = await getStoreCategories(storeSlug || 'demo');
-        setLocalCategories(fresh);
+        setLocalCategories(originalCategories);
       }
     }
   };
 
   return (
     <div className={styles.categoriesPage}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>إدارة الأقسام</h1>
+      <header className={styles.header}>
+        <div>
+          <h1 className={styles.title}>إدارة الأقسام</h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>نظم منتجاتك بهوية بصرية فاخرة واحترافية</p>
+        </div>
         <button className={styles.addBtn} onClick={() => handleOpenModal()}>
           <Plus size={20} />
           <span>إضافة قسم جديد</span>
         </button>
-      </div>
+      </header>
+
+      {statusMessage && (
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={`${styles.statusAlert} ${styles[statusMessage.type]}`}
+          style={{
+            padding: '1rem',
+            borderRadius: '16px',
+            marginBottom: '2rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            background: statusMessage.type === 'success' ? '#f0fdf4' : '#fef2f2',
+            color: statusMessage.type === 'success' ? '#15803d' : '#b91c1c',
+            border: `1px solid ${statusMessage.type === 'success' ? '#bcf0da' : '#fecaca'}`
+          }}
+        >
+          {statusMessage.type === 'success' ? <CheckCircle2 size={20} /> : <AlertCircle size={20} />}
+          <span style={{ fontWeight: 700 }}>{statusMessage.text}</span>
+        </motion.div>
+      )}
 
       {categoriesLoading && visibleCategories.length === 0 ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '5rem' }}>
-          <Loader2 className="animate-spin" size={40} color="var(--primary)" />
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '10rem' }}>
+          <Loader2 className="animate-spin" size={48} color="#3b82f6" />
         </div>
       ) : (
         <div className={styles.categoriesGrid}>
-          {visibleCategories.map((cat: Category) => (
-            <motion.div 
-              key={cat.id} 
-              className={styles.categoryCard}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <div className={styles.categoryIcon} style={{ borderRadius: '50%', overflow: 'hidden', width: '64px', height: '64px', border: '2px solid rgba(var(--primary-rgb), 0.1)' }}>
-                {cat.image ? (
-                  <img src={cat.image} alt={cat.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : (
-                  <Grid size={32} color="var(--primary)" />
-                )}
-              </div>
-              <div className={styles.categoryInfo}>
-                <h3 className={styles.categoryName}>{cat.name}</h3>
-              </div>
-              <div className={styles.actions}>
-                <button className={`${styles.actionBtn} ${styles.editBtn}`} onClick={() => handleOpenModal(cat)}>
-                  <Edit size={16} />
-                </button>
-                <button className={`${styles.actionBtn} ${styles.deleteBtn}`} onClick={() => handleDelete(cat.id)}>
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            </motion.div>
-          ))}
+          <AnimatePresence>
+            {visibleCategories.map((cat: Category, index: number) => (
+              <motion.div 
+                key={cat.id} 
+                className={styles.categoryCard}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.3, delay: index * 0.05 }}
+              >
+                <div className={styles.categoryIcon}>
+                  {cat.image ? (
+                    <img src={cat.image} alt={cat.name} />
+                  ) : (
+                    <Grid size={40} color="#3b82f6" />
+                  )}
+                </div>
+                <div className={styles.categoryInfo}>
+                  <h3 className={styles.categoryName}>{cat.name}</h3>
+                </div>
+                <div className={styles.actions}>
+                  <button className={`${styles.actionBtn} ${styles.editBtn}`} onClick={() => handleOpenModal(cat)}>
+                    <Edit size={18} />
+                  </button>
+                  <button className={`${styles.actionBtn} ${styles.deleteBtn}`} onClick={() => handleDelete(cat.id)}>
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+          
           {visibleCategories.length === 0 && !categoriesLoading && (
-            <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '3rem', background: 'rgba(var(--primary-rgb), 0.05)', borderRadius: '16px' }}>
-              لا توجد أقسام مضافة بعد. ابدأ بإضافة قسم لمتجرك!
+            <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '6rem', background: 'var(--card-bg)', borderRadius: '32px', border: '2px dashed rgba(0,0,0,0.05)' }}>
+              <Grid size={64} color="#cbd5e1" style={{ marginBottom: '1.5rem' }} />
+              <h3 style={{ fontWeight: 800, fontSize: '1.2rem', marginBottom: '0.5rem' }}>لا توجد أقسام بعد</h3>
+              <p style={{ color: '#64748b' }}>ابدأ ببناء هوية متجرك بإضافة أول قسم الآن</p>
             </div>
           )}
         </div>
       )}
 
-      {/* Category Modal */}
+      {/* Category Modal - Ultra Glass */}
       <AnimatePresence>
         {isModalOpen && (
-          <div className={styles.modalOverlay}>
+          <div className={styles.modalOverlay} onClick={handleCloseModal}>
             <motion.div 
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 50, opacity: 0 }}
               className={styles.modal}
+              onClick={(e) => e.stopPropagation()}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+              <button className={styles.closeBtn} onClick={handleCloseModal} style={{ position: 'absolute', top: '2rem', left: '2rem', background: '#f1f5f9', border: 'none', borderRadius: '50%', padding: '0.5rem', cursor: 'pointer' }}>
+                <X size={20} />
+              </button>
+
+              <div className={styles.modalHeader}>
                 <h3 className={styles.modalTitle}>
                   {editingCategory ? 'تعديل القسم' : 'إضافة قسم جديد'}
                 </h3>
-                <button onClick={handleCloseModal} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-                  <X size={24} />
-                </button>
+                <p style={{ textAlign: 'center', color: '#64748b', fontSize: '0.9rem' }}>أدخل تفاصيل القسم وصورة معبرة</p>
               </div>
 
               <form onSubmit={handleSubmit} className={styles.form}>
@@ -215,8 +264,9 @@ export default function AdminCategories() {
                     className={styles.input}
                     value={categoryName}
                     onChange={(e) => setCategoryName(e.target.value)}
-                    placeholder="مثال: هواتف ذكية، عطور، ملابس..."
+                    placeholder="مثال: إلكترونيات، عطور..."
                     required
+                    autoFocus
                   />
                 </div>
 
@@ -224,11 +274,19 @@ export default function AdminCategories() {
                   <label>أيقونة القسم / الشعار</label>
                   <label htmlFor="cat-image" className={styles.uploadArea}>
                     {imagePreview ? (
-                      <img src={imagePreview} className={styles.preview} alt="Preview" />
+                      <motion.img 
+                        initial={{ scale: 0.8 }} 
+                        animate={{ scale: 1 }} 
+                        src={imagePreview} 
+                        className={styles.preview} 
+                        alt="Preview" 
+                      />
                     ) : (
                       <>
-                        <Upload size={32} color="#9ca3af" />
-                        <span style={{ fontSize: '0.8rem', color: '#6b7280' }}>انقر لرفع أيقونة أو صورة للقسم</span>
+                        <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                           <Upload size={32} color="#3b82f6" />
+                        </div>
+                        <span style={{ fontSize: '0.9rem', color: '#64748b', fontWeight: 600 }}>انقر لرفع أيقونة القسم</span>
                       </>
                     )}
                     <input 
@@ -242,11 +300,18 @@ export default function AdminCategories() {
                 </div>
 
                 <div className={styles.modalActions}>
-                  <button type="button" className={styles.cancelBtn} onClick={handleCloseModal}>
+                  <button type="button" className={styles.cancelBtn} onClick={handleCloseModal} disabled={isSubmitting}>
                     إلغاء
                   </button>
                   <button type="submit" className={styles.saveBtn} disabled={isSubmitting}>
-                    {isSubmitting ? 'جاري الحفظ...' : 'حفظ القسم'}
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="animate-spin" size={20} />
+                        <span>جاري الحفظ...</span>
+                      </>
+                    ) : (
+                      'حفظ القسم'
+                    )}
                   </button>
                 </div>
               </form>
