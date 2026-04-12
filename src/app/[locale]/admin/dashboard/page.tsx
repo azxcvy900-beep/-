@@ -166,7 +166,7 @@ export default function MerchantDashboard() {
       icon: TrendingUp, 
       color: '#10b981',
       ready: !ordersLoading,
-      href: `/${locale}/admin/orders`
+      href: `/${locale || 'ar'}/admin/orders`
     },
     { 
       label: 'مبالغ مجمّدة', 
@@ -193,15 +193,15 @@ export default function MerchantDashboard() {
       icon: AlertCircle, 
       color: '#ef4444',
       ready: !productsLoading,
-      href: `/${locale}/admin/products`
+      href: `/${locale || 'ar'}/admin/products`
     },
   ];
 
   const quickActions = [
-    { label: 'الأقسام', icon: LayoutGrid, href: `/${locale}/admin/categories`, color: '#3b82f6' },
-    { label: 'المنتجات', icon: Package, href: `/${locale}/admin/products`, color: '#8b5cf6' },
-    { label: 'الطلبات', icon: ShoppingBag, href: `/${locale}/admin/orders`, color: '#10b981' },
-    { label: 'الإعدادات', icon: Settings, href: `/${locale}/admin/settings`, color: '#64748b' },
+    { label: 'الأقسام', icon: LayoutGrid, href: `/${locale || 'ar'}/admin/categories`, color: '#3b82f6' },
+    { label: 'المنتجات', icon: Package, href: `/${locale || 'ar'}/admin/products`, color: '#8b5cf6' },
+    { label: 'الطلبات', icon: ShoppingBag, href: `/${locale || 'ar'}/admin/orders`, color: '#10b981' },
+    { label: 'الإعدادات', icon: Settings, href: `/${locale || 'ar'}/admin/settings`, color: '#64748b' },
   ];
 
   return (
@@ -224,10 +224,10 @@ export default function MerchantDashboard() {
             <p className={styles.subtitle}>أداء {storeInfo?.name || 'متجر بايرز'} في لمح البصر</p>
           </div>
           <div className={styles.headerActions}>
-            <Link href={`/${locale}/admin/billing`} className={styles.billingBtn}>
+            <Link href={`/${locale || 'ar'}/admin/billing`} className={styles.billingBtn}>
               <Crown size={18} /> ترقية الباقة
             </Link>
-            <Link href={`/${locale}/admin/wallet`} className={styles.walletLink}>
+            <Link href={`/${locale || 'ar'}/admin/wallet`} className={styles.walletLink}>
               <Wallet size={18} /> المحفظة
             </Link>
           </div>
@@ -365,7 +365,7 @@ export default function MerchantDashboard() {
       <div className={styles.section}>
         <div className={styles.sectionHeader}>
           <h3 className={styles.sectionTitle}>أحدث الطلبات القادمة 📦</h3>
-          <Link href={`/${locale}/admin/orders`} className={styles.viewAll}>
+          <Link href={`/${locale || 'ar'}/admin/orders`} className={styles.viewAll}>
             إدارة كافة الطلبات <ChevronLeft size={16} />
           </Link>
         </div>
@@ -404,7 +404,7 @@ export default function MerchantDashboard() {
                     </td>
                     <td className={styles.amount}>{order.total.toLocaleString()} ر.ي</td>
                     <td>
-                      <Link href={`/${locale}/admin/orders`} className={styles.actionBtn}>
+                      <Link href={`/${locale || 'ar'}/admin/orders`} className={styles.actionBtn}>
                         معالجة
                       </Link>
                     </td>

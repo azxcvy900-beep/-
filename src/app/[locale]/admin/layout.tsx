@@ -95,49 +95,49 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const navItems = [
     { 
       name: t('sidebar.dashboard'), 
-      href: `/${locale}/admin/dashboard`, 
+      href: `/${locale || 'ar'}/admin/dashboard`, 
       icon: LayoutDashboard,
       show: true 
     },
     { 
-      name: t('sidebar.categories') || 'الأقسام', 
+      name: t('sidebar.categories'), 
       href: `/${locale || 'ar'}/admin/categories`, 
       icon: LayoutGrid,
       show: hasAll || permissions?.includes('products.view') || role === 'admin' || role === 'merchant'
     },
     { 
       name: t('sidebar.products'), 
-      href: `/${locale}/admin/products`, 
+      href: `/${locale || 'ar'}/admin/products`, 
       icon: Package,
       show: hasAll || permissions?.includes('products.view') || role === 'admin' || role === 'merchant'
     },
     { 
-      name: 'الكوبونات', 
-      href: `/${locale}/admin/coupons`, 
+      name: t('sidebar.coupons'), 
+      href: `/${locale || 'ar'}/admin/coupons`, 
       icon: Ticket,
       show: hasAll || permissions?.includes('marketing.view') || role === 'admin' || role === 'merchant'
     },
     { 
-      name: 'التقييمات', 
-      href: `/${locale}/admin/reviews`, 
+      name: t('sidebar.reviews'), 
+      href: `/${locale || 'ar'}/admin/reviews`, 
       icon: MessageSquare,
       show: hasAll || permissions?.includes('reviews.view') || role === 'admin' || role === 'merchant'
     },
     { 
       name: t('sidebar.orders'), 
-      href: `/${locale}/admin/orders`, 
+      href: `/${locale || 'ar'}/admin/orders`, 
       icon: ShoppingBag,
       show: hasAll || permissions?.includes('orders.view') || role === 'admin' || role === 'merchant'
     },
     { 
-      name: 'العملاء', 
-      href: `/${locale}/admin/customers`, 
+      name: t('sidebar.customers'), 
+      href: `/${locale || 'ar'}/admin/customers`, 
       icon: UsersRound,
       show: hasAll || permissions?.includes('customers.view') || role === 'admin' || role === 'merchant'
     },
     { 
-      name: 'الموظفين', 
-      href: `/${locale}/admin/employees`, 
+      name: t('sidebar.employees'), 
+      href: `/${locale || 'ar'}/admin/employees`, 
       icon: Users,
       show: role === 'merchant' || role === 'admin' // Only owner/admin manages team
     },

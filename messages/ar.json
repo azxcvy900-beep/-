@@ -139,9 +139,12 @@
     "password": "كلمة المرور",
     "loginBtn": "تسجيل الدخول",
     "sidebar": {
-      "dashboard": "الإحصائيات",
-      "products": "المنتجات",
+      "categories": "الأقسام",
+      "coupons": "الكوبونات",
+      "reviews": "التقييمات",
       "orders": "الطلبات",
+      "customers": "العملاء",
+      "employees": "الموظفين",
       "settings": "الإعدادات",
       "logout": "تسجيل الخروج"
     },
