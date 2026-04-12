@@ -212,7 +212,7 @@ const DUMMY_PRODUCTS: Product[] = [
     name: 'Anker Nano II 65W Fast Charger',
     price: 140,
     category: 'سماعات وإكسسوارات',
-    image: 'https://images.unsplash.com/photo-1619130730344-f2a75936a827?w=800&q=80',
+    image: '/assets/demo/anker_charger.png',
     description: 'شاحن صغير الحجم فائق القوة، يشحن جوالك ولابتوبك بسرعة فائقة بأمان تام.',
     storeSlug: 'demo',
     stockCount: 60, inStock: true
@@ -222,7 +222,7 @@ const DUMMY_PRODUCTS: Product[] = [
     name: 'كفر حماية فخم للايفون',
     price: 25,
     category: 'سماعات وإكسسوارات',
-    image: 'https://images.unsplash.com/photo-1603313011101-31c72ee78242?w=800&q=80',
+    image: '/assets/demo/iphone_case.png',
     description: 'حماية كاملة من الصدمات بتصميم أنيق وخامات عالية الجودة.',
     storeSlug: 'demo',
     stockCount: 100, inStock: true
@@ -232,7 +232,7 @@ const DUMMY_PRODUCTS: Product[] = [
     name: 'لاصق حماية زجاجي (Original)',
     price: 10,
     category: 'سماعات وإكسسوارات',
-    image: 'https://images.unsplash.com/photo-1616423641322-96b6f7e8a93e?w=800&q=80',
+    image: '/assets/demo/screen_protector.png',
     description: 'حماية فائقة لشاشة هاتفك من الكسر والخدوش بدقة ووضوح عالي.',
     storeSlug: 'demo',
     stockCount: 200, inStock: true
@@ -255,7 +255,7 @@ const DUMMY_PRODUCTS: Product[] = [
     name: 'بطاقة شدات / رصيد ألعاب',
     price: 45,
     category: 'أجهزة ألعاب',
-    image: 'https://images.unsplash.com/photo-1612287230202-1ff1d85d1bdf?w=800&q=80',
+    image: '/assets/demo/gaming_card.png',
     description: 'اشحن رصيدك فوراً وابدأ اللعب والاستمتاع بمميزات متقدمة.',
     storeSlug: 'demo',
     stockCount: 500, inStock: true
@@ -277,7 +277,7 @@ const DUMMY_PRODUCTS: Product[] = [
     name: 'Redmi Pad SE - 11 inch',
     price: 820,
     category: 'حواسيب',
-    image: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=800&q=80',
+    image: '/assets/demo/redmi_pad.png',
     description: 'تابلت عملي جداً لمشاهدة الأفلام والدراسة، بطارية تدوم طويلاً وشاشة FHD.',
     storeSlug: 'demo',
     stockCount: 15, inStock: true
