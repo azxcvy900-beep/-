@@ -16,7 +16,10 @@ import {
   Lock,
   Crown,
   ChevronLeft,
-  Loader2
+  Loader2,
+  Share2,
+  Copy,
+  ExternalLink
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { 
@@ -56,6 +59,7 @@ export default function MerchantDashboard() {
   const t = useTranslations('Admin');
   const locale = useLocale();
   const { storeSlug, isResolved } = useAuthStore();
+  const [copied, setCopied] = React.useState(false);
   
   // Use SWR cache keys for instant load
   const { data: orders, loading: ordersLoading } = useStreamingFetch(
@@ -75,6 +79,48 @@ export default function MerchantDashboard() {
     [storeSlug], 
     `store_${storeSlug || 'demo'}`
   );
+
+  const storeUrl = typeof window !== 'undefined' 
+    ? `${window.location.origin}/${locale}/store/${storeSlug || 'demo'}`
+    : '';
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(storeUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleShare = async () => {
+    const shareData: any = {
+      title: storeInfo?.name || 'متجري على بايرز',
+      text: `تفقد متجري "${storeInfo?.name}" على منصة بايرز!`,
+      url: storeUrl,
+    };
+
+    try {
+      if (navigator.share) {
+        // Try to include the logo file if it exists and sharing files is supported
+        if (storeInfo?.logo && navigator.canShare && navigator.canShare({ files: [] })) {
+          try {
+            const response = await fetch(storeInfo.logo);
+            const blob = await response.blob();
+            const file = new File([blob], 'store-logo.png', { type: blob.type });
+            
+            if (navigator.canShare({ files: [file] })) {
+              shareData.files = [file];
+            }
+          } catch (e) {
+            console.error('Could not fetch logo for sharing:', e);
+          }
+        }
+        await navigator.share(shareData);
+      } else {
+        handleCopyLink();
+      }
+    } catch (err) {
+      console.error('Error sharing:', err);
+    }
+  };
 
   const { data: analytics } = useStreamingFetch(
     () => getStoreAnalyticsData(storeSlug || 'demo', 'month'),
@@ -170,6 +216,32 @@ export default function MerchantDashboard() {
             </Link>
             <Link href={`/${locale}/admin/wallet`} className={styles.walletLink}>
               <Wallet size={18} /> المحفظة
+            </Link>
+          </div>
+        <div className={styles.shareCard}>
+          <div className={styles.shareInfo}>
+             <div className={styles.shareLogo}>
+                {storeInfo?.logo ? (
+                  <img src={storeInfo.logo} alt={storeInfo.name} />
+                ) : (
+                  <ShoppingBag size={24} />
+                )}
+             </div>
+             <div className={styles.shareText}>
+                <h3>رابط متجرك العام 🔗</h3>
+                <p className={styles.storeLinkText}>{storeUrl}</p>
+             </div>
+          </div>
+          <div className={styles.shareActions}>
+            <button onClick={handleShare} className={styles.shareBtn}>
+               <Share2 size={18} /> مشاركة المتجر
+            </button>
+            <button onClick={handleCopyLink} className={styles.copyBtn}>
+               {copied ? <CheckCircle2 size={18} /> : <Copy size={18} />}
+               {copied ? 'تم النسخ!' : 'نسخ الرابط'}
+            </button>
+            <Link href={`/${locale}/store/${storeSlug || 'demo'}`} target="_blank" className={styles.visitBtn}>
+               <ExternalLink size={18} /> زيارة
             </Link>
           </div>
         </div>

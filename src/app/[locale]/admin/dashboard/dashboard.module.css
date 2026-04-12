@@ -17,6 +17,118 @@
 
 .header {
   margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.shareCard {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 24px;
+  border: 1px solid #f1f5f9;
+  margin-bottom: 2.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+}
+
+.shareInfo {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.shareLogo {
+  width: 56px;
+  height: 56px;
+  background: #f8fafc;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid #f1f5f9;
+}
+
+.shareLogo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.shareText h3 {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 0.25rem;
+}
+
+.storeLinkText {
+  color: #3b82f6;
+  font-size: 0.85rem;
+  font-weight: 700;
+  background: #eff6ff;
+  padding: 4px 12px;
+  border-radius: 8px;
+  font-family: monospace;
+}
+
+.shareActions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.shareBtn, .copyBtn, .visitBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.shareBtn {
+  background: #3b82f6;
+  color: white;
+}
+
+.shareBtn:hover {
+  background: #2563eb;
+  transform: translateY(-2px);
+}
+
+.copyBtn {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+.copyBtn:hover {
+  background: #e2e8f0;
+}
+
+.visitBtn {
+  background: #0f172a;
+  color: white;
+  text-decoration: none;
+}
+
+.visitBtn:hover {
+  opacity: 0.9;
+}
+
+@media (max-width: 900px) {
+  .shareCard {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+  }
 }
 
 .title {
