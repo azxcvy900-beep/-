@@ -643,6 +643,9 @@ export async function deleteReview(storeSlug: string, id: string): Promise<void>
 }
 
 export async function addCategory(category: Omit<Category, 'id'>): Promise<string> {
+  if (category.storeSlug === 'demo') {
+    return `dummy_cat_${Date.now()}`;
+  }
   const categoriesCol = collection(db, 'stores', category.storeSlug, 'categories');
   const docRef = doc(categoriesCol);
   const newCategory = { ...category, id: docRef.id };
@@ -652,18 +655,23 @@ export async function addCategory(category: Omit<Category, 'id'>): Promise<strin
 }
 
 export async function updateCategory(storeSlug: string, id: string, data: Partial<Category>): Promise<void> {
+  if (storeSlug === 'demo') return;
   const catRef = doc(db, 'stores', storeSlug, 'categories', id);
   await updateDoc(catRef, data);
   dataCache.invalidate(`categories_${storeSlug}`);
 }
 
 export async function deleteCategory(storeSlug: string, id: string): Promise<void> {
+  if (storeSlug === 'demo') return;
   const catRef = doc(db, 'stores', storeSlug, 'categories', id);
   await deleteDoc(catRef);
   dataCache.invalidate(`categories_${storeSlug}`);
 }
 
 export async function addProduct(product: Omit<Product, 'id'>): Promise<string> {
+  if (product.storeSlug === 'demo') {
+    return `dummy_prod_${Date.now()}`;
+  }
   const productsCol = collection(db, 'products');
   const docRef = doc(productsCol);
   const newProduct = { ...product, id: docRef.id };
@@ -673,15 +681,21 @@ export async function addProduct(product: Omit<Product, 'id'>): Promise<string> 
 }
 
 export async function updateProduct(id: string, updates: Partial<Product>): Promise<void> {
+  if (updates.storeSlug === 'demo') return;
   const productRef = doc(db, 'products', id);
   await updateDoc(productRef, updates as any);
   dataCache.invalidatePrefix('products_');
 }
 
 export async function deleteProduct(id: string): Promise<void> {
-  const productRef = doc(db, 'products', id);
-  await deleteDoc(productRef);
-  dataCache.invalidatePrefix('products_');
+  // Without storeSlug here, we just catch the permission error in demo mode
+  try {
+    const productRef = doc(db, 'products', id);
+    await deleteDoc(productRef);
+    dataCache.invalidatePrefix('products_');
+  } catch (error: any) {
+    if (error?.code !== 'permission-denied') throw error; // Ignore for demo
+  }
 }
 
 export async function getStoreOrders(storeSlug: string): Promise<Order[]> {
