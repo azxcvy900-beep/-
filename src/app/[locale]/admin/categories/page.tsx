@@ -8,7 +8,7 @@ import {
   Trash2, 
   X, 
   Upload,
-  Grid,
+  LayoutGrid,
   Loader2,
   CheckCircle2,
   AlertCircle
@@ -207,7 +207,7 @@ export default function AdminCategories() {
                   {cat.image ? (
                     <img src={cat.image} alt={cat.name} />
                   ) : (
-                    <Grid size={40} color="#3b82f6" />
+                    <LayoutGrid size={40} color="#3b82f6" />
                   )}
                 </div>
                 <div className={styles.categoryInfo}>
@@ -227,7 +227,7 @@ export default function AdminCategories() {
           
           {visibleCategories.length === 0 && !categoriesLoading && (
             <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '6rem', background: 'var(--card-bg)', borderRadius: '32px', border: '2px dashed rgba(0,0,0,0.05)' }}>
-              <Grid size={64} color="#cbd5e1" style={{ marginBottom: '1.5rem' }} />
+              <LayoutGrid size={64} color="#cbd5e1" style={{ marginBottom: '1.5rem' }} />
               <h3 style={{ fontWeight: 800, fontSize: '1.2rem', marginBottom: '0.5rem' }}>لا توجد أقسام بعد</h3>
               <p style={{ color: '#64748b' }}>ابدأ ببناء هوية متجرك بإضافة أول قسم الآن</p>
             </div>

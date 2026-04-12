@@ -43,8 +43,7 @@ export default function AdminLoginPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // Use the generated image path
-  const bgImage = "/_next/image?url=%2FC%3A%2FUsers%2FHP%2F.gemini%2Fantigravity%2Fbrain%2F507bca0c-c054-42cb-a477-edd1675a0d2f%2Fmerchant_login_bg_1775836873246.png&w=1080&q=75";
+  const bgImage = "";
 
   useEffect(() => {
     if (isLoggedIn && role === 'merchant') {

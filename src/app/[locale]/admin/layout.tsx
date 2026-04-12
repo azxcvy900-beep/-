@@ -14,7 +14,7 @@ import {
   X,
   User,
   Store,
-  Grid,
+  LayoutGrid,
   Ticket,
   MessageSquare,
   Moon,
@@ -102,7 +102,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { 
       name: 'الأقسام', 
       href: `/${locale}/admin/categories`, 
-      icon: Grid,
+      icon: LayoutGrid,
       show: hasAll || permissions?.includes('products.view') || role === 'admin' || role === 'merchant'
     },
     { 
