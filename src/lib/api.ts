@@ -435,69 +435,61 @@ export async function getRelatedProducts(category: string, excludeId: string, st
 
 // --- MERCHANT API ---
 
-export async function uploadProductImage(file: File | Blob, storeSlug: string): Promise<string> {
-  try {
-    const originalName = (file as any).name || 'product.jpg';
-    const fileName = `${Date.now()}_prod_${originalName.replace(/\s+/g, '_')}`;
-    const storageRef = ref(storage, `stores/${storeSlug}/products/${fileName}`);
-    const snapshot = await uploadBytes(storageRef, file);
-    return await getDownloadURL(snapshot.ref);
-  } catch (error) {
-    console.error("Storage Error (Product Image):", error);
-    throw error;
-  }
-}
-
-export async function uploadStoreLogo(file: File | Blob, storeSlug: string): Promise<string> {
-  try {
-    const originalName = (file as any).name || 'logo.jpg';
-    const fileName = `${Date.now()}_logo_${originalName.replace(/\s+/g, '_')}`;
-    const storageRef = ref(storage, `stores/${storeSlug}/logo/${fileName}`);
-    const snapshot = await uploadBytes(storageRef, file);
-    return await getDownloadURL(snapshot.ref);
-  } catch (error) {
-    console.error("Storage Error (Store Logo):", error);
-    throw error;
-  }
-}
-
-export async function uploadCategoryImage(file: File | Blob, storeSlug: string): Promise<string> {
+/**
+ * A robust helper to handle image uploads with a fallback to Base64.
+ * This ensures the application stays functional even if Firebase Storage is unreachable or blocked.
+ */
+async function bulletproofUpload(file: File | Blob, storeSlug: string, folder: string, fileName: string): Promise<string> {
   const fileToCompress = file instanceof File ? file : null;
   let processedFile = file;
 
   try {
-    // 1. Compress image before upload
+    // 1. Compress image to keep it lean (especially if it ends up as Base64)
     if (fileToCompress) {
-      processedFile = await compressImage(fileToCompress, 400, 0.6);
+      // Products might need slightly higher resolution than icons
+      const size = folder === 'categories' ? 400 : 800;
+      processedFile = await compressImage(fileToCompress, size, 0.7);
     }
 
-    const originalName = (file as any).name || 'category.jpg';
-    const fileName = `${Date.now()}_cat_${originalName.replace(/\s+/g, '_')}`;
-    const storageRef = ref(storage, `stores/${storeSlug}/categories/${fileName}`);
+    const storageRef = ref(storage, `stores/${storeSlug}/${folder}/${fileName}`);
     
-    // 2. Add a 5-second timeout to the upload task
+    // 2. Race the upload against a 6-second timeout
     const uploadPromise = uploadBytes(storageRef, processedFile);
     const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Upload Timeout')), 5000)
+      setTimeout(() => reject(new Error('Upload Timeout')), 6000)
     );
 
-    // Race the upload against the timeout
     const snapshot = await Promise.race([uploadPromise, timeoutPromise]) as any;
-    
     return await getDownloadURL(snapshot.ref);
   } catch (error) {
-    console.error("Storage Error/Timeout (Category Image), failing back to Base64:", error);
+    console.error(`Storage Error/Timeout in ${folder}, failing back to Base64:`, error);
     
-    // 3. RELIABLE FALLBACK: Convert to Base64 and store directly in Firestore
-    // This bypasses all Storage permission issues and is 100% reliable for small icons.
+    // 3. Fallback to Base64 (100% reliable for demo/MVP)
     try {
-      const b64 = await fileToBase64(processedFile);
-      return b64;
+      return await fileToBase64(processedFile);
     } catch (b64Error) {
-      console.error("Critical Failure: Could not even convert to Base64", b64Error);
+      console.error("Critical Failure: Base64 conversion failed", b64Error);
       throw error;
     }
   }
+}
+
+export async function uploadProductImage(file: File | Blob, storeSlug: string): Promise<string> {
+  const originalName = (file as any).name || 'product.jpg';
+  const fileName = `${Date.now()}_prod_${originalName.replace(/\s+/g, '_')}`;
+  return bulletproofUpload(file, storeSlug, 'products', fileName);
+}
+
+export async function uploadStoreLogo(file: File | Blob, storeSlug: string): Promise<string> {
+  const originalName = (file as any).name || 'logo.jpg';
+  const fileName = `${Date.now()}_logo_${originalName.replace(/\s+/g, '_')}`;
+  return bulletproofUpload(file, storeSlug, 'logo', fileName);
+}
+
+export async function uploadCategoryImage(file: File | Blob, storeSlug: string): Promise<string> {
+  const originalName = (file as any).name || 'category.jpg';
+  const fileName = `${Date.now()}_cat_${originalName.replace(/\s+/g, '_')}`;
+  return bulletproofUpload(file, storeSlug, 'categories', fileName);
 }
 
 export async function getStoreCategories(storeSlug: string): Promise<Category[]> {
