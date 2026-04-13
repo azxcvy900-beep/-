@@ -1060,7 +1060,7 @@ export async function registerMerchant(merchant: Omit<AppUser, 'uid' | 'createdA
   if (!isAvailable) throw new Error('username_taken');
 
   const uid = `mcht_${Date.now()}`;
-  const hashedPassword = password ? await hashPassword(password) : undefined;
+  const hashedPassword = merchant.password ? await hashPassword(merchant.password) : undefined;
   
   const newUser: AppUser = {
     ...merchant,
