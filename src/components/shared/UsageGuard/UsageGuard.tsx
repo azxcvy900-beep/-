@@ -3,7 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Lock, Crown, ArrowRight, AlertCircle } from 'lucide-react';
-import Link from 'next/link';
+import { Link } from '@/i18n/routing';
 import { useLocale } from 'next-intl';
 import styles from './UsageGuard.module.css';
 
@@ -37,7 +37,7 @@ export default function UsageGuard({ children, isLocked, orderCount, plan }: Usa
             <h2>تجاوزت الحد المسموح ⚠️</h2>
             <p>لقد وصلت إلى <strong>{orderCount} طلب</strong> في الباقة المجانية. يرجى الترقية لمشاهدة إيصالات الدفع ومعالجة الطلبات.</p>
             
-            <Link href={`/${locale}/admin/billing`} className={styles.upgradeBtn}>
+            <Link href="/admin/billing" className={styles.upgradeBtn}>
               <Crown size={20} /> ترقية الحساب الآن
             </Link>
           </div>
@@ -56,7 +56,7 @@ export default function UsageGuard({ children, isLocked, orderCount, plan }: Usa
         >
           <AlertCircle size={18} />
           <span>تنبيه: لقد استهلكت {orderCount}/10 من طلباتك المجانية. قارب حسابك على الانغلاق!</span>
-          <Link href={`/${locale}/admin/billing`}>اشترك الآن</Link>
+          <Link href="/admin/billing">اشترك الآن</Link>
         </motion.div>
       )}
       {children}

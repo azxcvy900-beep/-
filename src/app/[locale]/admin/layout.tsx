@@ -38,8 +38,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [checkingStore, setCheckingStore] = useState(true);
+  const [mounted, setMounted] = useState(false);
   const { isLoggedIn, role, username, storeSlug, permissions, logout } = useSessionStore();
   const { storeLogo, storeName, setStoreInfo } = useAuthStore();
+  
+  // Handle hydration
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   const isSetupPage = pathname.includes('/admin/setup');
   const isLoginPage = pathname.includes('/admin/login');
@@ -150,6 +156,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const visibleNavItems = navItems.filter(item => item.show);
 
+  // PREVENT HYDRATION ERRORS: Don't render interactive sidebar until mounted
+  if (!mounted) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: 'var(--background)' }}>
+        <div className="loader">جاري التحميل...</div>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.adminLayout}>
       <OrderNotification storeSlug={storeSlug || 'demo'} />
@@ -244,8 +259,9 @@ function RedirectToLogin({ locale }: { locale: string }) {
   const router = useRouter();
   
   useEffect(() => {
-    router.replace(`/${locale}/admin/login`);
-  }, [router, locale]);
+    // Localized router automatically prepends the locale
+    router.replace('/admin/login');
+  }, [router]);
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', color: '#64748b' }}>
@@ -259,8 +275,9 @@ function RedirectToSetup({ locale }: { locale: string }) {
   const router = useRouter();
   
   useEffect(() => {
-    router.replace(`/${locale}/admin/setup`);
-  }, [router, locale]);
+    // Localized router automatically prepends the locale
+    router.replace('/admin/setup');
+  }, [router]);
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', color: '#3b82f6' }}>
