@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
-import { usePathname, useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { usePathname, useRouter, Link } from '@/i18n/routing';
 import { 
   LayoutDashboard, 
   Package, 
@@ -95,55 +94,55 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const navItems = [
     { 
       name: t('sidebar.dashboard'), 
-      href: `/${locale || 'ar'}/admin/dashboard`, 
+      href: `/admin/dashboard`, 
       icon: LayoutDashboard,
       show: true 
     },
     { 
       name: t('sidebar.categories'), 
-      href: `/${locale || 'ar'}/admin/categories`, 
+      href: `/admin/categories`, 
       icon: LayoutGrid,
       show: hasAll || permissions?.includes('products.view') || role === 'admin' || role === 'merchant'
     },
     { 
       name: t('sidebar.products'), 
-      href: `/${locale || 'ar'}/admin/products`, 
+      href: `/admin/products`, 
       icon: Package,
       show: hasAll || permissions?.includes('products.view') || role === 'admin' || role === 'merchant'
     },
     { 
       name: t('sidebar.coupons'), 
-      href: `/${locale || 'ar'}/admin/coupons`, 
+      href: `/admin/coupons`, 
       icon: Ticket,
       show: hasAll || permissions?.includes('marketing.view') || role === 'admin' || role === 'merchant'
     },
     { 
       name: t('sidebar.reviews'), 
-      href: `/${locale || 'ar'}/admin/reviews`, 
+      href: `/admin/reviews`, 
       icon: MessageSquare,
       show: hasAll || permissions?.includes('reviews.view') || role === 'admin' || role === 'merchant'
     },
     { 
       name: t('sidebar.orders'), 
-      href: `/${locale || 'ar'}/admin/orders`, 
+      href: `/admin/orders`, 
       icon: ShoppingBag,
       show: hasAll || permissions?.includes('orders.view') || role === 'admin' || role === 'merchant'
     },
     { 
       name: t('sidebar.customers'), 
-      href: `/${locale || 'ar'}/admin/customers`, 
+      href: `/admin/customers`, 
       icon: UsersRound,
       show: hasAll || permissions?.includes('customers.view') || role === 'admin' || role === 'merchant'
     },
     { 
       name: t('sidebar.employees'), 
-      href: `/${locale || 'ar'}/admin/employees`, 
+      href: `/admin/employees`, 
       icon: Users,
       show: role === 'merchant' || role === 'admin' // Only owner/admin manages team
     },
     { 
       name: t('sidebar.settings'), 
-      href: `/${locale || 'ar'}/admin/settings`, 
+      href: `/admin/settings`, 
       icon: Settings,
       show: hasAll || permissions?.includes('settings.manage') || role === 'admin' || role === 'merchant'
     },
@@ -156,7 +155,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <OrderNotification storeSlug={storeSlug || 'demo'} />
       {/* Sidebar */}
       <aside className={`${styles.sidebar} ${!isSidebarOpen ? styles.sidebarClosed : ''}`}>
-        <Link href={`/${locale}`} className={styles.sidebarLogo}>
+        <Link href="/" className={styles.sidebarLogo}>
           <Store size={28} />
           <span>بايرز <span>آدمن</span></span>
         </Link>

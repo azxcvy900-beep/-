@@ -133,3 +133,17 @@ export const fileToBase64 = (file: Blob | File): Promise<string> => {
     reader.readAsDataURL(file);
   });
 };
+
+/**
+ * Hash a password using SHA-256 for secure storage.
+ * Note: This is a client-side hash used before sending/storing to Firestore.
+ */
+export const hashPassword = async (password: string): Promise<string> => {
+  if (typeof window === 'undefined') return password; // Fallback for SSR if needed
+  
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+};

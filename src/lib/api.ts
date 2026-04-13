@@ -12,13 +12,14 @@ import {
   orderBy,
   writeBatch,
   collectionGroup,
-  onSnapshot
+  onSnapshot,
+  runTransaction
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Order } from './store';
 export type { Order };
 import { dataCache } from './cache';
-import { compressImage, fileToBase64 } from './utils';
+import { compressImage, fileToBase64, hashPassword } from './utils';
 
 export interface ProductOption {
   name: string;
@@ -693,16 +694,18 @@ export async function getStoreOrders(storeSlug: string): Promise<Order[]> {
 
   try {
     const ordersCol = collection(db, 'orders');
-    // For merchant, we might need a composite index if we query by multiple fields
-    // but a simple filter followed by manual sort is safer if indices aren't ready
-    const orderSnapshot = await getDocs(ordersCol);
-    const orders = orderSnapshot.docs
-      .map(doc => ({ id: doc.id, ...doc.data() } as Order))
-      .filter(o => o.items.some(item => (item as any).storeSlug === storeSlug || storeSlug === 'demo'))
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    // PERFORMANCE FIX: Use Firestore query with index instead of client-side filter
+    const q = storeSlug === 'demo' 
+      ? query(ordersCol, orderBy('date', 'desc'))
+      : query(ordersCol, where('storeSlug', '==', storeSlug), orderBy('date', 'desc'));
+    
+    const orderSnapshot = await getDocs(q);
+    const orders = orderSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
+    
     dataCache.set(cacheKey, orders, 60);
     return orders;
   } catch (error) {
+    console.error("Error fetching store orders:", error);
     return [];
   }
 }
@@ -710,13 +713,12 @@ export async function getStoreOrders(storeSlug: string): Promise<Order[]> {
 // Real-time subscription for orders
 export function subscribeToStoreOrders(storeSlug: string, callback: (orders: Order[]) => void) {
   const ordersCol = collection(db, 'orders');
+  const q = storeSlug === 'demo'
+    ? query(ordersCol, orderBy('date', 'desc'))
+    : query(ordersCol, where('storeSlug', '==', storeSlug), orderBy('date', 'desc'));
   
-  return onSnapshot(ordersCol, (snapshot) => {
-    const orders = snapshot.docs
-      .map(doc => ({ id: doc.id, ...doc.data() } as Order))
-      .filter(o => o.items.some(item => (item as any).storeSlug === storeSlug || storeSlug === 'demo'))
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    
+  return onSnapshot(q, (snapshot) => {
+    const orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
     dataCache.set(`orders_${storeSlug}`, orders, 60);
     callback(orders);
   });
@@ -767,55 +769,92 @@ export async function incrementStoreOrderCount(slug: string): Promise<void> {
 }
 
 /**
- * Submit a new order to Firestore and update customer CRM.
+ * Submit a new order to Firestore using a transaction to ensure atomic inventory updates.
  */
 export async function submitOrder(order: Order, storeSlug: string): Promise<void> {
-  // 0. Final Inventory Guard: Verify all items are in stock
-  for (const item of order.items) {
-    const productRef = doc(db, 'products', item.id);
-    const productSnap = await getDoc(productRef);
-    if (!productSnap.exists()) continue;
-    
-    const prodData = productSnap.data();
-    if ((prodData.stockCount || 0) < item.quantity) {
-      throw new Error(`out_of_stock:${item.name}`);
-    }
-  }
-
   const orderRef = doc(db, 'orders', order.id);
+  const storeRef = doc(db, 'stores', storeSlug);
   
-  // 1. Save order to Firestore
-  await setDoc(orderRef, {
-    ...order,
-    storeSlug, // Ensure storeSlug is correctly indexed
-  });
-
-  // 2. Increment store usage counter
-  await incrementStoreOrderCount(storeSlug);
-
-  // 3. Save/Update customer info in store's CRM
-  await saveCustomerInfo({
-    name: order.address.fullName,
-    phone: order.address.phone,
-    storeSlug: storeSlug,
-    lastOrderDate: order.date,
-  });
-
-  // 4. Automated Inventory Decrement
-  for (const item of order.items) {
-    try {
-      const productRef = doc(db, 'products', item.id);
-      const productSnap = await getDoc(productRef);
-      if (productSnap.exists()) {
+  try {
+    await runTransaction(db, async (transaction) => {
+      // 1. Verify and decrement inventory for all items
+      for (const item of order.items) {
+        const productRef = doc(db, 'products', item.id);
+        const productSnap = await transaction.get(productRef);
+        
+        if (!productSnap.exists()) continue;
+        
         const prodData = productSnap.data();
         const currentStock = prodData.stockCount || 0;
-        // Decrement stock, but don't go below 0
-        const newStock = Math.max(0, currentStock - item.quantity);
-        await updateDoc(productRef, { stockCount: newStock });
+        
+        if (currentStock < item.quantity) {
+          throw new Error(`out_of_stock:${item.name}`);
+        }
+        
+        // Decrement stock
+        transaction.update(productRef, { 
+          stockCount: Math.max(0, currentStock - item.quantity) 
+        });
       }
-    } catch (err) {
-      console.error(`Failed to decrement stock for item ${item.id}:`, err);
+
+      // 2. Increment store usage counter
+      const storeSnap = await transaction.get(storeRef);
+      if (storeSnap.exists()) {
+        const data = storeSnap.data();
+        const currentCount = data.orderCountMonth || 0;
+        const now = new Date();
+        const lastReset = data.lastCountReset ? new Date(data.lastCountReset) : null;
+        const isNewMonth = !lastReset || lastReset.getMonth() !== now.getMonth() || lastReset.getFullYear() !== now.getFullYear();
+        
+        transaction.update(storeRef, {
+          orderCountMonth: isNewMonth ? 1 : currentCount + 1,
+          lastCountReset: now.toISOString()
+        });
+      }
+
+      // 3. Save order
+      transaction.set(orderRef, {
+        ...order,
+        storeSlug,
+      });
+
+      // 4. Update customer info (CRM)
+      const customerId = order.address.phone;
+      const customerRef = doc(db, 'stores', storeSlug, 'customers', customerId);
+      const customerSnap = await transaction.get(customerRef);
+
+      if (customerSnap.exists()) {
+        const existing = customerSnap.data() as Customer;
+        transaction.update(customerRef, {
+          totalOrders: existing.totalOrders + 1,
+          totalSpent: existing.totalSpent + order.total,
+          lastOrderDate: new Date().toISOString()
+        });
+      } else {
+        const newCustomer: Customer = {
+          id: customerId,
+          name: order.address.fullName,
+          phone: order.address.phone,
+          storeSlug: storeSlug,
+          totalOrders: 1,
+          totalSpent: order.total,
+          lastOrderDate: new Date().toISOString()
+        };
+        transaction.set(customerRef, newCustomer);
+      }
+    });
+
+    // Invalidate caches after successful transaction
+    dataCache.invalidate(`orders_${storeSlug}`);
+    dataCache.invalidatePrefix('products_');
+    dataCache.invalidate(`store_${storeSlug}`);
+    
+  } catch (error: any) {
+    if (error.message?.startsWith('out_of_stock:')) {
+      throw error; // Rethrow inventory errors
     }
+    console.error("Transaction failed: ", error);
+    throw new Error('order_failed');
   }
 }
 
@@ -929,10 +968,9 @@ export async function getAllPlatformOrders(): Promise<Order[]> {
 
   try {
     const ordersCol = collection(db, 'orders');
-    const orderSnapshot = await getDocs(ordersCol);
-    const orders = orderSnapshot.docs
-      .map(doc => ({ id: doc.id, ...doc.data() } as Order))
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const q = query(ordersCol, orderBy('date', 'desc'));
+    const orderSnapshot = await getDocs(q);
+    const orders = orderSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
     dataCache.set(cacheKey, orders, 30);
     return orders;
   } catch (error) {
@@ -1022,8 +1060,11 @@ export async function registerMerchant(merchant: Omit<AppUser, 'uid' | 'createdA
   if (!isAvailable) throw new Error('username_taken');
 
   const uid = `mcht_${Date.now()}`;
+  const hashedPassword = password ? await hashPassword(password) : undefined;
+  
   const newUser: AppUser = {
     ...merchant,
+    password: hashedPassword,
     uid,
     role: 'merchant',
     permissions: ['all'], // Owners have all permissions
@@ -1044,7 +1085,10 @@ export async function loginMerchant(username: string, password: string): Promise
 
     if (userSnap.exists()) {
       const data = userSnap.data() as AppUser;
-      if (data.password === password) {
+      const hashedAttempt = await hashPassword(password);
+      
+      // Support both hashed (new) and plain text (old) for migration period
+      if (data.password === hashedAttempt || data.password === password) {
         return data;
       }
     }
@@ -1084,8 +1128,11 @@ export async function addEmployee(employee: Omit<AppUser, 'uid' | 'createdAt' | 
   if (!isAvailable) throw new Error('username_taken');
 
   const uid = `emp_${Date.now()}`;
+  const hashedPassword = employee.password ? await hashPassword(employee.password) : undefined;
+
   const newUser: AppUser = {
     ...employee,
+    password: hashedPassword,
     uid,
     role: 'employee',
     storeSlug,

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useTranslations, useLocale } from 'next-intl';
-import Link from 'next/link';
+import { Link } from '@/i18n/routing';
 import { 
   TrendingUp, 
   ShoppingBag, 
@@ -166,7 +166,7 @@ export default function MerchantDashboard() {
       icon: TrendingUp, 
       color: '#10b981',
       ready: !ordersLoading,
-      href: `/${locale || 'ar'}/admin/orders`
+      href: `/admin/orders`
     },
     { 
       label: 'مبالغ مجمّدة', 
@@ -175,7 +175,7 @@ export default function MerchantDashboard() {
       icon: Lock, 
       color: '#f59e0b',
       ready: !ordersLoading,
-      href: `/${locale}/admin/orders` 
+      href: `/admin/orders` 
     },
     { 
       label: 'مبالغ مؤكدة', 
@@ -184,7 +184,7 @@ export default function MerchantDashboard() {
       icon: CheckCircle2, 
       color: '#3b82f6',
       ready: !ordersLoading,
-      href: `/${locale}/admin/orders`
+      href: `/admin/orders`
     },
     { 
       label: 'تحتاج تنبيه', 
@@ -193,15 +193,15 @@ export default function MerchantDashboard() {
       icon: AlertCircle, 
       color: '#ef4444',
       ready: !productsLoading,
-      href: `/${locale || 'ar'}/admin/products`
+      href: `/admin/products`
     },
   ];
 
   const quickActions = [
-    { label: 'الأقسام', icon: LayoutGrid, href: `/${locale || 'ar'}/admin/categories`, color: '#3b82f6' },
-    { label: 'المنتجات', icon: Package, href: `/${locale || 'ar'}/admin/products`, color: '#8b5cf6' },
-    { label: 'الطلبات', icon: ShoppingBag, href: `/${locale || 'ar'}/admin/orders`, color: '#10b981' },
-    { label: 'الإعدادات', icon: Settings, href: `/${locale || 'ar'}/admin/settings`, color: '#64748b' },
+    { label: 'الأقسام', icon: LayoutGrid, href: `/admin/categories`, color: '#3b82f6' },
+    { label: 'المنتجات', icon: Package, href: `/admin/products`, color: '#8b5cf6' },
+    { label: 'الطلبات', icon: ShoppingBag, href: `/admin/orders`, color: '#10b981' },
+    { label: 'الإعدادات', icon: Settings, href: `/admin/settings`, color: '#64748b' },
   ];
 
   return (
@@ -224,10 +224,10 @@ export default function MerchantDashboard() {
             <p className={styles.subtitle}>أداء {storeInfo?.name || 'متجر بايرز'} في لمح البصر</p>
           </div>
           <div className={styles.headerActions}>
-            <Link href={`/${locale || 'ar'}/admin/billing`} className={styles.billingBtn}>
+            <Link href="/admin/billing" className={styles.billingBtn}>
               <Crown size={18} /> ترقية الباقة
             </Link>
-            <Link href={`/${locale || 'ar'}/admin/wallet`} className={styles.walletLink}>
+            <Link href="/admin/wallet" className={styles.walletLink}>
               <Wallet size={18} /> المحفظة
             </Link>
           </div>
@@ -254,7 +254,7 @@ export default function MerchantDashboard() {
                {copied ? <CheckCircle2 size={18} /> : <Copy size={18} />}
                {copied ? 'تم النسخ!' : 'نسخ الرابط'}
             </button>
-            <Link href={`/${locale}/store/${storeSlug || 'demo'}`} target="_blank" className={styles.visitBtn}>
+            <Link href={`/store/${storeSlug || 'demo'}`} target="_blank" className={styles.visitBtn}>
                <ExternalLink size={18} /> زيارة
             </Link>
           </div>
