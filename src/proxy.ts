@@ -33,7 +33,11 @@ export function proxy(request: NextRequest) {
   const isAdminLogin = pathname.match(new RegExp(`${localePattern}/admin/login`)) || pathname.startsWith('/admin/login');
 
   if (isAdminPath && !isAdminLogin) {
-    if (authRole !== 'merchant' && authRole !== 'admin' && authRole !== 'employee') {
+    // Optimization: Allow client-side data fetches or prefetching to pass to avoid redirection loops
+    // The AdminLayout.tsx on the client also has its own auth check for double security.
+    const isDataRequest = request.headers.get('x-nextjs-data') || request.headers.get('purpose') === 'prefetch';
+    
+    if (!isDataRequest && authRole !== 'merchant' && authRole !== 'admin' && authRole !== 'employee') {
       const segments = pathname.split('/');
       const locale = locales.includes(segments[1]) ? segments[1] : 'ar';
       const redirectUrl = new URL(`/${locale}/admin/login`, request.url);
