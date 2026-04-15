@@ -78,8 +78,8 @@ export const useSessionStore = create<SessionState>()(
           };
           set(newState);
           if (typeof document !== 'undefined') {
-            document.cookie = `buyers-auth-role=${user.role}; path=/; max-age=${60 * 60 * 24 * 7}`;
-            document.cookie = `buyers-auth-user=${username}; path=/; max-age=${60 * 60 * 24 * 7}`;
+            document.cookie = `buyers-auth-role=${user.role}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+            document.cookie = `buyers-auth-user=${username}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
           }
           return true;
         }
@@ -98,8 +98,8 @@ export const useSessionStore = create<SessionState>()(
           loginTime: null,
         });
         if (typeof document !== 'undefined') {
-          document.cookie = "buyers-auth-role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-          document.cookie = "buyers-auth-user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+          document.cookie = "buyers-auth-role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
+          document.cookie = "buyers-auth-user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
         }
       },
     }),

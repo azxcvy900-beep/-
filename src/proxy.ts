@@ -33,7 +33,7 @@ export function proxy(request: NextRequest) {
   const isAdminLogin = pathname.match(new RegExp(`${localePattern}/admin/login`)) || pathname.startsWith('/admin/login');
 
   if (isAdminPath && !isAdminLogin) {
-    if (authRole !== 'merchant' && authRole !== 'admin') {
+    if (authRole !== 'merchant' && authRole !== 'admin' && authRole !== 'employee') {
       const segments = pathname.split('/');
       const locale = locales.includes(segments[1]) ? segments[1] : 'ar';
       const redirectUrl = new URL(`/${locale}/admin/login`, request.url);
