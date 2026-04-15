@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+export const unstable_instant = { prefetch: 'static' };
+
+import React, { useEffect, useState, Suspense } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { 
   Plus, 
@@ -10,7 +12,8 @@ import {
   Trash2, 
   X,
   Package,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -337,6 +340,7 @@ export default function MerchantProducts() {
           </div>
         </div>
 
+      <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', padding: '10rem' }}><Loader2 className="animate-spin" size={48} color="#3b82f6" /></div>}>
         <div className={styles.tableWrapper}>
           <table className={styles.productTable}>
             <thead>
@@ -408,6 +412,7 @@ export default function MerchantProducts() {
             </tbody>
           </table>
         </div>
+      </Suspense>
       </div>
 
       {/* Product Modal */}

@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+export const unstable_instant = { prefetch: 'static' };
+
+import React, { useEffect, useState, Suspense } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { 
   Plus, 
@@ -187,53 +189,55 @@ export default function AdminCategories() {
         </motion.div>
       )}
 
-      {categoriesLoading && visibleCategories.length === 0 ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '10rem' }}>
-          <Loader2 className="animate-spin" size={48} color="#3b82f6" />
-        </div>
-      ) : (
-        <div className={styles.categoriesGrid}>
-          <AnimatePresence>
-            {visibleCategories.map((cat: Category, index: number) => (
-              <motion.div 
-                key={cat.id} 
-                className={styles.categoryCard}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.3, delay: index * 0.05 }}
-              >
-                <div className={styles.categoryIcon}>
-                  {cat.image ? (
-                    <img src={cat.image} alt={cat.name} />
-                  ) : (
-                    <LayoutGrid size={40} color="#3b82f6" />
-                  )}
-                </div>
-                <div className={styles.categoryInfo}>
-                  <h3 className={styles.categoryName}>{cat.name}</h3>
-                </div>
-                <div className={styles.actions}>
-                  <button className={`${styles.actionBtn} ${styles.editBtn}`} onClick={() => handleOpenModal(cat)}>
-                    <Edit size={18} />
-                  </button>
-                  <button className={`${styles.actionBtn} ${styles.deleteBtn}`} onClick={() => handleDelete(cat.id)}>
-                    <Trash2 size={18} />
-                  </button>
-                </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-          
-          {visibleCategories.length === 0 && !categoriesLoading && (
-            <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '6rem', background: 'var(--card-bg)', borderRadius: '32px', border: '2px dashed rgba(0,0,0,0.05)' }}>
-              <LayoutGrid size={64} color="#cbd5e1" style={{ marginBottom: '1.5rem' }} />
-              <h3 style={{ fontWeight: 800, fontSize: '1.2rem', marginBottom: '0.5rem' }}>لا توجد أقسام بعد</h3>
-              <p style={{ color: '#64748b' }}>ابدأ ببناء هوية متجرك بإضافة أول قسم الآن</p>
-            </div>
-          )}
-        </div>
-      )}
+      <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', padding: '10rem' }}><Loader2 className="animate-spin" size={48} color="#3b82f6" /></div>}>
+        {categoriesLoading && visibleCategories.length === 0 ? (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '10rem' }}>
+            <Loader2 className="animate-spin" size={48} color="#3b82f6" />
+          </div>
+        ) : (
+          <div className={styles.categoriesGrid}>
+            <AnimatePresence>
+              {visibleCategories.map((cat: Category, index: number) => (
+                <motion.div 
+                  key={cat.id} 
+                  className={styles.categoryCard}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                >
+                  <div className={styles.categoryIcon}>
+                    {cat.image ? (
+                      <img src={cat.image} alt={cat.name} />
+                    ) : (
+                      <LayoutGrid size={40} color="#3b82f6" />
+                    )}
+                  </div>
+                  <div className={styles.categoryInfo}>
+                    <h3 className={styles.categoryName}>{cat.name}</h3>
+                  </div>
+                  <div className={styles.actions}>
+                    <button className={`${styles.actionBtn} ${styles.editBtn}`} onClick={() => handleOpenModal(cat)}>
+                      <Edit size={18} />
+                    </button>
+                    <button className={`${styles.actionBtn} ${styles.deleteBtn}`} onClick={() => handleDelete(cat.id)}>
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+            
+            {visibleCategories.length === 0 && !categoriesLoading && (
+              <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '6rem', background: 'var(--card-bg)', borderRadius: '32px', border: '2px dashed rgba(0,0,0,0.05)' }}>
+                <LayoutGrid size={64} color="#cbd5e1" style={{ marginBottom: '1.5rem' }} />
+                <h3 style={{ fontWeight: 800, fontSize: '1.2rem', marginBottom: '0.5rem' }}>لا توجد أقسام بعد</h3>
+                <p style={{ color: '#64748b' }}>ابدأ ببناء هوية متجرك بإضافة أول قسم الآن</p>
+              </div>
+            )}
+          </div>
+        )}
+      </Suspense>
 
       {/* Category Modal - Ultra Glass */}
       <AnimatePresence>

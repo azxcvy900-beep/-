@@ -1,6 +1,8 @@
 'use client';
 
-import React from 'react';
+export const unstable_instant = { prefetch: 'static' };
+
+import React, { Suspense } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { Link } from '@/i18n/routing';
 import { 
@@ -210,7 +212,8 @@ export default function MerchantDashboard() {
       animate={{ opacity: 1, y: 0 }}
       className={styles.dashboard}
     >
-      <UsageGuard isLocked={isLocked} orderCount={orderCount} plan={plan}>
+    <UsageGuard isLocked={isLocked} orderCount={orderCount} plan={plan}>
+      <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', padding: '10rem' }}><Loader2 className="animate-spin" size={48} color="#3b82f6" /></div>}>
         <div className={styles.header}>
           <div>
             <div className={styles.titleRow}>
@@ -416,7 +419,8 @@ export default function MerchantDashboard() {
         </div>
       </div>
 
-      </UsageGuard>
+      </Suspense>
+    </UsageGuard>
       <style jsx>{`
         @keyframes spin {
           from { transform: rotate(0deg); }

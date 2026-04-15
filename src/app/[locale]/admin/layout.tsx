@@ -1,5 +1,7 @@
 'use client';
 
+export const unstable_instant = false;
+
 import React, { useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { usePathname, useRouter, Link } from '@/i18n/routing';
