@@ -156,6 +156,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const visibleNavItems = navItems.filter(item => item.show);
 
+  // Helper for robust path matching
+  const isPathActive = (href: string) => {
+    // Strip trailing slashes for comparison
+    const cleanPath = pathname.replace(/\/$/, '') || '/';
+    const cleanHref = href.replace(/\/$/, '') || '/';
+    return cleanPath === cleanHref || cleanPath.startsWith(cleanHref + '/');
+  };
+
+  const currentItem = navItems.find(item => isPathActive(item.href));
+
   // PREVENT HYDRATION ERRORS: Don't render interactive sidebar until mounted
   if (!mounted) {
     return (
@@ -177,7 +187,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         
         <nav className={styles.sidebarNav}>
           {visibleNavItems.map((item) => {
-            const isActive = pathname === item.href;
+            const isActive = isPathActive(item.href);
             return (
               <Link 
                 key={item.href} 
@@ -214,7 +224,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Menu size={24} />
             </button>
             <h2 className={styles.pageTitle}>
-              {navItems.find(item => item.href === pathname)?.name || t('sidebar.dashboard')}
+              {currentItem?.name || t('sidebar.dashboard')}
             </h2>
           </div>
           

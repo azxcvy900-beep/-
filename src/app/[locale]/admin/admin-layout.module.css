@@ -56,17 +56,28 @@
   position: relative;
   z-index: 101;
   pointer-events: auto;
+  cursor: pointer;
 }
 
 .navItem:hover {
   background-color: rgba(var(--primary-rgb), 0.05);
   color: var(--primary);
+  transform: translateX(-4px);
+}
+
+[dir='ltr'] .navItem:hover {
+  transform: translateX(4px);
 }
 
 .activeNavItem {
   background-color: var(--primary);
   color: white !important;
-  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3);
+  box-shadow: 0 4px 15px rgba(var(--primary-rgb), 0.35);
+  transform: scale(1.02);
+}
+
+.activeNavItem:hover {
+  transform: scale(1.02) translateX(-4px);
 }
 
 .logoutBtn {
