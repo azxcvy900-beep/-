@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+export const unstable_instant = { prefetch: 'static' };
+
+import React, { useEffect, useState, Suspense } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { 
   Package, 
@@ -306,120 +308,122 @@ export default function MerchantOrders() {
       </div>
 
       <div className={styles.listSection}>
-        {ordersLoading && visibleOrders.length === 0 ? (
-          <TableSkeleton rows={3} />
-        ) : visibleOrders.length > 0 ? (
-          <div className={styles.ordersList}>
-            {visibleOrders.map((order: Order) => (
-              <motion.div 
-                key={order.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2 }}
-                className={styles.orderCard}
-              >
-                <div className={styles.orderHeader}>
-                  <div className={styles.orderInfo}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span className={styles.orderId}>#{order.id.slice(-8)}</span>
-                      {order.isPriceLocked && (
-                        <div className={styles.lockedBadge} title="هذا الطلب مجمّد ماليناً بسعر الصرف وقت الإيداع">
-                          <Lock size={12} />
-                          مجمّد
-                        </div>
-                      )}
+        <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', padding: '10rem' }}><Loader2 className="animate-spin" size={48} color="#3b82f6" /></div>}>
+          {ordersLoading && visibleOrders.length === 0 ? (
+            <TableSkeleton rows={3} />
+          ) : visibleOrders.length > 0 ? (
+            <div className={styles.ordersList}>
+              {visibleOrders.map((order: Order) => (
+                <motion.div 
+                  key={order.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className={styles.orderCard}
+                >
+                  <div className={styles.orderHeader}>
+                    <div className={styles.orderInfo}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span className={styles.orderId}>#{order.id.slice(-8)}</span>
+                        {order.isPriceLocked && (
+                          <div className={styles.lockedBadge} title="هذا الطلب مجمّد ماليناً بسعر الصرف وقت الإيداع">
+                            <Lock size={12} />
+                            مجمّد
+                          </div>
+                        )}
+                      </div>
+                      <span className={styles.orderDate}>{new Date(order.date).toLocaleString(locale)}</span>
                     </div>
-                    <span className={styles.orderDate}>{new Date(order.date).toLocaleString(locale)}</span>
+                    <div className={`${styles.statusBadge} ${styles[order.status]}`}>
+                      {getStatusIcon(order.status)}
+                      <span>{getStatusLabel(order.status)}</span>
+                    </div>
                   </div>
-                  <div className={`${styles.statusBadge} ${styles[order.status]}`}>
-                    {getStatusIcon(order.status)}
-                    <span>{getStatusLabel(order.status)}</span>
-                  </div>
-                </div>
 
-                <div className={styles.orderContent}>
-                  <div className={styles.customerSection}>
-                    <h4><User size={14} /> بيانات العميل</h4>
-                    <div className={styles.customerInfo}>
-                      <p>{order.address.fullName}</p>
-                      <span>{order.address.phone}</span>
-                      <div className={styles.addressLine}>
-                        <MapPin size={14} />
-                        <span>{order.address.city}, {order.address.region}</span>
+                  <div className={styles.orderContent}>
+                    <div className={styles.customerSection}>
+                      <h4><User size={14} /> بيانات العميل</h4>
+                      <div className={styles.customerInfo}>
+                        <p>{order.address.fullName}</p>
+                        <span>{order.address.phone}</span>
+                        <div className={styles.addressLine}>
+                          <MapPin size={14} />
+                          <span>{order.address.city}, {order.address.region}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className={styles.itemsSection}>
+                      <h4><Package size={14} /> المنتجات ({order.items.length})</h4>
+                      <div className={styles.itemList}>
+                        {order.items.map((item, idx) => (
+                          <div key={idx} className={styles.itemLine}>
+                            <span className={styles.itemName}>
+                              {item.quantity}x {item.name}
+                            </span>
+                            <span className={styles.itemTotal}>{(item.price * item.quantity).toLocaleString()} ر.ي</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {renderPaymentProof(order)}
+                  </div>
+
+                  <div className={styles.orderFooter}>
+                    <div className={styles.totalArea}>
+                      <div className={styles.totalLabel}>
+                        الإجمالي النهائي:
+                        {order.isPriceLocked && (
+                          <span className={styles.exchangeRateLabel}>
+                             (سعر الصرف: {order.lockedExRate})
+                          </span>
+                        )}
+                      </div>
+                      <div className={styles.totalPrice}>{order.total.toLocaleString()} ر.ي</div>
+                    </div>
+
+                    <div className={styles.actions}>
+                      <div className={styles.actionButtons}>
+                        <button 
+                          className={`${styles.actionBtn} ${styles.whatsappBtn}`}
+                          onClick={() => handleWhatsApp(order)}
+                          title="إرسال تنبيه واتساب"
+                        >
+                          <MessageSquare size={18} />
+                        </button>
+                        <button 
+                          className={`${styles.actionBtn} ${styles.printBtn}`}
+                          onClick={() => handlePrint(order)}
+                          title="طباعة الفاتورة"
+                        >
+                          <Printer size={18} />
+                        </button>
+                      </div>
+                      
+                      <div className={styles.statusUpdateWrapper}>
+                        <select 
+                          className={styles.statusDropdown}
+                          value={order.status}
+                          disabled={updatingId === order.id}
+                          onChange={(e) => handleStatusUpdate(order.id, e.target.value as Order['status'])}
+                        >
+                          {statusOptions.map(opt => (
+                            <option key={opt} value={opt}>{getStatusLabel(opt)}</option>
+                          ))}
+                        </select>
                       </div>
                     </div>
                   </div>
-
-                  <div className={styles.itemsSection}>
-                    <h4><Package size={14} /> المنتجات ({order.items.length})</h4>
-                    <div className={styles.itemList}>
-                      {order.items.map((item, idx) => (
-                        <div key={idx} className={styles.itemLine}>
-                          <span className={styles.itemName}>
-                            {item.quantity}x {item.name}
-                          </span>
-                          <span className={styles.itemTotal}>{(item.price * item.quantity).toLocaleString()} ر.ي</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {renderPaymentProof(order)}
-                </div>
-
-                <div className={styles.orderFooter}>
-                  <div className={styles.totalArea}>
-                    <div className={styles.totalLabel}>
-                      الإجمالي النهائي:
-                      {order.isPriceLocked && (
-                        <span className={styles.exchangeRateLabel}>
-                           (سعر الصرف: {order.lockedExRate})
-                        </span>
-                      )}
-                    </div>
-                    <div className={styles.totalPrice}>{order.total.toLocaleString()} ر.ي</div>
-                  </div>
-
-                  <div className={styles.actions}>
-                    <div className={styles.actionButtons}>
-                      <button 
-                        className={`${styles.actionBtn} ${styles.whatsappBtn}`}
-                        onClick={() => handleWhatsApp(order)}
-                        title="إرسال تنبيه واتساب"
-                      >
-                        <MessageSquare size={18} />
-                      </button>
-                      <button 
-                        className={`${styles.actionBtn} ${styles.printBtn}`}
-                        onClick={() => handlePrint(order)}
-                        title="طباعة الفاتورة"
-                      >
-                        <Printer size={18} />
-                      </button>
-                    </div>
-                    
-                    <div className={styles.statusUpdateWrapper}>
-                      <select 
-                        className={styles.statusDropdown}
-                        value={order.status}
-                        disabled={updatingId === order.id}
-                        onChange={(e) => handleStatusUpdate(order.id, e.target.value as Order['status'])}
-                      >
-                        {statusOptions.map(opt => (
-                          <option key={opt} value={opt}>{getStatusLabel(opt)}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        ) : (
-          <div className={styles.emptyOrders}>
-            {!ordersLoading && "لا توجد طلبات واردة حالياً."}
-          </div>
-        )}
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <div className={styles.emptyOrders}>
+              {!ordersLoading && "لا توجد طلبات واردة حالياً."}
+            </div>
+          )}
+        </Suspense>
       </div>
 
       {/* WhatsApp Confirmation Modal */}
