@@ -1,11 +1,11 @@
 import React, { Suspense } from 'react';
 import CartContent from './CartContent';
 
-export const dynamic = 'force-dynamic';
+export default async function CartPage(props: { params: Promise<{ locale: string }> }) {
+  const { locale } = await props.params;
 
-export default function CartPage() {
   return (
-    <Suspense fallback={<div />}>
+    <Suspense fallback={<div style={{ padding: '5rem', textAlign: 'center' }}>جاري التحميل...</div>}>
       <CartContent />
     </Suspense>
   );

@@ -1,11 +1,11 @@
 import React, { Suspense } from 'react';
 import OrderSuccessContent from './OrderSuccessContent';
 
-export const dynamic = 'force-dynamic';
+export default async function OrderSuccessPage(props: { params: Promise<{ locale: string }> }) {
+  const { locale } = await props.params;
 
-export default function OrderSuccessPage() {
   return (
-    <Suspense fallback={<div />}>
+    <Suspense fallback={<div style={{ padding: '5rem', textAlign: 'center' }}>جاري التحميل...</div>}>
       <OrderSuccessContent />
     </Suspense>
   );

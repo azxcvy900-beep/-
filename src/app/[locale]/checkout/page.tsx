@@ -1,11 +1,11 @@
 import React, { Suspense } from 'react';
 import CheckoutContent from './CheckoutContent';
 
-export const dynamic = 'force-dynamic';
+export default async function CheckoutPage(props: { params: Promise<{ locale: string }> }) {
+  const { locale } = await props.params;
 
-export default function CheckoutPage() {
   return (
-    <Suspense fallback={<div />}>
+    <Suspense fallback={<div style={{ padding: '5rem', textAlign: 'center' }}>جاري التحميل...</div>}>
       <CheckoutContent />
     </Suspense>
   );
