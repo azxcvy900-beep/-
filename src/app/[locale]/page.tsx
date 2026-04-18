@@ -1,6 +1,23 @@
 'use client';
 
-import React from 'react';
+import Link from "next/link";
+import { useTranslations, useLocale } from "next-intl";
+import { motion } from "framer-motion";
+import { 
+  Rocket, 
+  ShieldCheck, 
+  Zap, 
+  MessageCircle, 
+  Store, 
+  ArrowRight,
+  Globe,
+  LayoutDashboard,
+  CheckCircle2,
+  XCircle,
+  TrendingUp
+} from "lucide-react";
+import Header from "@/components/shared/Header/Header";
+import styles from "./page.module.css";
 import Image from "next/image";
 
 export default function Home() {
