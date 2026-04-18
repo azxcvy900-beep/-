@@ -10,7 +10,9 @@ import { getStoreProducts, getStoreCategories, getStoreInfo, Product, Category }
 import { useCartStore } from '@/lib/store';
 import { useStreamingFetch, useProgressiveLoad } from '@/lib/hooks';
 import { ArrowLeft, Grid, Loader2, Package } from 'lucide-react';
+import StoreLockedOverlay from '@/components/store/StoreLockedOverlay/StoreLockedOverlay';
 import styles from './page.module.css';
+
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -84,12 +86,14 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
     });
   }, [products, activeCategory, searchQuery]);
 
-  // Progressive rendering for products
-  const { visibleItems: visibleProducts, isStreaming } = useProgressiveLoad(filteredProducts, 4, 150);
+  const showLock = storeInfo && resolvedParams.slug !== 'demo' && storeInfo.verificationStatus !== 'active';
 
   return (
     <div className={styles.container}>
+      {showLock && <StoreLockedOverlay storeName={storeInfo?.name} />}
+      
       {/* Sleek Brand Header */}
+
       <header className={styles.header}>
         <div className={styles.headerContent}>
           {storeInfo?.logo && (

@@ -19,7 +19,10 @@ import {
   Moon,
   Sun,
   Users,
-  UsersRound
+  UsersRound,
+  ShieldAlert,
+  ShieldCheck,
+  AlertTriangle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/components/providers/ThemeProvider';
@@ -40,7 +43,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
   const [checkingStore, setCheckingStore] = useState(true);
   const [mounted, setMounted] = useState(false);
   const { isLoggedIn, role, username, storeSlug, permissions, logout } = useSessionStore();
-  const { storeLogo, storeName, setStoreInfo } = useAuthStore();
+  const { storeLogo, storeName, setStoreInfo, verificationStatus } = useAuthStore();
   
   // Handle hydration
   useEffect(() => {
@@ -92,6 +95,13 @@ export default function AdminLayoutContent({ children }: { children: React.React
   const hasAll = permissions?.includes('all');
 
   const navItems = [
+    { 
+      name: 'تفعيل المتجر', 
+      href: `/admin/verification`, 
+      icon: ShieldCheck,
+      show: (role === 'merchant' || role === 'admin') && verificationStatus !== 'active',
+      badge: verificationStatus === 'pending' ? 'مطلوب' : verificationStatus === 'under_review' ? 'جاري' : 'مرفوض'
+    },
     { 
       name: t('sidebar.dashboard'), 
       href: `/admin/dashboard`, 
@@ -166,6 +176,8 @@ export default function AdminLayoutContent({ children }: { children: React.React
     );
   }
 
+  const showVerificationBanner = verificationStatus !== 'active' && !pathname.includes('/admin/verification');
+
   return (
     <div className={styles.adminLayout}>
       <OrderNotification storeSlug={storeSlug || 'demo'} />
@@ -186,10 +198,12 @@ export default function AdminLayoutContent({ children }: { children: React.React
               >
                 <item.icon size={20} />
                 <span>{item.name}</span>
+                {item.badge && <span className={styles.activationBadge}>{item.badge}</span>}
               </Link>
             );
           })}
         </nav>
+
 
         <div className={styles.sidebarFooter}>
           <button onClick={toggleTheme} className={styles.themeToggle}>
@@ -204,7 +218,29 @@ export default function AdminLayoutContent({ children }: { children: React.React
       </aside>
 
       <div className={styles.mainContent}>
+        {showVerificationBanner && (
+          <div className={styles.verificationBanner}>
+            <div className={styles.verificationContent}>
+              {verificationStatus === 'rejected' ? (
+                <ShieldAlert size={20} />
+              ) : (
+                <AlertTriangle size={20} />
+              )}
+              <span>
+                {verificationStatus === 'pending' && 'متجرك غير مفعل للجمهور حالياً. يرجى إكمال بيانات التحقق.'}
+                {verificationStatus === 'under_review' && 'طلب التفعيل قيد المراجعة حالياً. سيتم الرد خلال 48 ساعة.'}
+                {verificationStatus === 'rejected' && 'تم رفض طلب التفعيل. يرجى مراجعة السبب وتعديل البيانات.'}
+              </span>
+            </div>
+            {verificationStatus !== 'under_review' && (
+              <Link href="/admin/verification" className={styles.activationLink}>
+                تفعيل المتجر الآن
+              </Link>
+            )}
+          </div>
+        )}
         <header className={styles.topBar}>
+
           <div className={styles.leftBar}>
             <button 
               className={styles.menuToggle}

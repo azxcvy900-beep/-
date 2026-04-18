@@ -48,9 +48,12 @@ function SectionLoader({ label }: { label: string }) {
 
 export default function AdministrationDashboard() {
   const t = useTranslations();
-  const [activeTab, setActiveTab] = useState<'radar' | 'verifications'>('radar');
+  const [activeTab, setActiveTab] = useState<'radar' | 'approvals'>('radar');
+  const [subTab, setSubTab] = useState<'payments' | 'kyc'>('kyc');
   const [proofs, setProofs] = useState<PaymentProof[]>([]);
+  const [kycRequests, setKycRequests] = useState<KYCRequest[]>([]);
   const [verifyingId, setVerifyingId] = useState<string | null>(null);
+  const [rejectionReason, setRejectionReason] = useState('');
 
   const { data: stores, loading: storesLoading } = useStreamingFetch(() => getAllStores(), [], 'all_stores');
   const { data: orders, loading: ordersLoading } = useStreamingFetch(() => getAllPlatformOrders(), [], 'all_orders');
@@ -58,11 +61,18 @@ export default function AdministrationDashboard() {
 
   useEffect(() => {
     fetchProofs();
+    fetchKYC();
   }, []);
 
   const fetchProofs = async () => {
     const data = await getPendingPayments();
     setProofs(data);
+  };
+
+  const fetchKYC = async () => {
+    const { getPendingKYCRequests } = await import('@/lib/api');
+    const data = await getPendingKYCRequests();
+    setKycRequests(data);
   };
 
   const handleVerify = async (proof: PaymentProof, approve: boolean) => {
@@ -75,6 +85,27 @@ export default function AdministrationDashboard() {
         await rejectStoreSubscription(proof.id, proof.storeSlug);
       }
       fetchProofs();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setVerifyingId(null);
+    }
+  };
+
+  const handleKYCVerify = async (request: KYCRequest, approve: boolean) => {
+    let reason = '';
+    if (!approve) {
+      reason = prompt('يرجى ذكر سبب الرفض للتاجر:') || '';
+      if (!reason) return;
+    }
+    
+    if (!confirm(approve ? 'هل أنت متأكد من تفعيل هذا المتجر قانونياً؟' : 'تأكيد رفض الوثائق؟')) return;
+    
+    setVerifyingId(request.id);
+    try {
+      const { updateKYCStatus } = await import('@/lib/api');
+      await updateKYCStatus(request.id, request.storeSlug, approve ? 'approved' : 'rejected', reason);
+      fetchKYC();
     } catch (err) {
       console.error(err);
     } finally {
@@ -127,9 +158,9 @@ export default function AdministrationDashboard() {
             <button className={activeTab === 'radar' ? styles.tabActive : ''} onClick={() => setActiveTab('radar')}>
                 {t('Manager.tabs.radar')}
             </button>
-            <button className={activeTab === 'verifications' ? styles.tabActive : ''} onClick={() => setActiveTab('verifications')}>
-                {t('Manager.tabs.verifications')}
-                {proofs.length > 0 && <span className={styles.tabBadge}>{proofs.length}</span>}
+            <button className={activeTab === 'approvals' ? styles.tabActive : ''} onClick={() => setActiveTab('approvals')}>
+                طلبات الموافقة
+                {(proofs.length + kycRequests.length) > 0 && <span className={styles.tabBadge}>{proofs.length + kycRequests.length}</span>}
             </button>
         </div>
       </div>
@@ -233,22 +264,63 @@ export default function AdministrationDashboard() {
           </motion.div>
         ) : (
           <motion.div 
-            key="verifications"
+            key="approvals"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
             className={styles.verificationPortal}
           >
-            <div className={styles.vHeader}>
-                <h2>{t('Manager.verificationPortal.title')}</h2>
-                <p>{t('Manager.verificationPortal.subtitle')}</p>
+            <div className={styles.vSwitcher}>
+              <button 
+                className={subTab === 'kyc' ? styles.subActive : ''} 
+                onClick={() => setSubTab('kyc')}
+              >
+                تحقق الهوية (KYC)
+                {kycRequests.length > 0 && <span>{kycRequests.length}</span>}
+              </button>
+              <button 
+                className={subTab === 'payments' ? styles.subActive : ''} 
+                onClick={() => setSubTab('payments')}
+              >
+                تفعيلات الدفع
+                {proofs.length > 0 && <span>{proofs.length}</span>}
+              </button>
             </div>
-            
-            {proofs.length === 0 ? (
-                <div className={styles.emptyProofs}>
-                    <ShieldCheck size={64} />
-                    <p>{t('Manager.verificationPortal.empty')}</p>
-                </div>
+
+            {subTab === 'kyc' ? (
+              <div className={styles.kycQueue}>
+                {kycRequests.length === 0 ? (
+                  <div className={styles.emptyResults}>لا توجد طلبات هوية حالياً</div>
+                ) : (
+                  <div className={styles.kycGrid}>
+                    {kycRequests.map(req => (
+                      <div key={req.id} className={styles.kycCard}>
+                        <div className={styles.kycDocs}>
+                          <div className={styles.docMini}>
+                            <img src={req.identityUrl} alt="ID" />
+                            <a href={req.identityUrl} target="_blank">صورة الهوية <ExternalLink size={12}/></a>
+                          </div>
+                          <div className={styles.docMini}>
+                            <img src={req.utilityBillUrl} alt="Bill" />
+                            <a href={req.utilityBillUrl} target="_blank">فاتورة الخدمات <ExternalLink size={12}/></a>
+                          </div>
+                        </div>
+                        <div className={styles.kycText}>
+                           <h3>متجر: {req.storeSlug}</h3>
+                           <div className={styles.kycFields}>
+                             <p><Phone size={14}/> {req.phone}</p>
+                             <p><Landmark size={14}/> {req.bankAccount}</p>
+                           </div>
+                           <div className={styles.vActions}>
+                              <button className={styles.rejectBtn} disabled={verifyingId === req.id} onClick={() => handleKYCVerify(req, false)}>رفض</button>
+                              <button className={styles.approveBtn} disabled={verifyingId === req.id} onClick={() => handleKYCVerify(req, true)}>تفعيل المتجر</button>
+                           </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             ) : (
                 <div className={styles.proofsGrid}>
                     {proofs.map(proof => (
@@ -287,6 +359,7 @@ export default function AdministrationDashboard() {
             )}
           </motion.div>
         )}
+
       </AnimatePresence>
 
       <style jsx>{`

@@ -73,9 +73,24 @@ export interface StoreInfo {
   merchantId?: string; // Firebase UID of the merchant who owns this store
   planType?: 'free' | 'pro' | 'business';
   subscriptionStatus?: 'active' | 'expired' | 'pending_verification';
+  verificationStatus?: 'pending' | 'under_review' | 'active' | 'rejected';
+  rejectionReason?: string;
   orderCountMonth?: number;
   lastCountReset?: string;
 }
+
+export interface KYCRequest {
+  id: string;
+  storeSlug: string;
+  phone: string;
+  bankAccount: string;
+  identityUrl: string; // URL from Firebase Storage
+  utilityBillUrl: string; // URL from Firebase Storage
+  status: 'pending' | 'approved' | 'rejected';
+  submittedAt: string;
+  rejectionReason?: string;
+}
+
 
 export interface PaymentProof {
   id: string;
@@ -1237,10 +1252,78 @@ export async function approveStoreSubscription(proofId: string, storeSlug: strin
 /**
  * Reject a merchant's subscription proof.
  */
-export async function rejectStoreSubscription(proofId: string, storeSlug: string): Promise<void> {
-  const proofRef = doc(db, 'platform', 'payments', 'proofs', proofId);
+/**
+ * Special high-resolution upload for KYC legal documents.
+ */
+export async function uploadKYCDoc(file: File | Blob, storeSlug: string, type: 'identity' | 'utility'): Promise<string> {
+  const originalName = (file as any).name || 'doc.jpg';
+  const fileName = `${Date.now()}_kyc_${type}_${originalName.replace(/\s+/g, '_')}`;
+  // Use 1200px to ensure text on IDs and bills is readable
+  return bulletproofUpload(file, storeSlug, 'kyc', fileName);
+}
+
+/**
+ * Submit a full KYC request for a store.
+ */
+export async function submitKYC(slug: string, data: Omit<KYCRequest, 'id' | 'status' | 'submittedAt'>): Promise<void> {
+  const id = `kyc_${Date.now()}`;
+  const request: KYCRequest = {
+    ...data,
+    id,
+    status: 'pending',
+    submittedAt: new Date().toISOString()
+  };
+
+  const storeRef = doc(db, 'stores', slug);
+  const kycRef = doc(db, 'platform', 'kyc', 'requests', id);
+
+  const batch = writeBatch(db);
+  // 1. Save the detailed request for admin review
+  batch.set(kycRef, request);
+  // 2. Update store status to under_review
+  batch.update(storeRef, { verificationStatus: 'under_review' });
+
+  await batch.commit();
+  dataCache.invalidate(`store_${slug}`);
+}
+
+/**
+ * Fetch all pending KYC requests for platform manager.
+ */
+export async function getPendingKYCRequests(): Promise<KYCRequest[]> {
+  try {
+    const kycCol = collection(db, 'platform', 'kyc', 'requests');
+    const q = query(kycCol, where('status', '==', 'pending'), orderBy('submittedAt', 'desc'));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => doc.data() as KYCRequest);
+  } catch (error) {
+    console.error("Error fetching KYC requests:", error);
+    return [];
+  }
+}
+
+/**
+ * Approve or Reject a KYC request.
+ */
+export async function updateKYCStatus(requestId: string, storeSlug: string, status: 'approved' | 'rejected', reason?: string): Promise<void> {
+  const kycRef = doc(db, 'platform', 'kyc', 'requests', requestId);
   const storeRef = doc(db, 'stores', storeSlug);
 
-  await updateDoc(proofRef, { status: 'rejected' });
-  await updateDoc(storeRef, { subscriptionStatus: 'rejected' });
+  const batch = writeBatch(db);
+  
+  // 1. Update request status
+  batch.update(kycRef, { 
+    status, 
+    rejectionReason: reason || null 
+  });
+
+  // 2. Update store's public verification status
+  batch.update(storeRef, { 
+    verificationStatus: status === 'approved' ? 'active' : 'rejected',
+    rejectionReason: status === 'rejected' ? reason : null
+  });
+
+  await batch.commit();
+  dataCache.invalidate(`store_${storeSlug}`);
 }
+
