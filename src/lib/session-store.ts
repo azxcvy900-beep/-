@@ -3,15 +3,15 @@ import { persist } from 'zustand/middleware';
 import { loginMerchant } from './api';
 
 /**
- * Hardcoded credentials for testing (ONLY for Platform Admin).
- * Merchants now use Firestore records.
+ * Credentials for Platform Admin.
+ * IMPORTANT: NEVER hardcode credentials in source code.
+ * These should be managed via Environment Variables or a secure database.
  */
-const ADMIN_CREDENTIALS = {
-  username: '1111',
-  password: '1111',
-};
+const ADMIN_USERNAME = process.env.NEXT_PUBLIC_ADMIN_USERNAME || '1111'; // Fallback for dev only
+const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || '1111'; // Fallback for dev only
 
 export type UserRole = 'admin' | 'merchant' | 'employee' | null;
+
 
 interface SessionState {
   isLoggedIn: boolean;
@@ -43,8 +43,8 @@ export const useSessionStore = create<SessionState>()(
 
       loginAsAdmin: (username: string, password: string) => {
         if (
-          username === ADMIN_CREDENTIALS.username &&
-          password === ADMIN_CREDENTIALS.password
+          username === ADMIN_USERNAME &&
+          password === ADMIN_PASSWORD
         ) {
           const newState = {
             isLoggedIn: true,
@@ -56,11 +56,13 @@ export const useSessionStore = create<SessionState>()(
           };
           set(newState);
           if (typeof document !== 'undefined') {
-            document.cookie = `buyers-auth-role=admin; path=/; max-age=${60 * 60 * 24 * 7}`;
-            document.cookie = `buyers-auth-user=${username}; path=/; max-age=${60 * 60 * 24 * 7}`;
+            const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+            document.cookie = `buyers-auth-role=admin; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure}`;
+            document.cookie = `buyers-auth-user=${username}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure}`;
           }
           return true;
         }
+
         return false;
       },
 

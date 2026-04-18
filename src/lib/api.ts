@@ -761,12 +761,15 @@ export async function incrementStoreOrderCount(slug: string): Promise<void> {
     // Auto-reset count if it's a new month
     const isNewMonth = !lastReset || lastReset.getMonth() !== now.getMonth() || lastReset.getFullYear() !== now.getFullYear();
     
+    const { increment } = require("firebase/firestore");
+    
     await updateDoc(storeRef, {
-      orderCountMonth: isNewMonth ? 1 : currentCount + 1,
+      orderCountMonth: isNewMonth ? 1 : increment(1),
       lastCountReset: now.toISOString()
     });
   }
 }
+
 
 /**
  * Submit a new order to Firestore using a transaction to ensure atomic inventory updates.

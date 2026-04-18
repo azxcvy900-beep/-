@@ -93,6 +93,7 @@ export const useCartStore = create<CartStore>()(
       setStoreSlug: (slug) => set({ storeSlug: slug }),
       
       addItem: (item) => {
+        if (item.quantity <= 0) return;
         set((state) => {
           const existingItem = state.items.find((i) => 
             i.id === item.id && JSON.stringify(i.selectedOptions) === JSON.stringify(item.selectedOptions)
@@ -108,6 +109,7 @@ export const useCartStore = create<CartStore>()(
           return { items: [...state.items, item] };
         });
       },
+
       
       removeItem: (id, selectedOptions) => {
         set((state) => ({

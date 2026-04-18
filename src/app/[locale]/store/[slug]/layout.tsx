@@ -59,10 +59,12 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
     return <MaintenancePage />;
   }
 
-  const primaryColor = store?.primaryColor || '#3b82f6';
+  const colorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+  const primaryColor = (store?.primaryColor && colorRegex.test(store.primaryColor)) ? store.primaryColor : '#3b82f6';
   const primaryRgb = hexToRgb(primaryColor);
-  const secondaryColor = store?.secondaryColor || '#64748b';
+  const secondaryColor = (store?.secondaryColor && colorRegex.test(store.secondaryColor)) ? store.secondaryColor : '#64748b';
   const secondaryRgb = hexToRgb(secondaryColor);
+
   
   return (
     <>

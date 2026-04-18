@@ -4,14 +4,15 @@ import { getAuth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAsSwfz3X-sQ0j_5rQBfWv9UfwRvTnbqck",
-  authDomain: "byers-12ff3.firebaseapp.com",
-  projectId: "byers-12ff3",
-  storageBucket: "byers-12ff3.firebasestorage.app",
-  messagingSenderId: "464385040440",
-  appId: "1:464385040440:web:c686fef4287d4d74ad06cd",
-  measurementId: "G-1T3MFFC9YK"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyAsSwfz3X-sQ0j_5rQBfWv9UfwRvTnbqck",
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "byers-12ff3.firebaseapp.com",
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "byers-12ff3",
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "byers-12ff3.firebasestorage.app",
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "464385040440",
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:464385040440:web:c686fef4287d4d74ad06cd",
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || "G-1T3MFFC9YK"
 };
+
 
 // Initialize Firebase (singleton pattern to avoid re-initialization in Next.js)
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();

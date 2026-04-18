@@ -160,8 +160,10 @@ export default function CheckoutContent() {
     setIsCheckingCoupon(true);
     setCouponError(null);
     try {
-      const coupon = await validateCoupon('demo', couponCode.toUpperCase(), getTotalPrice());
+      const currentStore = useCartStore.getState().storeSlug || 'demo';
+      const coupon = await validateCoupon(currentStore, couponCode.toUpperCase(), getTotalPrice());
       if (coupon) {
+
         setAppliedCoupon(coupon);
         setCouponError(null);
       } else {

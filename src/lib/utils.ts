@@ -135,15 +135,24 @@ export const fileToBase64 = (file: Blob | File): Promise<string> => {
 };
 
 /**
- * Hash a password using SHA-256 for secure storage.
- * Note: This is a client-side hash used before sending/storing to Firestore.
+ * Hash a password using SHA-256 for basic obfuscation before transmission.
+ * 
+ * SECURITY NOTE FROM AUDIT: 
+ * This is a CLIENT-SIDE hash. While it prevents raw passwords from appearing in 
+ * Firestore documents, it is vulnerable to rainbow table attacks unless salted.
+ * 
+ * RECOMMENDED: Move sensitive hashing to a server-side environment (Cloud Functions)
+ * and use bcrypt/argon2 with a per-user salt.
  */
 export const hashPassword = async (password: string): Promise<string> => {
-  if (typeof window === 'undefined') return password; // Fallback for SSR if needed
+  if (typeof window === 'undefined') return password; 
   
+  // Use a static application salt as a minimal mitigation against generic rainbow tables
+  const APP_SALT = 'buyers-platform-v1-obfuscation';
   const encoder = new TextEncoder();
-  const data = encoder.encode(password);
+  const data = encoder.encode(password + APP_SALT);
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 };
+
