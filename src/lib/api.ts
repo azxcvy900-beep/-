@@ -1,4 +1,10 @@
-import { db, storage } from './firebase';
+import { db, storage, auth } from './firebase';
+import { 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
+  sendEmailVerification 
+} from 'firebase/auth';
+
 import { 
   collection, 
   getDocs, 
@@ -1071,53 +1077,88 @@ export interface Customer {
 }
 
 /**
- * Register a new merchant in Firestore.
+ * Register a new merchant using Firebase Auth.
  */
 export async function registerMerchant(merchant: Omit<AppUser, 'uid' | 'createdAt' | 'role' | 'permissions'>): Promise<string> {
+  if (!merchant.email) throw new Error('email_required');
+  
   const isAvailable = await checkUsernameAvailability(merchant.username);
   if (!isAvailable) throw new Error('username_taken');
 
-  const uid = `mcht_${Date.now()}`;
-  // SECURITY: Use username for per-user salt
-  const hashedPassword = merchant.password ? await hashPassword(merchant.password, merchant.username) : undefined;
-  
+  // 1. Create account in Firebase Auth
+  const userCredential = await createUserWithEmailAndPassword(auth, merchant.email, merchant.password!);
+  const uid = userCredential.user.uid;
+
+  // 2. Create profile in Firestore
   const newUser: AppUser = {
     ...merchant,
-    password: hashedPassword,
+    password: '[PROTECTED]', // Don't store plaintext or even hash here if using Firebase Auth
     uid,
     role: 'merchant',
-    permissions: ['all'], // Owners have all permissions
+    permissions: ['all'],
     createdAt: new Date().toISOString()
   };
 
   await setDoc(doc(db, 'merchants', merchant.username.toLowerCase()), newUser);
+  
+  // 3. Trigger verification email immediately
+  await sendEmailVerification(userCredential.user);
+  
   return uid;
 }
 
 /**
- * Validate user credentials against Firestore.
+ * Request a new verification email for the currently logged-in user.
  */
-export async function loginMerchant(username: string, password: string): Promise<AppUser | null> {
-  try {
-    const userRef = doc(db, 'merchants', username.toLowerCase());
-    const userSnap = await getDoc(userRef);
+export async function requestEmailVerification(): Promise<void> {
+  if (auth.currentUser) {
+    await sendEmailVerification(auth.currentUser);
+  }
+}
 
-    if (userSnap.exists()) {
-      const data = userSnap.data() as AppUser;
-      // SECURITY: Pass username for per-user salted hash comparison
-      const hashedAttempt = await hashPassword(password, username);
-      
-      // Removed plaintext support for security. All passwords MUST be hashed.
-      if (data.password === hashedAttempt) {
-        return data;
+/**
+ * Check if the current user's email is verified.
+ */
+export function isEmailVerified(): boolean {
+  return auth.currentUser?.emailVerified || false;
+}
+
+/**
+ * Validate user credentials using Firebase Auth.
+ */
+export async function loginMerchant(usernameOrEmail: string, password: string): Promise<AppUser | null> {
+  try {
+    let email = usernameOrEmail;
+
+    // If it's a username (no @), look up the email first
+    if (!usernameOrEmail.includes('@')) {
+      const merchantRef = doc(db, 'merchants', usernameOrEmail.toLowerCase());
+      const merchantSnap = await getDoc(merchantRef);
+      if (merchantSnap.exists()) {
+        email = (merchantSnap.data() as AppUser).email || '';
       }
     }
+
+    // 1. Sign in via Firebase Auth
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const uid = userCredential.user.uid;
+
+    // 2. Fetch profile from Firestore by searching for the UID
+    const merchantsCol = collection(db, 'merchants');
+    const q = query(merchantsCol, where('uid', '==', uid));
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      return querySnapshot.docs[0].data() as AppUser;
+    }
+
     return null;
   } catch (error) {
     console.error("Login error:", error);
-    return null;
+    throw error; // Pass the error to UI for specific messages (e.g. user-not-found)
   }
 }
+
 
 
 export async function checkUsernameAvailability(username: string): Promise<boolean> {

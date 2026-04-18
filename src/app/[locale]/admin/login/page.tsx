@@ -42,6 +42,7 @@ export default function AdminLoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [verificationPending, setVerificationPending] = useState(false);
 
   const bgImage = "";
 
@@ -51,22 +52,40 @@ export default function AdminLoginPage() {
     }
   }, [isLoggedIn, role, router, locale]);
 
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     setSuccess('');
+    setVerificationPending(false);
 
     try {
       const successStatus = await loginAsMerchant(username, password);
+      
       if (successStatus) {
+        // Need to check if email is verified via a helper or direct auth check
+        // For simplicity, we can use a direct check if we export auth
+        const { auth } = await import('@/lib/firebase');
+        if (auth.currentUser && !auth.currentUser.emailVerified) {
+          setVerificationPending(true);
+          setError('يرجى تفعيل حسابك عبر الرابط المرسل لبريدك الإلكتروني أولاً.');
+          // Important: Don't redirect yet if not verified
+          return;
+        }
+
         setSuccess('تم تسجيل الدخول بنجاح! جاري التوجيه...');
         setTimeout(() => router.push(`/${locale}/admin/dashboard`), 800);
-      } else {
-        setError('اسم المستخدم أو كلمة المرور غير صحيحة.');
       }
-    } catch (err) {
-      setError('حدث خطأ أثناء الاتصال بالخادم.');
+    } catch (err: any) {
+      console.error("Login error:", err);
+      if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found') {
+        setError('بيانات الدخول غير صحيحة. تأكد من البريد/الاسم وكلمة المرور.');
+      } else if (err.code === 'auth/too-many-requests') {
+        setError('تمت محاولة الدخول عدة مرات بشكل خاطئ. يرجى المحاولة لاحقاً.');
+      } else {
+        setError('حدث خطأ أثناء الاتصال بنظام الحماية.');
+      }
     } finally {
       setLoading(false);
     }
@@ -86,19 +105,44 @@ export default function AdminLoginPage() {
 
     try {
       await registerMerchant({ username, password, email });
-      await loginAsMerchant(username, password);
-      setSuccess('مبارك! تم حسابك بنجاح. لنبدأ بتجهيز متجرك...');
-      setTimeout(() => router.push(`/${locale}/admin/setup`), 1500);
+      setSuccess('مبارك! تم إنشاء الحساب. أرسلنا رابط تفعيل لبريدك الإلكتروني، يرجى استخدامه لتتمكن من الدخول.');
+      // Switch to login mode so they can enter after verifying
+      setTimeout(() => {
+        setMode('login');
+        setSuccess('');
+        setVerificationPending(true);
+      }, 3000);
     } catch (err: any) {
+      console.error("Reg error:", err);
       if (err.message === 'username_taken') {
         setError('اسم المستخدم هذا محجوز. اختر اسماً فريداً.');
+      } else if (err.code === 'auth/email-already-in-use') {
+        setError('هذا البريد الإلكتروني مسجل مسبقاً.');
+      } else if (err.code === 'auth/weak-password') {
+        setError('كلمة المرور ضعيفة جداً.');
+      } else if (err.code === 'auth/operation-not-allowed') {
+        setError('عذراً، نظام التسجيل بالبريد معطل حالياً من الإدارة.');
       } else {
-        setError('حدث خطأ أثناء إنشاء الحساب.');
+        setError('حدث خطأ أثناء إنشاء الحساب. تأكد من صحة البيانات.');
       }
     } finally {
       setLoading(false);
     }
   };
+
+  const handleResendEmail = async () => {
+    setLoading(true);
+    try {
+      const { requestEmailVerification } = await import('@/lib/api');
+      await requestEmailVerification();
+      setSuccess('تم إعادة إرسال رابط التفعيل، تفقد بريدك الآن (أو مجلد Spam).');
+    } catch (err) {
+      setError('فشلت محاولة إعادة الإرسال. يرجى المحاولة لاحقاً.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   return (
     <div className={styles.loginContainer}>
@@ -321,6 +365,20 @@ export default function AdminLoginPage() {
                 </>
               )}
             </button>
+
+            {verificationPending && (
+              <motion.button
+                type="button"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                onClick={handleResendEmail}
+                className={styles.resendBtn}
+                disabled={loading}
+              >
+                لم تصلك الرسالة؟ إعادة إرسال رابط التحقق
+              </motion.button>
+            )}
+
 
             {mode === 'login' && (
                <button 

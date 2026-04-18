@@ -284,7 +284,27 @@
   cursor: not-allowed;
 }
 
+.resendBtn {
+  background: none;
+  border: none;
+  color: #6366f1;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  text-decoration: underline;
+  transition: color 0.2s;
+  width: 100%;
+  text-align: center;
+}
+
+.resendBtn:hover:not(:disabled) {
+  color: #4f46e5;
+}
+
 .managerBtn {
+
   width: 100%;
   padding: 0.85rem;
   background: none;
