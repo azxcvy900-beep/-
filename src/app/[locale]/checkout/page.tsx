@@ -1,13 +1,14 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, use } from 'react';
 import CheckoutContent from './CheckoutContent';
 import Loading from './loading';
 
-export default async function CheckoutPage(props: { params: Promise<{ locale: string }> }) {
-  const { locale } = await props.params;
+export default function CheckoutPage(props: { params: Promise<{ locale: string }> }) {
+  const { locale } = use(props.params);
   return (
     <Suspense fallback={<Loading />}>
       <CheckoutContent />
     </Suspense>
   );
 }
+
 
