@@ -1252,6 +1252,14 @@ export async function approveStoreSubscription(proofId: string, storeSlug: strin
 /**
  * Reject a merchant's subscription proof.
  */
+export async function rejectStoreSubscription(proofId: string, storeSlug: string): Promise<void> {
+  const proofRef = doc(db, 'platform', 'payments', 'proofs', proofId);
+  const storeRef = doc(db, 'stores', storeSlug);
+
+  await updateDoc(proofRef, { status: 'rejected' });
+  await updateDoc(storeRef, { subscriptionStatus: 'rejected' });
+}
+
 /**
  * Special high-resolution upload for KYC legal documents.
  */
