@@ -53,15 +53,15 @@ export function generateStaticParams() {
 
 import { Toaster } from "sonner";
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
   params,
 }: {
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
 }) {
-  const { locale } = await params;
-  const messages = await getMessages();
+  const { locale } = React.use(params);
+  const messages = React.use(getMessages());
   const direction = locale === "ar" ? "rtl" : "ltr";
 
   return (
@@ -69,18 +69,18 @@ export default async function RootLayout({
        <body>
         <NextIntlClientProvider messages={messages} locale={locale}>
           <ThemeProvider>
-            <main style={{ minHeight: 'calc(100vh - 400px)' }}>
-              <Suspense fallback={null}>
+            <Suspense fallback={null}>
+              <main style={{ minHeight: 'calc(100vh - 400px)' }}>
                 {children}
-              </Suspense>
-            </main>
-            <Toaster richColors position="top-center" />
-
-            <WhatsAppSupport />
-            <Footer />
+              </main>
+              <Toaster richColors position="top-center" />
+              <WhatsAppSupport />
+              <Footer />
+            </Suspense>
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>
     </html>
   );
 }
+
