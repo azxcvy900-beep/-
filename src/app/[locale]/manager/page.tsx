@@ -19,8 +19,11 @@ import {
   XCircle,
   Image as ImageIcon,
   ExternalLink,
-  ShieldCheck
+  ShieldCheck,
+  Phone,
+  Landmark
 } from 'lucide-react';
+
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   getAllStores, 
@@ -31,8 +34,10 @@ import {
   rejectStoreSubscription,
   StoreInfo,
   PaymentProof,
-  Review
+  Review,
+  KYCRequest
 } from '@/lib/api';
+
 import { Order } from '@/lib/store';
 import { useStreamingFetch, useProgressiveLoad } from '@/lib/hooks';
 import styles from './manager.module.css';
