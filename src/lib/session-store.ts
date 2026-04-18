@@ -16,15 +16,17 @@ export type UserRole = 'admin' | 'merchant' | 'employee' | null;
 interface SessionState {
   isLoggedIn: boolean;
   role: UserRole;
+  uid: string | null;
   username: string | null;
   storeSlug: string | null;
-  permissions: string[]; // e.g. ['all'] or ['orders.view']
+  permissions: string[];
   loginTime: string | null;
-
   loginAsAdmin: (username: string, password: string) => boolean;
-  loginAsMerchant: (username: string, password: string) => Promise<boolean>;
-  setStoreSlug: (slug: string | null) => void;
+  loginAsMerchant: (usernameOrEmail: string, password: string) => Promise<boolean>;
   logout: () => void;
+  setStoreSlug: (slug: string | null) => void;
+  verificationStatus?: string;
+  rejectionReason?: string;
 }
 
 /**
@@ -36,8 +38,10 @@ export const useSessionStore = create<SessionState>()(
     (set) => ({
       isLoggedIn: false,
       role: null,
+      uid: null,
       username: null,
       storeSlug: null,
+
       permissions: [],
       loginTime: null,
 
@@ -77,12 +81,16 @@ export const useSessionStore = create<SessionState>()(
           const newState = {
             isLoggedIn: true,
             role: user.role as UserRole,
+            uid: user.uid,
             username: user.username,
             storeSlug: user.storeSlug || null, 
             permissions: user.permissions || [],
             loginTime: new Date().toISOString(),
+            verificationStatus: (user as any).verificationStatus || 'pending',
+            rejectionReason: (user as any).rejectionReason || null
           };
           set(newState);
+
           if (typeof document !== 'undefined') {
             const secure = window.location.protocol === 'https:' ? '; Secure' : '';
             // SECURITY: Create a signature to prevent easy role spoofing
@@ -102,11 +110,13 @@ export const useSessionStore = create<SessionState>()(
         set({
           isLoggedIn: false,
           role: null,
+          uid: null,
           username: null,
           storeSlug: null,
           permissions: [],
           loginTime: null,
         });
+
         if (typeof document !== 'undefined') {
           const secure = window.location.protocol === 'https:' ? '; SameSite=Lax; Secure' : '; SameSite=Lax';
           const expire = '; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';

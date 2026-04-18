@@ -31,7 +31,7 @@ export default function MerchantSetupWizard() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const locale = useLocale();
-  const { username, setStoreSlug } = useSessionStore();
+  const { uid, username, setStoreSlug } = useSessionStore();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -48,7 +48,7 @@ export default function MerchantSetupWizard() {
   const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 0));
 
   const handleFinish = async () => {
-    if (!username) return;
+    if (!uid) return;
     setLoading(true);
     
     try {
@@ -60,9 +60,9 @@ export default function MerchantSetupWizard() {
         description: formData.description,
         phone: formData.whatsapp,
         primaryColor: formData.primaryColor,
-        merchantId: username, // Link store to merchant username
-        subscriptionStatus: 'active', // Default for new signups
-        verificationStatus: 'pending', // NEW: Start locked until verified
+        merchantId: uid, // CRITICAL: Link store to immutable UID
+        subscriptionStatus: 'active',
+        verificationStatus: 'pending',
         planType: 'free',
 
         currencySettings: {
@@ -75,11 +75,12 @@ export default function MerchantSetupWizard() {
         }
       });
       
-      // 2. Link store to Merchant Profile
-      await updateMerchant(username, { storeSlug: slug });
+      // 2. Link store to Merchant Profile (using UID)
+      await updateMerchant(uid, { storeSlug: slug });
       
       // 3. Update Session State
       setStoreSlug(slug);
+
 
       // Success! Redirect to dashboard
       router.push(`/${locale}/admin/dashboard`);

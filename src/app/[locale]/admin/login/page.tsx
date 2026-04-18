@@ -114,10 +114,9 @@ export default function AdminLoginPage() {
       }, 3000);
     } catch (err: any) {
       console.error("Reg error:", err);
-      if (err.message === 'username_taken') {
-        setError('اسم المستخدم هذا محجوز. اختر اسماً فريداً.');
-      } else if (err.code === 'auth/email-already-in-use') {
+      if (err.code === 'auth/email-already-in-use') {
         setError('هذا البريد الإلكتروني مسجل مسبقاً.');
+
       } else if (err.code === 'auth/weak-password') {
         setError('كلمة المرور ضعيفة جداً.');
       } else if (err.code === 'auth/operation-not-allowed') {
@@ -284,9 +283,10 @@ export default function AdminLoginPage() {
                   onChange={(e) => setUsername(e.target.value)}
                   required
                 />
-                <label className={styles.inputLabel}>اسم المستخدم (English)</label>
+                <label className={styles.inputLabel}>اسم التاجر أو المؤسسة</label>
               </div>
             </div>
+
 
             <AnimatePresence>
               {mode === 'register' && (

@@ -1082,24 +1082,23 @@ export interface Customer {
 export async function registerMerchant(merchant: Omit<AppUser, 'uid' | 'createdAt' | 'role' | 'permissions'>): Promise<string> {
   if (!merchant.email) throw new Error('email_required');
   
-  const isAvailable = await checkUsernameAvailability(merchant.username);
-  if (!isAvailable) throw new Error('username_taken');
-
   // 1. Create account in Firebase Auth
+
   const userCredential = await createUserWithEmailAndPassword(auth, merchant.email, merchant.password!);
   const uid = userCredential.user.uid;
 
-  // 2. Create profile in Firestore
+  // 2. Create profile in Firestore (indexed by UID)
   const newUser: AppUser = {
     ...merchant,
-    password: '[PROTECTED]', // Don't store plaintext or even hash here if using Firebase Auth
+    password: '[PROTECTED]',
     uid,
     role: 'merchant',
     permissions: ['all'],
     createdAt: new Date().toISOString()
   };
 
-  await setDoc(doc(db, 'merchants', merchant.username.toLowerCase()), newUser);
+  await setDoc(doc(db, 'merchants', uid), newUser);
+
   
   // 3. Trigger verification email immediately
   await sendEmailVerification(userCredential.user);
@@ -1130,34 +1129,36 @@ export async function loginMerchant(usernameOrEmail: string, password: string): 
   try {
     let email = usernameOrEmail;
 
-    // If it's a username (no @), look up the email first
+    // 1. Sign in via Firebase Auth
+    // If usernameOrEmail contains '@', use it directly, otherwise we'd need a lookup
+    // But since we want to support duplicate names, Email is the only unique login
+    // If it's a username, we'll try to find the email via a query (for backward compatibility or handle support)
     if (!usernameOrEmail.includes('@')) {
-      const merchantRef = doc(db, 'merchants', usernameOrEmail.toLowerCase());
-      const merchantSnap = await getDoc(merchantRef);
-      if (merchantSnap.exists()) {
-        email = (merchantSnap.data() as AppUser).email || '';
+      const merchantsCol = collection(db, 'merchants');
+      const q = query(merchantsCol, where('username', '==', usernameOrEmail.toLowerCase()));
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        email = (querySnapshot.docs[0].data() as AppUser).email || '';
       }
     }
 
-    // 1. Sign in via Firebase Auth
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const uid = userCredential.user.uid;
 
-    // 2. Fetch profile from Firestore by searching for the UID
-    const merchantsCol = collection(db, 'merchants');
-    const q = query(merchantsCol, where('uid', '==', uid));
-    const querySnapshot = await getDocs(q);
+    // 2. Fetch profile from Firestore by UID (Direct & Fast)
+    const userSnap = await getDoc(doc(db, 'merchants', uid));
 
-    if (!querySnapshot.empty) {
-      return querySnapshot.docs[0].data() as AppUser;
+    if (userSnap.exists()) {
+      return userSnap.data() as AppUser;
     }
 
     return null;
   } catch (error) {
     console.error("Login error:", error);
-    throw error; // Pass the error to UI for specific messages (e.g. user-not-found)
+    throw error;
   }
 }
+
 
 
 
@@ -1177,10 +1178,14 @@ export async function checkUsernameAvailability(username: string): Promise<boole
 /**
  * Update user profile (e.g. link a storeSlug after setup).
  */
-export async function updateMerchant(username: string, updates: Partial<AppUser>): Promise<void> {
-  const userRef = doc(db, 'merchants', username.toLowerCase());
+/**
+ * Update user profile.
+ */
+export async function updateMerchant(uid: string, updates: Partial<AppUser>): Promise<void> {
+  const userRef = doc(db, 'merchants', uid);
   await updateDoc(userRef, updates);
 }
+
 
 /**
  * Add a new employee to a store.
