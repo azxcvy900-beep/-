@@ -5,6 +5,8 @@ interface AuthState {
   storeSlug: string | null;
   storeName: string | null;
   storeLogo: string | null;
+  verificationStatus: 'pending' | 'under_review' | 'active' | 'rejected' | null;
+  rejectionReason: string | null;
   isResolved: boolean;
   setStoreInfo: (info: StoreInfo | null) => void;
   clearStoreInfo: () => void;
@@ -18,17 +20,24 @@ export const useAuthStore = create<AuthState>((set) => ({
   storeSlug: null,
   storeName: null,
   storeLogo: null,
+  verificationStatus: null,
+  rejectionReason: null,
   isResolved: false,
   setStoreInfo: (info) => set({ 
     storeSlug: info?.slug || null, 
     storeName: info?.name || null,
     storeLogo: info?.logo || null,
+    verificationStatus: info?.verificationStatus || 'pending',
+    rejectionReason: info?.rejectionReason || null,
     isResolved: true 
   }),
   clearStoreInfo: () => set({ 
     storeSlug: null, 
     storeName: null, 
     storeLogo: null, 
+    verificationStatus: null,
+    rejectionReason: null,
     isResolved: false 
   }),
 }));
+
