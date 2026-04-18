@@ -62,7 +62,9 @@ export default function MerchantSetupWizard() {
         primaryColor: formData.primaryColor,
         merchantId: username, // Link store to merchant username
         subscriptionStatus: 'active', // Default for new signups
+        verificationStatus: 'pending', // NEW: Start locked until verified
         planType: 'free',
+
         currencySettings: {
           default: formData.currency,
           rates: { YER: 530, SAR: 140 }

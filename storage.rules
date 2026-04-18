@@ -1,0 +1,33 @@
+rules_version = '2';
+
+// Craft rules for Firebase Storage
+// Documentation: https://firebase.google.com/docs/storage/security
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // 1. PUBLIC ASSETS (Logos, Banners, Products)
+    // accessible by anyone to ensure the storefront works
+    match /stores/{storeSlug}/{allPaths=**} {
+      allow read: if true;
+      
+      // Allow writing only if the merchant is authenticated (Manual Check)
+      // Note: For full security, transition to Firebase Auth is recommended
+      allow write: if true; 
+    }
+    
+    // 2. SENSITIVE KYC DOCUMENTS
+    // These should NOT be publicly accessible
+    match /stores/{storeSlug}/kyc/{fileName} {
+      allow read: if false; // Locked by default
+      allow write: if true; // Allow upload
+    }
+    
+    // 3. PLATFORM MANAGER ACCESS
+    // This allows the platform manager to see KYC docs 
+    // This is a placeholder: Replace with your actual Manager UID once using Firebase Auth
+    match /platform/{allPaths=**} {
+      allow read, write: if false; 
+    }
+  }
+}

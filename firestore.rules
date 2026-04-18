@@ -1,0 +1,49 @@
+rules_version = '2';
+
+// Craft rules for Firebase Firestore
+// Documentation: https://firebase.google.com/docs/firestore/security/get-started
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 1. PUBLIC READ ACCESS
+    // Allow anyone to read stores, products, and reviews to enable shopping
+    match /stores/{store} {
+      allow read: if true;
+      allow write: if true; // Ideally restricted to owners
+    }
+
+    match /products/{product} {
+      allow read: if true;
+      allow write: if true;
+    }
+    
+    match /reviews/{review} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // 2. SENSITIVE MERCHANT DATA
+    // Merchants should not be able to read other merchants' passwords/data
+    match /merchants/{merchantId} {
+      allow read, write: if true; // Manual auth app: allow all (not recommended for production)
+    }
+
+    // 3. PLATFORM ADMIN DATA (KYC Queue)
+    // KYC requests contain sensitive URLs and bank info
+    match /platform/kyc/requests/{requestId} {
+      allow read: if true; // Accessible by platform manager
+      allow write: if true; // Accessible by merchants to submit
+    }
+    
+    // 4. PAYMENTS & PROOFS
+    match /platform/payments/proofs/{proofId} {
+      allow read, write: if true;
+    }
+
+    // RECOMMENDATION:
+    // This app uses a "Manual" auth system via Firestore lookups. 
+    // To properly secure these rules, you should migrate to 'Firebase Auth' 
+    // and use 'request.auth != null' and 'request.auth.uid == merchantId'.
+  }
+}
