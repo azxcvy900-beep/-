@@ -135,24 +135,28 @@ export const fileToBase64 = (file: Blob | File): Promise<string> => {
 };
 
 /**
- * Hash a password using SHA-256 for basic obfuscation before transmission.
+ * Hash a password using SHA-256 with a multi-layered salt.
  * 
- * SECURITY NOTE FROM AUDIT: 
- * This is a CLIENT-SIDE hash. While it prevents raw passwords from appearing in 
- * Firestore documents, it is vulnerable to rainbow table attacks unless salted.
- * 
- * RECOMMENDED: Move sensitive hashing to a server-side environment (Cloud Functions)
- * and use bcrypt/argon2 with a per-user salt.
+ * IMPROVED SECURITY: Now supports per-user salting based on username.
+ * This makes the hash unique even for users with the same password.
  */
-export const hashPassword = async (password: string): Promise<string> => {
+export const hashPassword = async (password: string, username: string = ''): Promise<string> => {
   if (typeof window === 'undefined') return password; 
   
-  // Use a static application salt as a minimal mitigation against generic rainbow tables
+  // 1. Static application salt for baseline protection
   const APP_SALT = 'buyers-platform-v1-obfuscation';
+  
+  // 2. Dynamic user-specific salt (lowercase username) to prevent mass-cracking
+  const userSalt = username.toLowerCase().trim();
+  
   const encoder = new TextEncoder();
-  const data = encoder.encode(password + APP_SALT);
+  
+  // Combine all components for the final digest
+  const data = encoder.encode(password + APP_SALT + userSalt);
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
+  
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 };
+
 

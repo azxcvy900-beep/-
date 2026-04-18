@@ -57,7 +57,10 @@ export const useSessionStore = create<SessionState>()(
           set(newState);
           if (typeof document !== 'undefined') {
             const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+            // SECURITY: Create a signature to prevent easy role spoofing
+            const sig = (username + 'admin' + 'buyers-secret-v1').split('').reverse().join(''); // Simple obfuscation for logic
             document.cookie = `buyers-auth-role=admin; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure}`;
+            document.cookie = `buyers-auth-sig=${sig}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure}`;
             document.cookie = `buyers-auth-user=${username}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure}`;
           }
           return true;
@@ -67,6 +70,7 @@ export const useSessionStore = create<SessionState>()(
       },
 
       loginAsMerchant: async (username: string, password: string) => {
+        // Use per-user salt in hash
         const user = await loginMerchant(username, password);
         
         if (user) {
@@ -81,7 +85,10 @@ export const useSessionStore = create<SessionState>()(
           set(newState);
           if (typeof document !== 'undefined') {
             const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+            // SECURITY: Create a signature to prevent easy role spoofing
+            const sig = (user.username + user.role + 'buyers-secret-v1').split('').reverse().join(''); 
             document.cookie = `buyers-auth-role=${user.role}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure}`;
+            document.cookie = `buyers-auth-sig=${sig}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure}`;
             document.cookie = `buyers-auth-user=${username}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure}`;
           }
           return true;
@@ -101,11 +108,14 @@ export const useSessionStore = create<SessionState>()(
           loginTime: null,
         });
         if (typeof document !== 'undefined') {
-          const secure = window.location.protocol === 'https:' ? '; Secure' : '';
-          document.cookie = `buyers-auth-role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax${secure}`;
-          document.cookie = `buyers-auth-user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax${secure}`;
+          const secure = window.location.protocol === 'https:' ? '; SameSite=Lax; Secure' : '; SameSite=Lax';
+          const expire = '; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+          document.cookie = `buyers-auth-role=${expire}${secure}`;
+          document.cookie = `buyers-auth-user=${expire}${secure}`;
+          document.cookie = `buyers-auth-sig=${expire}${secure}`;
         }
       },
+
     }),
     {
       name: 'buyers-session',

@@ -1063,7 +1063,8 @@ export async function registerMerchant(merchant: Omit<AppUser, 'uid' | 'createdA
   if (!isAvailable) throw new Error('username_taken');
 
   const uid = `mcht_${Date.now()}`;
-  const hashedPassword = merchant.password ? await hashPassword(merchant.password) : undefined;
+  // SECURITY: Use username for per-user salt
+  const hashedPassword = merchant.password ? await hashPassword(merchant.password, merchant.username) : undefined;
   
   const newUser: AppUser = {
     ...merchant,
@@ -1088,10 +1089,11 @@ export async function loginMerchant(username: string, password: string): Promise
 
     if (userSnap.exists()) {
       const data = userSnap.data() as AppUser;
-      const hashedAttempt = await hashPassword(password);
+      // SECURITY: Pass username for per-user salted hash comparison
+      const hashedAttempt = await hashPassword(password, username);
       
-      // Support both hashed (new) and plain text (old) for migration period
-      if (data.password === hashedAttempt || data.password === password) {
+      // Removed plaintext support for security. All passwords MUST be hashed.
+      if (data.password === hashedAttempt) {
         return data;
       }
     }
@@ -1101,6 +1103,7 @@ export async function loginMerchant(username: string, password: string): Promise
     return null;
   }
 }
+
 
 export async function checkUsernameAvailability(username: string): Promise<boolean> {
   try {
@@ -1131,7 +1134,8 @@ export async function addEmployee(employee: Omit<AppUser, 'uid' | 'createdAt' | 
   if (!isAvailable) throw new Error('username_taken');
 
   const uid = `emp_${Date.now()}`;
-  const hashedPassword = employee.password ? await hashPassword(employee.password) : undefined;
+  // SECURITY: Use username for per-user salt
+  const hashedPassword = employee.password ? await hashPassword(employee.password, employee.username) : undefined;
 
   const newUser: AppUser = {
     ...employee,
@@ -1141,6 +1145,7 @@ export async function addEmployee(employee: Omit<AppUser, 'uid' | 'createdAt' | 
     storeSlug,
     createdAt: new Date().toISOString()
   };
+
 
   await setDoc(doc(db, 'merchants', employee.username.toLowerCase()), newUser);
   return uid;

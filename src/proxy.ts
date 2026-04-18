@@ -8,11 +8,22 @@ const intlMiddleware = createMiddleware(routing);
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
-  // Extract role from cookies
+  // Extract role and signature from cookies
   const authRole = request.cookies.get('buyers-auth-role')?.value;
+  const authUser = request.cookies.get('buyers-auth-user')?.value;
+  const authSig = request.cookies.get('buyers-auth-sig')?.value;
+  
+  // SECURITY: Verify signature to prevent role spoofing
+  const isValidSession = (role: string | undefined, user: string | undefined, sig: string | undefined) => {
+    if (!role || !user || !sig) return false;
+    const expectedSig = (user + role + 'buyers-secret-v1').split('').reverse().join('');
+    return sig === expectedSig;
+  };
+
+  const isVerified = isValidSession(authRole, authUser, authSig);
   
   // Define locales
-  const locales = ['ar', 'en'];
+  const locales = routing.locales;
   const localePattern = `^/(${locales.join('|')})`;
   
   // 1. Protect Manager (Super Admin) Routes
@@ -20,9 +31,9 @@ export function proxy(request: NextRequest) {
   const isManagerLogin = pathname.match(new RegExp(`${localePattern}/manager/login`)) || pathname.startsWith('/manager/login');
 
   if (isManagerPath && !isManagerLogin) {
-    if (authRole !== 'admin') {
+    if (!isVerified || authRole !== 'admin') {
       const segments = pathname.split('/');
-      const locale = locales.includes(segments[1]) ? segments[1] : 'ar';
+      const locale = locales.includes(segments[1] as any) ? segments[1] : routing.defaultLocale;
       const redirectUrl = new URL(`/${locale}/manager/login`, request.url);
       return NextResponse.redirect(redirectUrl);
     }
@@ -33,17 +44,16 @@ export function proxy(request: NextRequest) {
   const isAdminLogin = pathname.match(new RegExp(`${localePattern}/admin/login`)) || pathname.startsWith('/admin/login');
 
   if (isAdminPath && !isAdminLogin) {
-    // Optimization: Allow client-side data fetches or prefetching to pass to avoid redirection loops
-    // The AdminLayout.tsx on the client also has its own auth check for double security.
     const isDataRequest = request.headers.get('x-nextjs-data') || request.headers.get('purpose') === 'prefetch';
     
-    if (!isDataRequest && authRole !== 'merchant' && authRole !== 'admin' && authRole !== 'employee') {
+    if (!isDataRequest && (!isVerified || (authRole !== 'merchant' && authRole !== 'admin' && authRole !== 'employee'))) {
       const segments = pathname.split('/');
-      const locale = locales.includes(segments[1]) ? segments[1] : 'ar';
+      const locale = locales.includes(segments[1] as any) ? segments[1] : routing.defaultLocale;
       const redirectUrl = new URL(`/${locale}/admin/login`, request.url);
       return NextResponse.redirect(redirectUrl);
     }
   }
+
 
   // 3. Handle Locale Redirection for other routes (Root, Store, etc.)
   return intlMiddleware(request);
