@@ -1,5 +1,6 @@
-import "../globals.css";
+import React, { Suspense } from "react";
 import { Inter, Cairo } from "next/font/google";
+
 import { Metadata, Viewport } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
@@ -69,9 +70,12 @@ export default async function RootLayout({
         <NextIntlClientProvider messages={messages} locale={locale}>
           <ThemeProvider>
             <main style={{ minHeight: 'calc(100vh - 400px)' }}>
-              {children}
+              <Suspense fallback={null}>
+                {children}
+              </Suspense>
             </main>
             <Toaster richColors position="top-center" />
+
             <WhatsAppSupport />
             <Footer />
           </ThemeProvider>
