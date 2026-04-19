@@ -71,10 +71,21 @@ export default function AdminLayoutContent({ children }: { children: React.React
     }
   }, [isLoggedIn, role, isLoginPage]);
 
+  // 1. Guard against pre-hydration renders (SSR or immediate hydration lag)
+  if (!mounted) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: 'var(--background)' }}>
+        <div className="loader">جاري التحميل...</div>
+      </div>
+    );
+  }
+
+  // 2. Immediate route-based exclusions
   if (isLoginPage) {
     return <>{children}</>;
   }
 
+  // 3. Authentication Checks (Post-hydration)
   if (!isLoggedIn || (role !== 'merchant' && role !== 'admin' && role !== 'employee')) {
     return <RedirectToLogin locale={locale} />;
   }
@@ -168,13 +179,6 @@ export default function AdminLayoutContent({ children }: { children: React.React
 
   const currentItem = navItems.find(item => isPathActive(item.href));
 
-  if (!mounted) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: 'var(--background)' }}>
-        <div className="loader">جاري التحميل...</div>
-      </div>
-    );
-  }
 
   const showVerificationBanner = verificationStatus !== 'active' && !pathname.includes('/admin/verification');
 

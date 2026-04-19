@@ -47,11 +47,13 @@ export default function AdminLoginPage() {
   const bgImage = "";
 
   useEffect(() => {
+    // Only trigger auto-redirect if we are sure of the role and login status
     if (isLoggedIn && role === 'merchant') {
-       const target = storeSlug ? '/admin/dashboard' : '/admin/setup';
+       const target = storeSlug ? `/${locale}/admin/dashboard` : `/${locale}/admin/setup`;
+       console.log(`Redirecting to: ${target}`);
        router.replace(target);
     }
-  }, [isLoggedIn, role, storeSlug, router]);
+  }, [isLoggedIn, role, storeSlug, router, locale]);
 
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -77,10 +79,14 @@ export default function AdminLoginPage() {
         }
 
         setSuccess('تم تسجيل الدخول بنجاح! جاري التوجيه...');
-        // We use the same logic here for immediate push
-        const { storeSlug: currentSlug } = useSessionStore.getState();
-        const target = currentSlug ? '/admin/dashboard' : '/admin/setup';
-        setTimeout(() => router.push(target), 800);
+        
+        // Immediate check of current state to pick the right path
+        const state = useSessionStore.getState();
+        const target = state.storeSlug ? `/${locale}/admin/dashboard` : `/${locale}/admin/setup`;
+        
+        setTimeout(() => {
+          router.push(target);
+        }, 1000); // Slightly longer timeout to allow state propagation
       }
     } catch (err: any) {
       console.error("Login error:", err);
