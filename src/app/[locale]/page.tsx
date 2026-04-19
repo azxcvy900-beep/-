@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { 
   Rocket, 
   ShieldCheck, 
@@ -14,18 +14,29 @@ import {
   LayoutDashboard,
   CheckCircle2,
   XCircle,
-  TrendingUp
+  TrendingUp,
+  ChevronRight
 } from "lucide-react";
 import Header from "@/components/shared/Header/Header";
 import styles from "./page.module.css";
 import Image from "next/image";
+import { useRef } from "react";
 
 export default function Home() {
   const t = useTranslations("Landing");
   const locale = useLocale();
+  const scrollRef = useRef(null);
+  
+  const { scrollYProgress } = useScroll({
+    target: scrollRef,
+    offset: ["start start", "end start"]
+  });
+
+  const y = useTransform(scrollYProgress, [0, 1], [0, 200]);
+  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} ref={scrollRef}>
       <Header storeName="بايرز / Buyers" isLanding={true} />
       
       <main className={styles.main}>
@@ -36,61 +47,61 @@ export default function Home() {
           
           <div className={styles.heroContent}>
             <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
               className={styles.badge}
             >
-              <Zap size={16} />
-              <span>أقوى منصة سحابية للتجارة في اليمن</span>
+              <Zap size={14} />
+              <span>{t("badge")}</span>
             </motion.div>
             
             <motion.h1 
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
+              transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
               className={styles.title}
             >
-              امتلك متجراً احترافياً <br/>
-              <span>وضاعف مبيعاتك اليوم</span>
+              {t("title_main")} <br/>
+              <span>{t("title_sub")}</span>
             </motion.h1>
             
             <motion.p 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
               className={styles.subtitle}
             >
-              حوّل مشروعك إلى علامة تجارية عالمية. "بايرز" توفر لك أدوات متكاملة لإدارة المنتجات، الطلبات، والعملاء بضغطة زر.
+              {t("description")}
             </motion.p>
             
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
               className={styles.ctas}
             >
               <Link href={`/${locale}/admin/login`} className={styles.primaryBtn}>
-                سجل وابدأ الآن <ArrowRight size={22} />
+                {t("cta_start")} <ArrowRight size={20} />
               </Link>
               <Link href={`/${locale}/store/demo`} className={styles.secondaryBtn}>
-                <Globe size={20} /> تصفح نسخة ديمو
+                <Globe size={18} /> {t("cta_demo")}
               </Link>
             </motion.div>
 
             {/* Premium Hero Visual */}
             <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 40 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
+              initial={{ opacity: 0, y: 60, rotateX: 20 }}
+              animate={{ opacity: 1, y: 0, rotateX: 0 }}
+              transition={{ duration: 1.2, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
               className={styles.heroVisual}
             >
               <div className={styles.visualGlow} />
               <Image 
                 src="/premium_hero_dashboard_v1_1776535565323.png" 
                 alt="Buyers Premium Dashboard Illustration" 
-                width={1000} 
-                height={600} 
+                width={1200} 
+                height={700} 
                 className={styles.dashboardPreview}
                 priority
               />
@@ -99,15 +110,15 @@ export default function Home() {
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 1 }}
+              transition={{ delay: 1.2, duration: 1 }}
               className={styles.heroProof}
             >
               <div className={styles.avatars}>
-                <div className={styles.avatar} style={{ background: '#7c3aed', color: 'white' }}>A</div>
-                <div className={styles.avatar} style={{ background: '#10b981', color: 'white' }}>M</div>
-                <div className={styles.avatar} style={{ background: '#f59e0b', color: 'white' }}>S</div>
+                <div className={styles.avatar} style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)', color: 'white' }}>A</div>
+                <div className={styles.avatar} style={{ background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white' }}>M</div>
+                <div className={styles.avatar} style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: 'white' }}>S</div>
               </div>
-              <p>انضمت إلينا أكثر من <strong>500+</strong> علامة تجارية يمنية ناشئة</p>
+              <p>{t("hero_proof")}</p>
             </motion.div>
           </div>
         </section>
@@ -115,45 +126,59 @@ export default function Home() {
         {/* The Comparison Section */}
         <section className={styles.comparison}>
           <div className={styles.sectionHeader}>
-            <span className={styles.preTitle}>لماذا تختار بايرز؟</span>
-            <h2>ارتقِ بتجارتك من العشوائية إلى العالمية</h2>
+            <motion.span 
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className={styles.preTitle}
+            >
+              {t("comparison_pre")}
+            </motion.span>
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+            >
+              {t("comparison_title")}
+            </motion.h2>
           </div>
           
           <div className={styles.comparisonGrid}>
             <motion.div 
-              initial={{ opacity: 0, x: 20 }}
+              initial={{ opacity: 0, x: 30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
               className={`${styles.compareCard} ${styles.compareBad}`}
             >
               <div className={styles.compareHeader}>
-                <XCircle size={32} />
-                <h3>البيع التقليدي (يدوي)</h3>
+                <XCircle size={28} color="#ef4444" />
+                <h3>{t("compare_bad_title")}</h3>
               </div>
               <ul>
-                <li><XCircle size={18} /> طلبات مبعثرة بين واتساب وتليجرام</li>
-                <li><XCircle size={18} /> تأخر في تحديث الأسعار والمخزون</li>
-                <li><XCircle size={18} /> لا توجد تقارير أداء أو بيانات عملاء</li>
-                <li><XCircle size={18} /> ثقة ضعيفة من العملاء الجدد</li>
+                {t.raw("compare_bad_items").map((item: string, i: number) => (
+                  <li key={i}><XCircle size={16} color="#fecaca" /> {item}</li>
+                ))}
               </ul>
             </motion.div>
 
             <motion.div 
-              initial={{ opacity: 0, x: -20 }}
+              initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
               className={`${styles.compareCard} ${styles.compareGood}`}
             >
-              <div className={styles.compareBadge}>المستقبل هنا</div>
+              <div className={styles.compareBadge}>{t("compare_good_badge")}</div>
               <div className={styles.compareHeader}>
-                <CheckCircle2 size={32} />
-                <h3>التحول الرقمي مع <span>بايرز</span></h3>
+                <CheckCircle2 size={28} color="#10b981" />
+                <h3>{t("compare_good_title")} <span>بايرز</span></h3>
               </div>
               <ul>
-                <li><CheckCircle2 size={18} /> نظام استلام طلبات آلي 24/7</li>
-                <li><CheckCircle2 size={18} /> ربط فوري بالمخزون وتحديث الأسعار</li>
-                <li><CheckCircle2 size={18} /> ذكاء أعمال وتقارير ربح متعمقة</li>
-                <li><CheckCircle2 size={18} /> واجهة احترافية تضاعف مبيعاتك</li>
+                {t.raw("compare_good_items").map((item: string, i: number) => (
+                  <li key={i}><CheckCircle2 size={16} color="#a7f3d0" /> {item}</li>
+                ))}
               </ul>
             </motion.div>
           </div>
@@ -162,66 +187,53 @@ export default function Home() {
         {/* Benefits/Features In Bento Grid */}
         <section className={styles.features}>
           <div className={styles.sectionHeader}>
-            <span className={styles.preTitle}>المميزات</span>
-            <h2>ترسانة أدوات متكاملة بين يديك</h2>
+            <span className={styles.preTitle}>{t("features_pre")}</span>
+            <h2>{t("features_title")}</h2>
           </div>
 
           <div className={styles.featureGrid}>
-            <motion.div whileHover={{ y: -5 }} className={styles.featureCard}>
-              <div className={styles.featureIcon}><Rocket /></div>
-              <h3>إطلاق في دقائق</h3>
-              <p>منظومة جاهزة للعمل فوراً. لا حاجة لمبرمجين أو خبرة تقنية معقدة.</p>
-            </motion.div>
-
-            <motion.div whileHover={{ y: -5 }} className={styles.featureCard}>
-              <div className={styles.featureIcon}><ShieldCheck /></div>
-              <h3>حوكمة البيانات</h3>
-              <p>تشفير كامل لبيانات عملائك وحماية لطلباتك عبر خوادم سحابية مؤمنة.</p>
-            </motion.div>
-
-            <motion.div whileHover={{ y: -5 }} className={styles.featureCard}>
-              <div className={styles.featureIcon}><LayoutDashboard /></div>
-              <h3>إدارة متعددة الأجهزة</h3>
-              <p>تحكم في متجرك بمرونة فائقة من هاتفك أو حاسوبك الشخصي من أي مكان.</p>
-            </motion.div>
-
-            <motion.div whileHover={{ y: -5 }} className={styles.featureCard}>
-              <div className={styles.featureIcon}><TrendingUp /></div>
-              <h3>نمو مدفوع بالبيانات</h3>
-              <p>حلل سلوك المشترين واستخدم الكوبونات الذكية لزيادة معدل التحويل.</p>
-            </motion.div>
-            
-            <motion.div whileHover={{ y: -5 }} className={styles.featureCard}>
-              <div className={styles.featureIcon}><Globe /></div>
-              <h3>تعدد اللغات والعملات</h3>
-              <p>استهدف السوق المحلي والعالمي بدعم كامل للريال اليمني، السعودي، والدولار.</p>
-            </motion.div>
-
-            <motion.div whileHover={{ y: -5 }} className={styles.featureCard}>
-              <div className={styles.featureIcon}><MessageCircle /></div>
-              <h3>تواصل ذكي</h3>
-              <p>تنبيهات فورية عبر واتساب للعميل وللتاجر عند كل عملية شراء جديدة.</p>
-            </motion.div>
+            {[
+              { icon: <Rocket />, title: t("f1_title"), desc: t("f1_desc") },
+              { icon: <ShieldCheck />, title: t("f2_title"), desc: t("f2_desc") },
+              { icon: <LayoutDashboard />, title: t("f3_title"), desc: t("f3_desc") },
+              { icon: <TrendingUp />, title: t("f4_title"), desc: t("f4_desc") },
+              { icon: <Globe />, title: t("f5_title"), desc: t("f5_desc") },
+              { icon: <MessageCircle />, title: t("f6_title"), desc: t("f6_desc") }
+            ].map((feature, index) => (
+              <motion.div 
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                className={styles.featureCard}
+              >
+                <div className={styles.featureIcon}>{feature.icon}</div>
+                <h3>{feature.title}</h3>
+                <p>{feature.desc}</p>
+              </motion.div>
+            ))}
           </div>
         </section>
 
         {/* Final CTA */}
         <section className={styles.finalCta}>
           <motion.div 
-            initial={{ opacity: 0, scale: 0.98 }} 
+            initial={{ opacity: 0, scale: 0.95 }} 
             whileInView={{ opacity: 1, scale: 1 }} 
             viewport={{ once: true }} 
+            transition={{ duration: 0.6 }}
             className={styles.ctaCard}
           >
             <div className={styles.ctaContent}>
-              <h2>ابدأ رحلتك نحو الريادة اليوم</h2>
-              <p>كن واحداً من رواد الأعمال الذين غيروا قواعد اللعبة في السوق اليمني.</p>
+              <h2>{t("final_cta_title")}</h2>
+              <p>{t("final_cta_desc")}</p>
               <Link href={`/${locale}/admin/login`} className={styles.primaryBtn}>
-                اشترك الآن مجاناً <ArrowRight size={22} />
+                {t("final_cta_btn")} <ChevronRight size={22} />
               </Link>
             </div>
             <div className={styles.ctaGraphic}>
-              <Store size={280} strokeWidth={1} />
+              <Store size={320} strokeWidth={0.5} />
             </div>
           </motion.div>
         </section>
@@ -230,16 +242,16 @@ export default function Home() {
       <footer className={styles.footer}>
         <div className={styles.footerBrand}>
           <span className={styles.footerLogo}>بايرز</span>
-          <p>ريادة التجارة الإلكترونية في اليمن والعالم العربي</p>
+          <p>{locale === 'ar' ? 'ريادة التجارة الإلكترونية في اليمن والعالم العربي' : 'Leading E-commerce in Yemen & Arab World'}</p>
         </div>
         <div className={styles.footerLinks}>
-          <Link href={`/${locale}/admin/login`}>بوابة التجار</Link>
-          <Link href={`/${locale}/manager/login`}>الإدارة العامة</Link>
-          <Link href="#">الدعم الفني</Link>
-          <Link href={`/${locale}/store/demo`}>نسخة تجريبية</Link>
+          <Link href={`/${locale}/admin/login`}>{locale === 'ar' ? 'بوابة التجار' : 'Merchant Portal'}</Link>
+          <Link href={`/${locale}/manager/login`}>{locale === 'ar' ? 'الإدارة العامة' : 'Central Admin'}</Link>
+          <Link href="#">{locale === 'ar' ? 'الدعم الفني' : 'Support'}</Link>
+          <Link href={`/${locale}/store/demo`}>{locale === 'ar' ? 'نسخة تجريبية' : 'Demo Store'}</Link>
         </div>
         <div className={styles.footerCopyright}>
-          &copy; {new Date().getFullYear()} Buyers. All Rights Reserved. Crafted with Passion for Yemeni Merchants.
+          &copy; {new Date().getFullYear()} Buyers. All Rights Reserved. Crafted for Yemeni Excellence.
         </div>
       </footer>
     </div>

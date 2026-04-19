@@ -107,11 +107,47 @@
     "relatedProducts": "You May Also Like"
   },
   "Landing": {
-    "title": "Buyers Platform",
-    "subtitle": "The ultimate destination for merchants in Yemen",
-    "cta": "Browse Demo Store",
-    "features": "Why Buyers?",
-    "sub_features": "Ease, speed, and integrated technical support"
+    "badge": "Leading Cloud Commerce Platform in Yemen",
+    "title_main": "Own a Professional Store",
+    "title_sub": "Double Your Sales Today",
+    "description": "Transform your business into a global brand. 'Buyers' provides all the tools you need to manage products, orders, and customers with one click.",
+    "cta_start": "Register & Start Now",
+    "cta_demo": "View Demo Version",
+    "hero_proof": "Joined by over 500+ emerging Yemeni brands",
+    "comparison_pre": "Why choose Buyers?",
+    "comparison_title": "Elevate Your Business from Chaos to Global",
+    "compare_bad_title": "Traditional Selling (Manual)",
+    "compare_bad_items": [
+      "Orders scattered between WhatsApp and Telegram",
+      "Delays in updating prices and inventory",
+      "No performance reports or customer data",
+      "Weak trust from new customers"
+    ],
+    "compare_good_title": "Digital Transformation with",
+    "compare_good_badge": "The Future is Here",
+    "compare_good_items": [
+      "Automated order receiving 24/7",
+      "Instant inventory sync and price updates",
+      "Deep business intelligence and profit reports",
+      "Professional interface that doubles your sales"
+    ],
+    "features_pre": "Features",
+    "features_title": "A Complete Arsenal of Tools in Your Hands",
+    "f1_title": "Launch in Minutes",
+    "f1_desc": "System ready to work instantly. No need for developers or complex technical expertise.",
+    "f2_title": "Data Governance",
+    "f2_desc": "Full encryption for customer data and order protection via secure cloud servers.",
+    "f3_title": "Multi-Device Management",
+    "f3_desc": "Control your store with ultimate flexibility from your phone or PC anywhere.",
+    "f4_title": "Data-Driven Growth",
+    "f4_desc": "Analyze buyer behavior and use smart coupons to increase conversion rates.",
+    "f5_title": "Multi-Language & Currency",
+    "f5_desc": "Target local and global markets with support for YER, SAR, and USD.",
+    "f6_title": "Smart Communication",
+    "f6_desc": "Instant WhatsApp notifications for both customer and merchant for every new purchase.",
+    "final_cta_title": "Start Your Journey to Leadership Today",
+    "final_cta_desc": "Be one of the entrepreneurs who changed the rules of the game in the Yemeni market.",
+    "final_cta_btn": "Subscribe Now for Free"
   },
   "Orders": {
     "title": "My Orders",

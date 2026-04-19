@@ -36,6 +36,11 @@ const Footer = () => {
     }
   }, [storeSlug]);
 
+  // Hide global footer on landing page to avoid duplication with specialized marketing footer
+  const isLandingPage = pathname === `/${locale}` || pathname === `/${locale}/`;
+  
+  if (isLandingPage) return null;
+
   return (
     <footer className={styles.footer}>
       <div className={styles.topSection}>
