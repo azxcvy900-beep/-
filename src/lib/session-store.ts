@@ -27,6 +27,8 @@ interface SessionState {
   setStoreSlug: (slug: string | null) => void;
   verificationStatus?: string;
   rejectionReason?: string;
+  _hasHydrated: boolean;
+  setHasHydrated: (val: boolean) => void;
 }
 
 /**
@@ -41,9 +43,10 @@ export const useSessionStore = create<SessionState>()(
       uid: null,
       username: null,
       storeSlug: null,
-
       permissions: [],
       loginTime: null,
+      _hasHydrated: false,
+      setHasHydrated: (state) => set({ _hasHydrated: state }),
 
       loginAsAdmin: (username: string, password: string) => {
         if (
@@ -129,6 +132,9 @@ export const useSessionStore = create<SessionState>()(
     }),
     {
       name: 'buyers-session',
+      onRehydrateStorage: (state) => {
+        return () => state.setHasHydrated(true);
+      },
     }
   )
 );

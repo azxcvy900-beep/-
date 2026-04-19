@@ -42,7 +42,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [checkingStore, setCheckingStore] = useState(true);
   const [mounted, setMounted] = useState(false);
-  const { isLoggedIn, role, username, storeSlug, permissions, logout } = useSessionStore();
+  const { isLoggedIn, role, username, storeSlug, permissions, logout, _hasHydrated } = useSessionStore();
   const { storeLogo, storeName, setStoreInfo, verificationStatus } = useAuthStore();
   
   // Handle hydration
@@ -72,7 +72,8 @@ export default function AdminLayoutContent({ children }: { children: React.React
   }, [isLoggedIn, role, isLoginPage]);
 
   // 1. Guard against pre-hydration renders (SSR or immediate hydration lag)
-  if (!mounted) {
+  // We wait for BOTH the component mounting AND the session store rehydrating from localStorage
+  if (!mounted || !_hasHydrated) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: 'var(--background)' }}>
         <div className="loader">جاري التحميل...</div>

@@ -32,7 +32,7 @@ export default function AdminLoginPage() {
   const t = useTranslations('Admin');
   const locale = useLocale();
   const router = useRouter();
-  const { isLoggedIn, role, storeSlug, loginAsMerchant } = useSessionStore();
+  const { isLoggedIn, role, storeSlug, loginAsMerchant, _hasHydrated } = useSessionStore();
 
   const [mode, setMode] = useState<AuthMode>('login');
   const [username, setUsername] = useState('');
@@ -47,13 +47,13 @@ export default function AdminLoginPage() {
   const bgImage = "";
 
   useEffect(() => {
-    // Only trigger auto-redirect if we are sure of the role and login status
-    if (isLoggedIn && role === 'merchant') {
+    // Wait for hydration and mounting before auto-redirecting
+    if (_hasHydrated && isLoggedIn && role === 'merchant') {
        const target = storeSlug ? '/admin/dashboard' : '/admin/setup';
-       console.log(`Redirecting to: ${target}`);
+       console.log(`Auto-redirecting to: ${target}`);
        router.replace(target);
     }
-  }, [isLoggedIn, role, storeSlug, router]);
+  }, [isLoggedIn, role, storeSlug, router, _hasHydrated]);
 
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -80,13 +80,12 @@ export default function AdminLoginPage() {
 
         setSuccess('تم تسجيل الدخول بنجاح! جاري التوجيه...');
         
-        // Immediate check of current state to pick the right path
-        const state = useSessionStore.getState();
-        const target = state.storeSlug ? '/admin/dashboard' : '/admin/setup';
-        
+        // Pick path after state is confirmed updated
         setTimeout(() => {
+          const state = useSessionStore.getState();
+          const target = state.storeSlug ? '/admin/dashboard' : '/admin/setup';
           router.push(target);
-        }, 1000); // Slightly longer timeout to allow state propagation
+        }, 800);
       }
     } catch (err: any) {
       console.error("Login error:", err);
