@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/routing';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { 
@@ -48,10 +48,10 @@ export default function AdminLoginPage() {
 
   useEffect(() => {
     if (isLoggedIn && role === 'merchant') {
-       const target = storeSlug ? `/${locale}/admin/dashboard` : `/${locale}/admin/setup`;
+       const target = storeSlug ? '/admin/dashboard' : '/admin/setup';
        router.replace(target);
     }
-  }, [isLoggedIn, role, storeSlug, router, locale]);
+  }, [isLoggedIn, role, storeSlug, router]);
 
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -79,7 +79,7 @@ export default function AdminLoginPage() {
         setSuccess('تم تسجيل الدخول بنجاح! جاري التوجيه...');
         // We use the same logic here for immediate push
         const { storeSlug: currentSlug } = useSessionStore.getState();
-        const target = currentSlug ? `/${locale}/admin/dashboard` : `/${locale}/admin/setup`;
+        const target = currentSlug ? '/admin/dashboard' : '/admin/setup';
         setTimeout(() => router.push(target), 800);
       }
     } catch (err: any) {
