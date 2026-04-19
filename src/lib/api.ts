@@ -1142,11 +1142,22 @@ export async function loginMerchant(usernameOrEmail: string, password: string): 
     // If it's a username, we'll try to find the email via a query (for backward compatibility or handle support)
     if (!usernameOrEmail.includes('@')) {
       const merchantsCol = collection(db, 'merchants');
-      const q = query(merchantsCol, where('username', '==', usernameOrEmail.toLowerCase()));
+      // Normalize search: lowercase and trim
+      const cleanUsername = usernameOrEmail.trim().toLowerCase();
+      const q = query(merchantsCol, where('username', '==', cleanUsername));
       const querySnapshot = await getDocs(q);
+      
       if (!querySnapshot.empty) {
         email = (querySnapshot.docs[0].data() as AppUser).email || '';
+      } else {
+        // If we can't find an email for this username, we shouldn't proceed to Firebase with a naked name
+        console.warn(`No merchant found with username: ${cleanUsername}`);
+        throw { code: 'auth/user-not-found', message: 'User not found' };
       }
+    }
+
+    if (!email || !email.includes('@')) {
+       throw { code: 'auth/invalid-email', message: 'Invalid email' };
     }
 
     const userCredential = await signInWithEmailAndPassword(auth, email, password);

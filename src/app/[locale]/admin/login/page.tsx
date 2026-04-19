@@ -47,13 +47,14 @@ export default function AdminLoginPage() {
   const bgImage = "";
 
   useEffect(() => {
-    // Wait for hydration and mounting before auto-redirecting
+    // Wait for hydration and mounting before any auto-redirect logic
     if (_hasHydrated && isLoggedIn && role === 'merchant') {
        const target = storeSlug ? '/admin/dashboard' : '/admin/setup';
-       console.log(`Auto-redirecting to: ${target}`);
-       router.replace(target);
+       console.log(`Auto-redirecting via window to: ${target}`);
+       // Use window.location as the absolute source of truth for auth redirects
+       window.location.href = `/${locale}${target}`;
     }
-  }, [isLoggedIn, role, storeSlug, router, _hasHydrated]);
+  }, [isLoggedIn, role, storeSlug, _hasHydrated, locale]);
 
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -80,11 +81,11 @@ export default function AdminLoginPage() {
 
         setSuccess('تم تسجيل الدخول بنجاح! جاري التوجيه...');
         
-        // Pick path after state is confirmed updated
+        // Use hard reload for the critical login transition
         setTimeout(() => {
           const state = useSessionStore.getState();
           const target = state.storeSlug ? '/admin/dashboard' : '/admin/setup';
-          router.push(target);
+          window.location.href = `/${locale}${target}`;
         }, 800);
       }
     } catch (err: any) {
@@ -413,7 +414,7 @@ export default function AdminLoginPage() {
                <button 
                  type="button"
                  className={styles.managerBtn}
-                 onClick={() => router.push(`/${locale}/manager/login`)}
+                 onClick={() => router.push('/manager/login')}
                >
                  <ShieldAlert size={18} />
                  مدير المنصة (Super Admin)
