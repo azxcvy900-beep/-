@@ -49,11 +49,11 @@ export default function AdminLoginPage() {
   useEffect(() => {
     // Only trigger auto-redirect if we are sure of the role and login status
     if (isLoggedIn && role === 'merchant') {
-       const target = storeSlug ? `/${locale}/admin/dashboard` : `/${locale}/admin/setup`;
+       const target = storeSlug ? '/admin/dashboard' : '/admin/setup';
        console.log(`Redirecting to: ${target}`);
        router.replace(target);
     }
-  }, [isLoggedIn, role, storeSlug, router, locale]);
+  }, [isLoggedIn, role, storeSlug, router]);
 
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -82,7 +82,7 @@ export default function AdminLoginPage() {
         
         // Immediate check of current state to pick the right path
         const state = useSessionStore.getState();
-        const target = state.storeSlug ? `/${locale}/admin/dashboard` : `/${locale}/admin/setup`;
+        const target = state.storeSlug ? '/admin/dashboard' : '/admin/setup';
         
         setTimeout(() => {
           router.push(target);
