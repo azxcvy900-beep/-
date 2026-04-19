@@ -32,7 +32,7 @@ export default function AdminLoginPage() {
   const t = useTranslations('Admin');
   const locale = useLocale();
   const router = useRouter();
-  const { isLoggedIn, role, loginAsMerchant } = useSessionStore();
+  const { isLoggedIn, role, storeSlug, loginAsMerchant } = useSessionStore();
 
   const [mode, setMode] = useState<AuthMode>('login');
   const [username, setUsername] = useState('');
@@ -48,9 +48,10 @@ export default function AdminLoginPage() {
 
   useEffect(() => {
     if (isLoggedIn && role === 'merchant') {
-       router.replace(`/${locale}/admin/dashboard`);
+       const target = storeSlug ? `/${locale}/admin/dashboard` : `/${locale}/admin/setup`;
+       router.replace(target);
     }
-  }, [isLoggedIn, role, router, locale]);
+  }, [isLoggedIn, role, storeSlug, router, locale]);
 
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -76,7 +77,10 @@ export default function AdminLoginPage() {
         }
 
         setSuccess('تم تسجيل الدخول بنجاح! جاري التوجيه...');
-        setTimeout(() => router.push(`/${locale}/admin/dashboard`), 800);
+        // We use the same logic here for immediate push
+        const { storeSlug: currentSlug } = useSessionStore.getState();
+        const target = currentSlug ? `/${locale}/admin/dashboard` : `/${locale}/admin/setup`;
+        setTimeout(() => router.push(target), 800);
       }
     } catch (err: any) {
       console.error("Login error:", err);
