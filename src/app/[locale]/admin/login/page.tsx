@@ -69,8 +69,9 @@ export default function AdminLoginPage() {
         const { auth } = await import('@/lib/firebase');
         if (auth.currentUser && !auth.currentUser.emailVerified) {
           setVerificationPending(true);
+          setEmail(auth.currentUser.email || ''); // Capture the email for display
           setError('يرجى تفعيل حسابك عبر الرابط المرسل لبريدك الإلكتروني أولاً.');
-          // Important: Don't redirect yet if not verified
+          setLoading(false);
           return;
         }
 
@@ -380,6 +381,9 @@ export default function AdminLoginPage() {
 
             {verificationPending && (
               <div className={styles.resendWrapper}>
+                <p className={styles.emailDisplay}>
+                  تم الإرسال إلى: <strong>{email}</strong>
+                </p>
                 <motion.button
                   type="button"
                   initial={{ opacity: 0 }}

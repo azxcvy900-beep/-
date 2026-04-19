@@ -1100,10 +1100,9 @@ export async function registerMerchant(merchant: Omit<AppUser, 'uid' | 'createdA
   await setDoc(doc(db, 'merchants', uid), newUser);
 
   
-  // 3. Trigger verification email immediately with redirect settings
+  // 3. Trigger verification email immediately with simple redirect settings
   const actionCodeSettings = {
     url: `${typeof window !== 'undefined' ? window.location.origin : 'https://byers.vercel.app'}/ar/admin/login`,
-    handleCodeInApp: true,
   };
   
   await sendEmailVerification(userCredential.user, actionCodeSettings);
@@ -1118,7 +1117,6 @@ export async function requestEmailVerification(): Promise<void> {
   if (auth.currentUser) {
     const actionCodeSettings = {
       url: `${typeof window !== 'undefined' ? window.location.origin : 'https://byers.vercel.app'}/ar/admin/login`,
-      handleCodeInApp: true,
     };
     await sendEmailVerification(auth.currentUser, actionCodeSettings);
   }
