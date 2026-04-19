@@ -82,11 +82,12 @@ export default function AdminLoginPage() {
         setSuccess('تم تسجيل الدخول بنجاح! جاري التوجيه...');
         
         // Use hard reload for the critical login transition
+        // Increased timeout to ensure persistence is committed
         setTimeout(() => {
           const state = useSessionStore.getState();
           const target = state.storeSlug ? '/admin/dashboard' : '/admin/setup';
           window.location.href = `/${locale}${target}`;
-        }, 800);
+        }, 1200);
       }
     } catch (err: any) {
       console.error("Login error:", err);

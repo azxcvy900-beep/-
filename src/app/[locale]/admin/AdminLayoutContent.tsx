@@ -74,11 +74,17 @@ export default function AdminLayoutContent({ children }: { children: React.React
   // 1. Guard against pre-hydration renders (SSR or immediate hydration lag)
   // We wait for BOTH the component mounting AND the session store rehydrating from localStorage
   if (!mounted || !_hasHydrated) {
+    if (mounted) console.log('[AdminLayout] Waiting for hydration...');
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: 'var(--background)' }}>
         <div className="loader">جاري التحميل...</div>
       </div>
     );
+  }
+
+  // Debug log for authentication state
+  if (!isLoginPage) {
+    console.log('[AdminLayout] Guard Check:', { isLoggedIn, role, storeSlug, checkingStore, isSetupPage });
   }
 
   // 2. Immediate route-based exclusions

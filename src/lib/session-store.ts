@@ -132,6 +132,10 @@ export const useSessionStore = create<SessionState>()(
     }),
     {
       name: 'buyers-session',
+      partialize: (state) => {
+        const { _hasHydrated, setHasHydrated, ...rest } = state;
+        return rest;
+      },
       onRehydrateStorage: (state) => {
         return () => state.setHasHydrated(true);
       },
