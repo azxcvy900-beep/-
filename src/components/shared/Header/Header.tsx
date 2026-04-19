@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
+import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Moon, Sun, Globe, ShoppingCart, ClipboardList, ShoppingBag, LayoutDashboard } from 'lucide-react';
 import { useTheme } from '@/components/providers/ThemeProvider';
@@ -21,6 +22,7 @@ const Header: React.FC<HeaderProps> = ({ storeName, storeLogo, isLanding }) => {
   const t = useTranslations('Header');
   const ot = useTranslations('Orders');
   const locale = useLocale();
+  const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
   
   // Hydration safety for Zustand persist
@@ -32,6 +34,17 @@ const Header: React.FC<HeaderProps> = ({ storeName, storeLogo, isLanding }) => {
   }, []);
 
   const nextLocale = locale === 'ar' ? 'en' : 'ar';
+
+  if (!mounted) {
+    return (
+      <header className={styles.header}>
+        <div className={styles.container}>
+          <div className={styles.logo}>{storeName}</div>
+          <div className={styles.nav}></div>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header className={styles.header}>
@@ -47,7 +60,7 @@ const Header: React.FC<HeaderProps> = ({ storeName, storeLogo, isLanding }) => {
                 src={storeLogo} 
                 alt={storeName} 
                 className={styles.logoImage}
-                style={{ height: '40px', width: 'auto', objectFit: 'contain' }}
+                style={{ height: '36px', width: 'auto', objectFit: 'contain' }}
               />
             ) : (
               storeName
@@ -57,20 +70,24 @@ const Header: React.FC<HeaderProps> = ({ storeName, storeLogo, isLanding }) => {
         
         <nav className={styles.nav}>
           <motion.button 
-            onClick={toggleTheme} 
+            onClick={() => {
+              console.log("Toggle Theme Clicked");
+              toggleTheme();
+            }} 
             className={styles.iconButton}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            title={theme === 'light' ? 'Dark Mode' : 'Light Mode'}
           >
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
                 key={theme}
-                initial={{ y: -20, opacity: 0, rotate: 45 }}
+                initial={{ y: -10, opacity: 0, rotate: 45 }}
                 animate={{ y: 0, opacity: 1, rotate: 0 }}
-                exit={{ y: 20, opacity: 0, rotate: -45 }}
+                exit={{ y: 10, opacity: 0, rotate: -45 }}
                 transition={{ duration: 0.2 }}
               >
-                {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+                {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
               </motion.div>
             </AnimatePresence>
           </motion.button>
@@ -78,12 +95,12 @@ const Header: React.FC<HeaderProps> = ({ storeName, storeLogo, isLanding }) => {
           {!isLanding && (
             <>
               <Link href={`/${locale}/orders`} className={styles.navLink}>
-                <ShoppingBag size={18} style={{ margin: '0 4px', verticalAlign: 'middle' }} />
+                <ShoppingBag size={18} />
                 <span className={styles.hideOnMobile}>{t('myOrders')}</span>
               </Link>
               
               <Link href={`/${locale}/track`} className={styles.navLink}>
-                <ClipboardList size={18} style={{ margin: '0 4px', verticalAlign: 'middle' }} />
+                <ClipboardList size={18} />
                 <span className={styles.hideOnMobile}>{t('trackOrder')}</span>
               </Link>
 
@@ -91,7 +108,7 @@ const Header: React.FC<HeaderProps> = ({ storeName, storeLogo, isLanding }) => {
                 <ShoppingCart size={18} />
                 <span className={`${styles.cartText} ${styles.hideOnMobile}`}>{t('cart')}</span>
                 <AnimatePresence>
-                  {mounted && totalItems > 0 && (
+                  {totalItems > 0 && (
                     <motion.span 
                       key="cart-badge"
                       className={styles.cartCount}
@@ -119,7 +136,7 @@ const Header: React.FC<HeaderProps> = ({ storeName, storeLogo, isLanding }) => {
             </Link>
           )}
 
-          <Link href={`/${nextLocale}`} className={styles.localeLink}>
+          <Link href={pathname.replace(`/${locale}`, `/${nextLocale}`)} className={styles.localeLink}>
             <Globe size={16} />
             <span className={styles.hideOnMobile}>{locale === 'ar' ? 'English' : 'العربية'}</span>
           </Link>
