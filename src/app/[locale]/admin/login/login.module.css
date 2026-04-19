@@ -284,6 +284,15 @@
   cursor: not-allowed;
 }
 
+.resendWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  width: 100%;
+}
+
 .resendBtn {
   background: none;
   border: none;
@@ -292,15 +301,29 @@
   font-weight: 700;
   cursor: pointer;
   padding: 0.5rem;
-  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
   text-decoration: underline;
-  transition: color 0.2s;
-  width: 100%;
-  text-align: center;
+  transition: all 0.2s;
 }
 
 .resendBtn:hover:not(:disabled) {
   color: #4f46e5;
+  transform: translateY(-1px);
+}
+
+.resendBtn:disabled {
+  opacity: 0.6;
+  text-decoration: none;
+}
+
+.spamHint {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-style: italic;
+  font-weight: 500;
 }
 
 .managerBtn {

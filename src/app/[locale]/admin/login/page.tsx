@@ -131,12 +131,24 @@ export default function AdminLoginPage() {
 
   const handleResendEmail = async () => {
     setLoading(true);
+    setError('');
+    setSuccess('');
     try {
       const { requestEmailVerification } = await import('@/lib/api');
       await requestEmailVerification();
-      setSuccess('تم إعادة إرسال رابط التفعيل، تفقد بريدك الآن (أو مجلد Spam).');
-    } catch (err) {
-      setError('فشلت محاولة إعادة الإرسال. يرجى المحاولة لاحقاً.');
+      setSuccess('تم إعادة إرسال رابط التفعيل! يرجى تفقد بريدك الوارد (Inbox) أو مجلد الرسائل المزعجة (Spam).');
+      
+      // Auto-hide success after 10s
+      setTimeout(() => setSuccess(''), 10000);
+    } catch (err: any) {
+      console.error("Resend error:", err);
+      if (err.code === 'auth/too-many-requests') {
+        setError('لقد قمت بمحاولات عديدة. يرجى الانتظار قليلاً قبل إعادة المحاولة.');
+      } else if (err.code === 'auth/unauthorized-domain') {
+        setError('خطأ في الإعدادات: هذا النطاق غير مصرح له بإرسال البريد. يرجى مراجعة إعدادات Firebase Console.');
+      } else {
+        setError('فشلت محاولة إعادة الإرسال. تأكد من اتصالك بالإنترنت وحاول مجدداً.');
+      }
     } finally {
       setLoading(false);
     }
@@ -367,16 +379,20 @@ export default function AdminLoginPage() {
             </button>
 
             {verificationPending && (
-              <motion.button
-                type="button"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                onClick={handleResendEmail}
-                className={styles.resendBtn}
-                disabled={loading}
-              >
-                لم تصلك الرسالة؟ إعادة إرسال رابط التحقق
-              </motion.button>
+              <div className={styles.resendWrapper}>
+                <motion.button
+                  type="button"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  onClick={handleResendEmail}
+                  className={styles.resendBtn}
+                  disabled={loading}
+                >
+                  <Mail size={16} />
+                  لم تصلك الرسالة؟ إعادة إرسال رابط التحقق
+                </motion.button>
+                <p className={styles.spamHint}>* تأكد من فحص مجلد الرسائل غير المرغوب فيها (Spam/Junk).</p>
+              </div>
             )}
 
 
