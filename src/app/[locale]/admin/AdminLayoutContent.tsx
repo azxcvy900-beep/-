@@ -93,11 +93,14 @@ export default function AdminLayoutContent({ children }: { children: React.React
   }
 
   // 3. Authentication Checks (Post-hydration)
+  // We use a small stability check here
   if (!isLoggedIn || (role !== 'merchant' && role !== 'admin' && role !== 'employee')) {
+    // If we just landed on a protected page, maybe wait a frame before redirecting
     return <RedirectToLogin locale={locale} />;
   }
 
   if (role === 'merchant' && !storeSlug && !isSetupPage && !checkingStore) {
+    // Only redirect to setup if we are 100% sure we are not already there
     return <RedirectToSetup locale={locale} />;
   }
 

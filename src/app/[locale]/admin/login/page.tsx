@@ -47,10 +47,25 @@ export default function AdminLoginPage() {
   const bgImage = "";
 
   useEffect(() => {
-    // Wait for hydration and mounting before any auto-redirect logic
+    // 1. Final Loop Guard (Safety Kill Switch)
+    if (typeof sessionStorage !== 'undefined') {
+      const lastRedirect = sessionStorage.getItem('last_admin_redirect');
+      const now = Date.now();
+      if (lastRedirect && (now - parseInt(lastRedirect)) < 5000) {
+        console.warn('[AdminLoginPage] Infinite redirect loop detected. Halting auto-redirection.');
+        return;
+      }
+    }
+
+    // 2. Wait for hydration and mounting 
     if (_hasHydrated && isLoggedIn && role === 'merchant') {
        const target = storeSlug ? '/admin/dashboard' : '/admin/setup';
-       console.log(`Auto-redirecting via window to: ${target}`);
+       console.log(`[AdminLoginPage] Initializing secured redirection to: ${target}`);
+       
+       if (typeof sessionStorage !== 'undefined') {
+         sessionStorage.setItem('last_admin_redirect', Date.now().toString());
+       }
+
        // Use window.location as the absolute source of truth for auth redirects
        window.location.href = `/${locale}${target}`;
     }
@@ -82,10 +97,14 @@ export default function AdminLoginPage() {
         setSuccess('تم تسجيل الدخول بنجاح! جاري التوجيه...');
         
         // Use hard reload for the critical login transition
-        // Increased timeout to ensure persistence is committed
         setTimeout(() => {
           const state = useSessionStore.getState();
           const target = state.storeSlug ? '/admin/dashboard' : '/admin/setup';
+          
+          if (typeof sessionStorage !== 'undefined') {
+            sessionStorage.setItem('last_admin_redirect', Date.now().toString());
+          }
+          
           window.location.href = `/${locale}${target}`;
         }, 1200);
       }

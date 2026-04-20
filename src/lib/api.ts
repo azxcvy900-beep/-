@@ -1142,17 +1142,24 @@ export async function loginMerchant(usernameOrEmail: string, password: string): 
     // If it's a username, we'll try to find the email via a query (for backward compatibility or handle support)
     if (!usernameOrEmail.includes('@')) {
       const merchantsCol = collection(db, 'merchants');
-      // Normalize search: lowercase and trim
-      const cleanUsername = usernameOrEmail.trim().toLowerCase();
-      const q = query(merchantsCol, where('username', '==', cleanUsername));
-      const querySnapshot = await getDocs(q);
+      const cleanUsername = usernameOrEmail.trim();
+      
+      // Try multiple matching strategies for maximum robustness
+      // 1. Exact match (as provided)
+      let q = query(merchantsCol, where('username', '==', cleanUsername));
+      let querySnapshot = await getDocs(q);
+      
+      if (querySnapshot.empty) {
+        // 2. Case-insensitive match (fallback)
+        q = query(merchantsCol, where('username', '==', cleanUsername.toLowerCase()));
+        querySnapshot = await getDocs(q);
+      }
       
       if (!querySnapshot.empty) {
         email = (querySnapshot.docs[0].data() as AppUser).email || '';
       } else {
-        // If we can't find an email for this username, we shouldn't proceed to Firebase with a naked name
         console.warn(`No merchant found with username: ${cleanUsername}`);
-        throw { code: 'auth/user-not-found', message: 'User not found' };
+        throw { code: 'auth/user-not-found', label: 'USER_NOT_FOUND', message: 'User not found' };
       }
     }
 
