@@ -16,7 +16,7 @@ export function proxy(request: NextRequest) {
   // SECURITY: Verify signature to prevent role spoofing
   const isValidSession = (role: string | undefined, user: string | undefined, sig: string | undefined) => {
     if (!role || !user || !sig) return false;
-    const expectedSig = (user + role + 'buyers-secret-v1').split('').reverse().join('');
+    const expectedSig = (encodeURIComponent(user) + role + 'buyers-secret-v1').split('').reverse().join('');
     return sig === expectedSig;
   };
 
