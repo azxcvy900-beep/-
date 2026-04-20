@@ -277,11 +277,11 @@ export default function AdminLoginPage() {
 
           <header className={styles.header}>
             <h2 className={styles.title}>
-              {mode === 'login' ? 'أهلاً بعودتك' : 'ابدأ نجاحك اليوم'}
+              {mode === 'login' ? t('loginTitle') || 'أهلاً بعودتك' : 'ابدأ نجاحك اليوم'}
             </h2>
             <p className={styles.subtitle}>
               {mode === 'login' 
-                ? 'سجل دخولك لإدارة مبيعاتك وطلبات عملاءك' 
+                ? 'سجل دخولك عبر البريد الإلكتروني لإدارة مبيعاتك' 
                 : 'أنشئ حساباً وأطلق متجرك للجمهور في 5 دقائق'}
             </p>
           </header>
@@ -317,16 +317,16 @@ export default function AdminLoginPage() {
           <form onSubmit={mode === 'login' ? handleLogin : handleRegister} className={styles.form}>
             <div className={styles.inputGroup}>
               <div className={styles.inputWrapper}>
-                <User size={18} />
+                <Mail size={18} />
                 <input 
                   type="text" 
                   className={styles.input}
-                  placeholder=" "
+                  placeholder={t('emailPlaceholder') || " "}
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required
                 />
-                <label className={styles.inputLabel}>اسم التاجر أو المؤسسة</label>
+                <label className={styles.inputLabel}>{t('email')}</label>
               </div>
             </div>
 

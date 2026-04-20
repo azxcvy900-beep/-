@@ -170,8 +170,9 @@
     "cancelOrder": "إلغاء الطلب"
   },
   "Admin": {
-    "loginTitle": "دخول التجار",
+    "loginTitle": "دخول التجار بالبريد الإلكتروني",
     "email": "البريد الإلكتروني",
+    "emailPlaceholder": "أدخل بريدك الإلكتروني",
     "password": "كلمة المرور",
     "loginBtn": "تسجيل الدخول",
     "sidebar": {
