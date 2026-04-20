@@ -97,10 +97,11 @@ export const useSessionStore = create<SessionState>()(
           if (typeof document !== 'undefined') {
             const secure = window.location.protocol === 'https:' ? '; Secure' : '';
             // SECURITY: Create a signature to prevent easy role spoofing
-            const sig = (user.username + user.role + 'buyers-secret-v1').split('').reverse().join(''); 
+            const safeUser = encodeURIComponent(user.username || username);
+            const sig = (safeUser + user.role + 'buyers-secret-v1').split('').reverse().join(''); 
             document.cookie = `buyers-auth-role=${user.role}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure}`;
             document.cookie = `buyers-auth-sig=${sig}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure}`;
-            document.cookie = `buyers-auth-user=${username}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure}`;
+            document.cookie = `buyers-auth-user=${safeUser}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure}`;
           }
           return true;
         }
