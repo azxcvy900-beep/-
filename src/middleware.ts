@@ -5,7 +5,7 @@ import { routing } from './i18n/routing';
 
 const intlMiddleware = createMiddleware(routing);
 
-export function proxy(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
   // Extract role and signature from cookies
@@ -16,7 +16,9 @@ export function proxy(request: NextRequest) {
   // SECURITY: Verify signature to prevent role spoofing
   const isValidSession = (role: string | undefined, user: string | undefined, sig: string | undefined) => {
     if (!role || !user || !sig) return false;
-    const expectedSig = (encodeURIComponent(user) + role + 'buyers-secret-v1').split('').reverse().join('');
+    
+    // Use the raw user value as it was already encoded when setting the cookie in session-store.ts
+    const expectedSig = (user + role + 'buyers-secret-v1').split('').reverse().join('');
     return sig === expectedSig;
   };
 
