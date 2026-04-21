@@ -221,14 +221,6 @@ export default function MerchantSetupWizard() {
       </main>
 
       <footer className={styles.wizardFooter}>
-        <button 
-          className={styles.backBtn}
-          onClick={prevStep}
-          disabled={currentStep === 0 || loading}
-        >
-          <ArrowRight size={18} /> السابق
-        </button>
-
         {currentStep < steps.length - 1 ? (
           <button 
             className={styles.nextBtn}
@@ -247,6 +239,14 @@ export default function MerchantSetupWizard() {
             {!loading && <CheckCircle2 size={18} style={{ marginRight: '8px' }} />}
           </button>
         )}
+
+        <button 
+          className={styles.backBtn}
+          onClick={prevStep}
+          disabled={currentStep === 0 || loading}
+        >
+          <ArrowRight size={18} /> السابق
+        </button>
       </footer>
     </div>
   );
