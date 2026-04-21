@@ -65,10 +65,13 @@ export const useSessionStore = create<SessionState>()(
           if (typeof document !== 'undefined') {
             const secure = window.location.protocol === 'https:' ? '; Secure' : '';
             // SECURITY: Create a signature to prevent easy role spoofing
-            const sig = (username + 'admin' + 'buyers-secret-v1').split('').reverse().join(''); // Simple obfuscation for logic
+            const rawUser = username;
+            const sig = (rawUser + 'admin' + 'buyers-secret-v1').split('').reverse().join(''); 
+            const safeSig = encodeURIComponent(sig);
+            const safeUser = encodeURIComponent(rawUser);
             document.cookie = `buyers-auth-role=admin; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure}`;
-            document.cookie = `buyers-auth-sig=${sig}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure}`;
-            document.cookie = `buyers-auth-user=${username}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure}`;
+            document.cookie = `buyers-auth-sig=${safeSig}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure}`;
+            document.cookie = `buyers-auth-user=${safeUser}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure}`;
           }
           return true;
         }
@@ -97,10 +100,12 @@ export const useSessionStore = create<SessionState>()(
           if (typeof document !== 'undefined') {
             const secure = window.location.protocol === 'https:' ? '; Secure' : '';
             // SECURITY: Create a signature to prevent easy role spoofing
-            const safeUser = encodeURIComponent(user.username || username);
-            const sig = (safeUser + user.role + 'buyers-secret-v1').split('').reverse().join(''); 
+            const rawUser = user.username || username;
+            const safeUser = encodeURIComponent(rawUser);
+            const sig = (rawUser + user.role + 'buyers-secret-v1').split('').reverse().join(''); 
+            const safeSig = encodeURIComponent(sig);
             document.cookie = `buyers-auth-role=${user.role}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure}`;
-            document.cookie = `buyers-auth-sig=${sig}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure}`;
+            document.cookie = `buyers-auth-sig=${safeSig}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure}`;
             document.cookie = `buyers-auth-user=${safeUser}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure}`;
           }
           return true;

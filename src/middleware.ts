@@ -8,16 +8,22 @@ const intlMiddleware = createMiddleware(routing);
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
-  // Extract role and signature from cookies
+  // Safe decoding helper
+  const decodeSafe = (val: string | undefined) => {
+    if (!val) return undefined;
+    try { return decodeURIComponent(val); } catch { return val; }
+  };
+
+  // Extract role and signature from cookies (decode safely to get raw values)
   const authRole = request.cookies.get('buyers-auth-role')?.value;
-  const authUser = request.cookies.get('buyers-auth-user')?.value;
-  const authSig = request.cookies.get('buyers-auth-sig')?.value;
+  const authUser = decodeSafe(request.cookies.get('buyers-auth-user')?.value);
+  const authSig = decodeSafe(request.cookies.get('buyers-auth-sig')?.value);
   
   // SECURITY: Verify signature to prevent role spoofing
   const isValidSession = (role: string | undefined, user: string | undefined, sig: string | undefined) => {
     if (!role || !user || !sig) return false;
     
-    // Use the raw user value as it was already encoded when setting the cookie in session-store.ts
+    // Signature was generated using EXACT raw user string
     const expectedSig = (user + role + 'buyers-secret-v1').split('').reverse().join('');
     return sig === expectedSig;
   };
