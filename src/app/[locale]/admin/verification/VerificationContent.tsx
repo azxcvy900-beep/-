@@ -19,11 +19,13 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '@/lib/auth-store';
 import { uploadKYCDoc, submitKYC } from '@/lib/api';
+import { useSessionStore } from '@/lib/session-store';
 import styles from './verification.module.css';
 
 export default function VerificationContent() {
   const t = useTranslations('Admin');
-  const { storeSlug, verificationStatus, rejectionReason } = useAuthStore();
+  const { storeSlug } = useSessionStore();
+  const { storeName, storeLogo, verificationStatus, rejectionReason, setStoreInfo } = useAuthStore();
   
   const [phone, setPhone] = useState('');
   const [bankAccount, setBankAccount] = useState('');
@@ -73,7 +75,15 @@ export default function VerificationContent() {
         utilityBillUrl
       });
 
-      // Status will update via global store redirecting to the "Reviewing" state
+      // Update local state to immediately reflect the change and show success UI
+      setStoreInfo({
+        slug: storeSlug,
+        name: storeName || '',
+        logo: storeLogo || '',
+        verificationStatus: 'under_review',
+        rejectionReason: null,
+      } as any);
+      
     } catch (err) {
       console.error(err);
       setError('حدث خطأ أثناء رفع البيانات. يرجى المحاولة مرة أخرى.');
