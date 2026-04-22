@@ -1372,9 +1372,12 @@ export async function submitKYC(slug: string, data: Omit<KYCRequest, 'id' | 'sta
 export async function getPendingKYCRequests(): Promise<KYCRequest[]> {
   try {
     const kycCol = collection(db, 'platform', 'kyc', 'requests');
-    const q = query(kycCol, where('status', '==', 'pending'), orderBy('submittedAt', 'desc'));
+    // Removed orderBy('submittedAt', 'desc') from query to avoid requiring composite indexes in Firestore
+    const q = query(kycCol, where('status', '==', 'pending'));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => doc.data() as KYCRequest);
+    const requests = snapshot.docs.map(doc => doc.data() as KYCRequest);
+    // Sort in memory instead
+    return requests.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
   } catch (error) {
     console.error("Error fetching KYC requests:", error);
     return [];

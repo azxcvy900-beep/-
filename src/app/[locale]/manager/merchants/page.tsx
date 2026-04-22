@@ -112,9 +112,11 @@ export default function MerchantManagement() {
                 </td>
                 <td>
                   <div className={styles.actions}>
-                    <button title="معاينة المتجر" className={styles.actionIcon}><ExternalLink size={18} /></button>
-                    <button title="إدارة البيانات" className={styles.actionIcon}><Eye size={18} /></button>
-                    <button title="تجميد المتجر" className={`${styles.actionIcon} ${styles.freeze}`}><ShieldOff size={18} /></button>
+                    <a href={`/ar/store/${store.slug}`} target="_blank" rel="noopener noreferrer" title="معاينة المتجر" className={styles.actionIcon}>
+                      <ExternalLink size={18} />
+                    </a>
+                    <button title="إدارة البيانات" className={styles.actionIcon} onClick={() => alert('سيتم فتح بيانات المتجر قريباً')}><Eye size={18} /></button>
+                    <button title="تجميد المتجر" className={`${styles.actionIcon} ${styles.freeze}`} onClick={() => alert('إيقاف تجميد المتاجر غير مفعل في وضع العرض')}><ShieldOff size={18} /></button>
                   </div>
                 </td>
               </tr>
