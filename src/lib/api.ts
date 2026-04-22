@@ -1222,8 +1222,7 @@ export async function addEmployee(employee: Omit<AppUser, 'uid' | 'createdAt' | 
     throw new Error('Email and password are required to create an employee');
   }
 
-  const isAvailable = await checkUsernameAvailability(employee.username);
-  if (!isAvailable) throw new Error('username_taken');
+
 
   // Create employee securely without logging out the merchant using a secondary app
   const secondaryAppName = 'SecondaryAuthApp';
