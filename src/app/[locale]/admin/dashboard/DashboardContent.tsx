@@ -21,15 +21,15 @@ import {
   Copy,
   ExternalLink,
   LayoutGrid,
-  Settings
+  Settings,
+  ShieldCheck,
+  ChevronRight
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   getStoreOrders, 
   getStoreProducts, 
   getStoreInfo, 
-  getStoreAnalyticsData,
-  AnalyticsData,
   Order, 
   Product 
 } from '@/lib/api';
@@ -51,7 +51,7 @@ import styles from './dashboard.module.css';
 export default function DashboardContent() {
   const t = useTranslations('Admin');
   const locale = useLocale();
-  const { storeSlug, isResolved } = useAuthStore();
+  const { storeSlug, isResolved, username } = useAuthStore();
   const [copied, setCopied] = React.useState(false);
   
   const { data: orders, loading: ordersLoading } = useStreamingFetch(
@@ -90,19 +90,7 @@ export default function DashboardContent() {
     };
 
     try {
-      if (navigator.share) {
-        if (storeInfo?.logo && navigator.canShare && navigator.canShare({ files: [] })) {
-          try {
-            const response = await fetch(storeInfo.logo);
-            const blob = await response.blob();
-            const file = new File([blob], 'store-logo.png', { type: blob.type });
-            if (navigator.canShare({ files: [file] })) {
-              shareData.files = [file];
-            }
-          } catch (e) {
-            console.error('Could not fetch logo for sharing:', e);
-          }
-        }
+      if (typeof navigator !== 'undefined' && navigator.share) {
         await navigator.share(shareData);
       } else {
         handleCopyLink();
@@ -112,39 +100,29 @@ export default function DashboardContent() {
     }
   };
 
-  const recentOrders = React.useMemo(() => (orders || []).slice(0, 6), [orders]);
-  const { visibleItems: visibleOrders } = useProgressiveLoad(recentOrders, 2, 200);
-
-  const orderCount = storeInfo?.orderCountMonth || 0;
-  const plan = storeInfo?.planType || 'free';
-  const isLocked = plan === 'free' && orderCount >= 15;
-
+  // Analytics calculation
   const activeOrders = (orders || []).filter((o: Order) => o.status !== 'cancelled');
   const totalSalesYER = activeOrders.reduce((sum: number, order: Order) => sum + order.total, 0);
-  const sarRate = storeInfo?.currencySettings?.rates?.SAR || 140;
-  const totalSalesSAR = totalSalesYER / sarRate;
-
-  const lockedOrders = activeOrders.filter((o: Order) => o.status === 'pending' || o.isPriceLocked);
-  const lockedFundsYER = lockedOrders.reduce((sum: number, order: Order) => sum + order.total, 0);
   
-  const confirmedOrders = activeOrders.filter((o: Order) => o.status === 'delivered');
-  const confirmedFundsYER = confirmedOrders.reduce((sum: number, order: Order) => sum + order.total, 0);
+  const lockedFundsYER = activeOrders
+    .filter((o: Order) => o.status === 'pending' || o.isPriceLocked)
+    .reduce((sum: number, order: Order) => sum + order.total, 0);
+  
+  const confirmedFundsYER = activeOrders
+    .filter((o: Order) => o.status === 'delivered')
+    .reduce((sum: number, order: Order) => sum + order.total, 0);
 
   const lowStockThreshold = 5;
-  const lowStockProducts = (products || []).filter((p: Product) => p.stockCount > 0 && p.stockCount <= lowStockThreshold);
+  const lowStockCount = (products || []).filter((p: Product) => p.stockCount > 0 && p.stockCount <= lowStockThreshold).length;
   const outOfStockCount = (products || []).filter((p: Product) => p.stockCount === 0).length;
-
-  const { visibleItems: visibleLowStock } = useProgressiveLoad(lowStockProducts, 3, 200);
-  const { visibleItems: visibleLocked } = useProgressiveLoad(lockedOrders.slice(0, 5), 2, 200);
 
   const stats = [
     { 
       label: 'إجمالي المبيعات (YER)', 
       value: ordersLoading ? '...' : `${totalSalesYER.toLocaleString()} ر.ي`, 
-      subValue: ordersLoading ? '' : `~${totalSalesSAR.toLocaleString(undefined, { maximumFractionDigits: 0 })} ر.س`,
+      subValue: 'الأرباح الكلية المسجلة',
       icon: TrendingUp, 
       color: '#10b981',
-      ready: !ordersLoading,
       href: `/admin/orders`
     },
     { 
@@ -153,7 +131,6 @@ export default function DashboardContent() {
       subValue: 'بانتظار تأكيد الحوالات',
       icon: Lock, 
       color: '#f59e0b',
-      ready: !ordersLoading,
       href: `/admin/orders` 
     },
     { 
@@ -162,244 +139,207 @@ export default function DashboardContent() {
       subValue: 'تم التأكد والتحصيل',
       icon: CheckCircle2, 
       color: '#3b82f6',
-      ready: !ordersLoading,
       href: `/admin/orders`
     },
     { 
-      label: 'تحتاج تنبيه', 
-      value: productsLoading ? '...' : lowStockProducts.length + outOfStockCount, 
-      subValue: productsLoading ? '' : `${outOfStockCount} نفدت تماماً`,
+      label: 'تنبيهات المخزون', 
+      value: productsLoading ? '...' : lowStockCount + outOfStockCount, 
+      subValue: `${outOfStockCount} نفدت تماماً`,
       icon: AlertCircle, 
       color: '#ef4444',
-      ready: !productsLoading,
       href: `/admin/products`
     },
   ];
 
-  const quickActions = [
-    { label: 'الأقسام', icon: LayoutGrid, href: `/admin/categories`, color: '#3b82f6' },
-    { label: 'المنتجات', icon: Package, href: `/admin/products`, color: '#8b5cf6' },
-    { label: 'الطلبات', icon: ShoppingBag, href: `/admin/orders`, color: '#10b981' },
-    { label: 'الإعدادات', icon: Settings, href: `/admin/settings`, color: '#64748b' },
-  ];
+  // Prepare chart data (Last 10 orders trend)
+  const chartData = React.useMemo(() => {
+    if (!orders || orders.length === 0) return Array.from({length: 10}).map((_, i) => ({ name: `T${i}`, sales: 0 }));
+    return orders.slice(0, 10).reverse().map((o, i) => ({
+      name: `T${i + 1}`,
+      sales: o.total,
+    }));
+  }, [orders]);
+
+  const recentOrders = (orders || []).slice(0, 5);
+  const plan = storeInfo?.planType || 'free';
+  const orderCount = storeInfo?.orderCountMonth || 0;
+  const isLocked = plan === 'free' && orderCount >= 15;
 
   return (
     <motion.div 
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       className={styles.dashboard}
     >
-    <UsageGuard isLocked={isLocked} orderCount={orderCount} plan={plan}>
-      <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', padding: '10rem' }}><Loader2 className="animate-spin" size={48} color="#3b82f6" /></div>}>
-        <div className={styles.header}>
-          <div>
-            <div className={styles.titleRow}>
-               <h1 className={styles.title}>لوحة تحكم التاجر 🚀</h1>
-               {plan === 'free' && (
-                 <div className={styles.usageBrief}>
-                    استهلاك الطلبات: {orderCount}/10
-                 </div>
-               )}
-            </div>
-            <p className={styles.subtitle}>أداء {storeInfo?.name || 'متجر بايرز'} في لمح البصر</p>
-          </div>
-          <div className={styles.headerActions}>
-            <Link href="/admin/billing" className={styles.billingBtn}>
-              <Crown size={18} /> ترقية الباقة
-            </Link>
-            <Link href="/admin/wallet" className={styles.walletLink}>
-              <Wallet size={18} /> المحفظة
-            </Link>
-          </div>
-        </div>
-        <div className={styles.shareCard}>
-          <div className={styles.shareInfo}>
-             <div className={styles.shareLogo}>
-                {storeInfo?.logo ? (
-                   <img src={storeInfo.logo} alt={storeInfo.name} />
-                ) : (
-                   <ShoppingBag size={24} />
-                )}
-             </div>
-             <div className={styles.shareText}>
-                <h3>رابط متجرك العام 🔗</h3>
-                <p className={styles.storeLinkText}>{storeUrl}</p>
-             </div>
-          </div>
-          <div className={styles.shareActions}>
-            <button onClick={handleShare} className={styles.shareBtn}>
-               <Share2 size={18} /> مشاركة المتجر
-            </button>
-            <button onClick={handleCopyLink} className={styles.copyBtn}>
-               {copied ? <CheckCircle2 size={18} /> : <Copy size={18} />}
-               {copied ? 'تم النسخ!' : 'نسخ الرابط'}
-            </button>
-            <Link href={`/store/${storeSlug || 'demo'}`} target="_blank" className={styles.visitBtn}>
-               <ExternalLink size={18} /> زيارة
-            </Link>
-          </div>
-        </div>
+      <UsageGuard isLocked={isLocked} orderCount={orderCount} plan={plan}>
+        <Suspense fallback={<div className={styles.loading}><Loader2 className="animate-spin" size={48} /></div>}>
+          
+          {/* Hero Banner Section */}
+          <div className={styles.heroBanner}>
+            <div className={styles.heroContent}>
+              <h1 className={styles.heroTitle}>مرحباً، {username || 'التاجر'} 🚀</h1>
+              <p className={styles.heroSubtitle}>إليك أداء {storeInfo?.name || 'متجرك'} اليوم</p>
+              
+              <div className={styles.shareBox}>
+                <span className={styles.storeUrl}>{storeUrl}</span>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button onClick={handleCopyLink} className={styles.secondaryBtn} style={{ padding: '0.5rem' }}>
+                    {copied ? <CheckCircle2 size={18} color="#10b981" /> : <Copy size={18} />}
+                  </button>
+                  <button onClick={handleShare} className={styles.secondaryBtn} style={{ padding: '0.5rem' }}>
+                    <Share2 size={18} />
+                  </button>
+                </div>
+              </div>
 
-      <div className={styles.statGrid}>
-        {ordersLoading && !orders ? (
-          Array.from({ length: 4 }).map((_, i) => <StatSkeleton key={i} />)
-        ) : (
-          stats.map((stat, i) => (
-            <Link key={i} href={stat.href} style={{ textDecoration: 'none' }}>
+              {plan === 'free' && (
+                <div className={styles.usageBrief}>
+                   استهلاك الباقة: {orderCount}/10 طلبات شهرياً
+                </div>
+              )}
+            </div>
+
+            <div className={styles.heroActions}>
+              <Link href="/admin/billing" className={styles.premiumBtn}>
+                <ShieldCheck size={18} /> ترقية الاحتراف
+              </Link>
+              <Link href={`/store/${storeSlug}`} target="_blank" className={styles.secondaryBtn}>
+                <ExternalLink size={18} /> معاينة المتجر
+              </Link>
+            </div>
+          </div>
+
+          {/* Stats Grid */}
+          <div className={styles.statGrid}>
+            {stats.map((stat, i) => (
               <motion.div 
+                key={i}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: i * 0.1 }}
                 className={styles.statCard}
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.08 }}
               >
                 <div className={styles.statInfo}>
                   <p className={styles.statLabel}>{stat.label}</p>
-                  <h2 className={styles.statValue} style={{ opacity: stat.ready ? 1 : 0.3, transition: 'opacity 0.3s' }}>{stat.value}</h2>
+                  <h2 className={styles.statValue}>{stat.value}</h2>
                   <p className={styles.statSub}>{stat.subValue}</p>
                 </div>
-                <div className={styles.statIcon} style={{ backgroundColor: `${stat.color}15`, color: stat.color }}>
-                  <stat.icon size={26} />
+                <div className={styles.statIcon} style={{ background: `${stat.color}15`, color: stat.color }}>
+                  <stat.icon size={28} />
                 </div>
               </motion.div>
-            </Link>
-          ))
-        )}
-      </div>
+            ))}
+          </div>
 
-      <div className={styles.quickActionsSection}>
-        <h3 className={styles.quickActionsTitle}>الوصول السريع للمنصة ⚡</h3>
-        <div className={styles.quickGrid}>
-          {quickActions.map((action, i) => (
-            <Link key={i} href={action.href} className={styles.quickActionCard}>
-              <div className={styles.quickIcon} style={{ backgroundColor: `${action.color}10`, color: action.color }}>
-                 <action.icon size={28} />
+          {/* Charts Section */}
+          <div className={styles.chartsSection}>
+            <div className={styles.chartHeader}>
+               <h3 className={styles.chartTitle}>نمو المبيعات (أحدث 10 طلبات)</h3>
+               <TrendingUp size={20} color="#10b981" />
+            </div>
+            <div className={styles.chartWrapper}>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData}>
+                  <defs>
+                    <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px rgba(0,0,0,0.1)' }}
+                    labelStyle={{ fontWeight: 'bold' }}
+                    itemStyle={{ color: '#3b82f6' }}
+                  />
+                  <XAxis dataKey="name" hide />
+                  <YAxis hide />
+                  <Area 
+                    type="monotone" 
+                    dataKey="sales" 
+                    stroke="#3b82f6" 
+                    strokeWidth={4}
+                    fillOpacity={1} 
+                    fill="url(#colorSales)" 
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Bottom Grid */}
+          <div className={styles.mainGrid}>
+            {/* Orders Table */}
+            <div className={styles.section}>
+              <div className={styles.sectionHeader}>
+                <h3 className={styles.sectionTitle}>آخر الطلبيات</h3>
+                <Link href="/admin/orders" className={styles.viewAll}>
+                  كل الطلبات <ChevronLeft size={16} />
+                </Link>
               </div>
-              <span className={styles.quickLabel}>{action.label}</span>
-            </Link>
-          ))}
-        </div>
-      </div>
 
-      <div className={styles.mainGrid}>
-        <div className={styles.actionSection}>
-          <h3 className={styles.sectionTitle}>تنبيهات المخزون ⚠️</h3>
-          <div className={styles.lowStockList}>
-            {productsLoading && !products ? (
-              <ListSkeleton count={3} />
-            ) : visibleLowStock.length > 0 ? (
-              visibleLowStock.map((p: Product) => (
-                <motion.div 
-                  key={p.id} 
-                  className={styles.stockItem}
-                  initial={{ opacity: 0, x: -15 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.25 }}
-                >
-                  <img src={p.image} alt={p.name} />
-                  <div className={styles.stockInfo}>
-                    <h4>{p.name}</h4>
-                    <p>المتبقي: <span className={styles.warningText}>{p.stockCount} قطع</span></p>
-                  </div>
-                </motion.div>
-              ))
-            ) : (
-              <p className={styles.empty}>جميع المنتجات متوفرة بكثرة ✅</p>
-            )}
+              <div className={styles.tableWrapper}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>رقم الطلب</th>
+                      <th>العميل</th>
+                      <th>الحالة</th>
+                      <th>المبلغ</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recentOrders.map((order) => (
+                      <tr key={order.id}>
+                        <td><span className={styles.orderId}>#{order.id.slice(-6)}</span></td>
+                        <td>{order.address.fullName}</td>
+                        <td>
+                          <span className={`${styles.statusBadge} ${styles[order.status]}`}>
+                            {order.status}
+                          </span>
+                        </td>
+                        <td><strong>{order.total.toLocaleString()} ر.ي</strong></td>
+                        <td>
+                          <Link href="/admin/orders" className={styles.actionBtn}>
+                            إدارة
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                    {recentOrders.length === 0 && (
+                      <tr><td colSpan={5} className={styles.empty}>لا توجد طلبات حتى الآن</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className={styles.quickActionsSection}>
+               <h3 className={styles.sectionTitle} style={{ marginBottom: '1.5rem' }}>الوصول السريع</h3>
+               <div className={styles.quickGrid}>
+                  <Link href="/admin/products" className={styles.quickActionCard}>
+                    <div className={styles.quickIcon} style={{ background: '#eff6ff', color: '#3b82f6' }}><Package size={24} /></div>
+                    <span className={styles.quickLabel}>المنتجات</span>
+                  </Link>
+                  <Link href="/admin/categories" className={styles.quickActionCard}>
+                    <div className={styles.quickIcon} style={{ background: '#f5f3ff', color: '#8b5cf6' }}><LayoutGrid size={24} /></div>
+                    <span className={styles.quickLabel}>الأقسام</span>
+                  </Link>
+                  <Link href="/admin/coupons" className={styles.quickActionCard}>
+                    <div className={styles.quickIcon} style={{ background: '#fdf2f8', color: '#ec4899' }}><ShoppingBag size={24} /></div>
+                    <span className={styles.quickLabel}>الكوبونات</span>
+                  </Link>
+                  <Link href="/admin/settings" className={styles.quickActionCard}>
+                    <div className={styles.quickIcon} style={{ background: '#f8fafc', color: '#64748b' }}><Settings size={24} /></div>
+                    <span className={styles.quickLabel}>الإعدادات</span>
+                  </Link>
+               </div>
+            </div>
           </div>
-        </div>
 
-        <div className={styles.topProducts}>
-          <h3 className={styles.sectionTitle}>مبالغ بانتظار التأكيد 💰</h3>
-          <div className={styles.productList}>
-            {ordersLoading && !products ? (
-              <ListSkeleton count={3} />
-            ) : visibleLocked.length > 0 ? (
-              visibleLocked.map((order: Order) => (
-                <motion.div 
-                  key={order.id} 
-                  className={styles.productItem}
-                  initial={{ opacity: 0, x: 15 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.25 }}
-                >
-                  <div className={styles.prodInfo}>
-                    <h4>#{order.id.slice(-6)}</h4>
-                    <p>{order.address.fullName}</p>
-                  </div>
-                  <div className={styles.prodPrice}>
-                    {order.total.toLocaleString()} ر.ي
-                  </div>
-                </motion.div>
-              ))
-            ) : (
-              <p className={styles.empty}>لا توجد مبالغ معلقة ✅</p>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <h3 className={styles.sectionTitle}>أحدث الطلبات القادمة 📦</h3>
-          <Link href={`/${locale || 'ar'}/admin/orders`} className={styles.viewAll}>
-            إدارة كافة الطلبات <ChevronLeft size={16} />
-          </Link>
-        </div>
-
-        <div className={styles.tableWrapper}>
-          {ordersLoading && !orders ? (
-            <TableSkeleton rows={4} />
-          ) : (
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>رقم الطلب</th>
-                  <th>العميل</th>
-                  <th>الحالة</th>
-                  <th>الإجمالي</th>
-                  <th>الإجراء</th>
-                </tr>
-              </thead>
-              <tbody>
-                {visibleOrders.length === 0 && !ordersLoading && (
-                   <tr><td colSpan={5} style={{ textAlign: 'center', padding: '2rem' }}>لا توجد طلبات حديثة.</td></tr>
-                )}
-                {visibleOrders.map((order: Order) => (
-                  <motion.tr 
-                    key={order.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <td><span className={styles.orderId}>#{order.id.slice(-6)}</span></td>
-                    <td>{order.address.fullName}</td>
-                    <td>
-                      <span className={`${styles.statusBadge} ${styles[order.status]}`}>
-                        {order.status}
-                      </span>
-                    </td>
-                    <td className={styles.amount}>{order.total.toLocaleString()} ر.ي</td>
-                    <td>
-                      <Link href={`/${locale || 'ar'}/admin/orders`} className={styles.actionBtn}>
-                        معالجة
-                      </Link>
-                    </td>
-                  </motion.tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      </div>
-
-      </Suspense>
-    </UsageGuard>
-    <style jsx>{`
-      @keyframes spin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-      }
-    `}</style>
+        </Suspense>
+      </UsageGuard>
     </motion.div>
   );
 }

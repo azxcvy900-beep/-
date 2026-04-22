@@ -146,15 +146,23 @@
 
 .topBar {
   height: 70px;
-  background-color: var(--bg-card);
+  background-color: rgba(var(--bg-card-rgb, 255, 255, 255), 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(128, 128, 128, 0.1);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 2rem;
+  padding: 0 1.5rem;
   position: sticky;
   top: 0;
   z-index: 90;
+}
+
+.leftBar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .pageTitle {
@@ -174,15 +182,17 @@
 }
 
 .avatar {
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   background: linear-gradient(135deg, var(--primary), #a855f7);
-  border-radius: 10px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   font-weight: 700;
+  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.2);
+  border: 2px solid white;
 }
 
 .pageBody {
@@ -257,9 +267,25 @@
   }
   
   .navItem {
-    justify-content: center;
     padding: 1rem;
   }
+}
+
+.menuToggle {
+  background: none;
+  border: none;
+  color: var(--text-main);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.menuToggle:hover {
+  background: rgba(0, 0, 0, 0.05);
 }
 
 
