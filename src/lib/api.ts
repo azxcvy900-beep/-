@@ -1267,6 +1267,13 @@ export async function getStoreEmployees(storeSlug: string): Promise<AppUser[]> {
 }
 
 /**
+ * Delete an employee and permanently revoke their access to the store.
+ */
+export async function deleteEmployee(uid: string): Promise<void> {
+  await deleteDoc(doc(db, 'merchants', uid));
+}
+
+/**
  * Get all customers for a specific store.
  */
 export async function getStoreCustomers(storeSlug: string): Promise<Customer[]> {

@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSessionStore } from '@/lib/session-store';
-import { addEmployee, getStoreEmployees, AppUser } from '@/lib/api';
+import { addEmployee, getStoreEmployees, deleteEmployee, AppUser } from '@/lib/api';
 import styles from './employees.module.css';
 
 const AVAILABLE_PERMISSIONS = [
@@ -89,6 +89,17 @@ export default function EmployeesPage() {
       setError(err.message === 'username_taken' ? 'اسم المستخدم محجوز مسبقاً' : 'حدث خطأ في الإضافة');
     } finally {
       setFormLoading(false);
+    }
+  };
+
+  const handleDelete = async (uid: string) => {
+    if (!confirm('هل أنت متأكد من حذف هذا الموظف؟ لن يمكن التراجع عن هذا الإجراء.')) return;
+    try {
+      await deleteEmployee(uid);
+      setEmployees(prev => prev.filter(emp => emp.uid !== uid));
+    } catch (err) {
+      console.error("Failed to delete employee", err);
+      alert("حدث خطأ أثناء محاولة حذف الموظف.");
     }
   };
 
@@ -226,7 +237,7 @@ export default function EmployeesPage() {
                      ))}
                   </div>
                   <div className={styles.empActions}>
-                     <button className={styles.deleteBtn}><Trash2 size={16} /></button>
+                     <button className={styles.deleteBtn} onClick={() => handleDelete(emp.uid)}><Trash2 size={16} /></button>
                   </div>
                </div>
              ))}
