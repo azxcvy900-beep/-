@@ -1315,9 +1315,12 @@ export async function approveStoreSubscription(proofId: string, storeSlug: strin
 
   // 2. Update store plan and status
   await updateDoc(storeRef, {
+    verificationStatus: 'active',
     subscriptionStatus: 'active',
     planType: plan
   });
+
+  dataCache.invalidate(`store_${storeSlug}`);
 }
 
 /**
@@ -1328,9 +1331,10 @@ export async function rejectStoreSubscription(proofId: string, storeSlug: string
   const storeRef = doc(db, 'stores', storeSlug);
 
   await updateDoc(proofRef, { status: 'rejected' });
-  await updateDoc(storeRef, { subscriptionStatus: 'rejected' });
-}
+  await updateDoc(storeRef, { subscriptionStatus: 'inactive' });
 
+  dataCache.invalidate(`store_${storeSlug}`);
+}
 /**
  * Special high-resolution upload for KYC legal documents.
  */

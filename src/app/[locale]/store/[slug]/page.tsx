@@ -89,7 +89,7 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
   // Progressive rendering for products
   const { visibleItems: visibleProducts, isStreaming } = useProgressiveLoad(filteredProducts, 4, 150);
 
-  const showLock = storeInfo && resolvedParams.slug !== 'demo' && storeInfo.verificationStatus !== 'active';
+  const showLock = storeInfo && resolvedParams.slug !== 'demo' && storeInfo.verificationStatus !== 'active' && storeInfo.verificationStatus !== 'approved';
 
 
   return (

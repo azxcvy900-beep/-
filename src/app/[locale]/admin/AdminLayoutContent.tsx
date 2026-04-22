@@ -190,7 +190,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
   const currentItem = navItems.find(item => isPathActive(item.href));
 
 
-  const showVerificationBanner = verificationStatus !== 'active' && !pathname.includes('/admin/verification');
+  const showVerificationBanner = verificationStatus !== 'active' && verificationStatus !== 'approved' && !pathname.includes('/admin/verification');
 
   return (
     <div className={styles.adminLayout}>
