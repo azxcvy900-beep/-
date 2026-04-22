@@ -5,7 +5,7 @@ interface AuthState {
   storeSlug: string | null;
   storeName: string | null;
   storeLogo: string | null;
-  verificationStatus: 'pending' | 'under_review' | 'active' | 'rejected' | null;
+  verificationStatus: 'pending' | 'under_review' | 'active' | 'approved' | 'rejected' | null;
   rejectionReason: string | null;
   isResolved: boolean;
   setStoreInfo: (info: StoreInfo | null) => void;

@@ -79,7 +79,7 @@ export interface StoreInfo {
   merchantId?: string; // Firebase UID of the merchant who owns this store
   planType?: 'free' | 'pro' | 'business';
   subscriptionStatus?: 'active' | 'expired' | 'pending_verification';
-  verificationStatus?: 'pending' | 'under_review' | 'active' | 'rejected';
+  verificationStatus?: 'pending' | 'under_review' | 'active' | 'approved' | 'rejected';
   rejectionReason?: string;
   orderCountMonth?: number;
   lastCountReset?: string;
