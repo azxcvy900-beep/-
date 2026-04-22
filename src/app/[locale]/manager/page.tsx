@@ -162,7 +162,7 @@ export default function AdministrationDashboard() {
         staggerChildren: 0.1
       }
     }
-  };
+  } as const;
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -171,7 +171,7 @@ export default function AdministrationDashboard() {
       y: 0,
       transition: { type: 'spring', stiffness: 100 }
     }
-  };
+  } as const;
 
   return (
     <div className={styles.opsRoom}>
