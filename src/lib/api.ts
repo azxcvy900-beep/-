@@ -1,8 +1,10 @@
-import { db, storage, auth } from './firebase';
+import { db, storage, auth, firebaseConfig } from './firebase';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
-  sendEmailVerification 
+  sendEmailVerification,
+  getAuth
 } from 'firebase/auth';
 
 import { 
@@ -1216,12 +1218,30 @@ export async function updateMerchant(uid: string, updates: Partial<AppUser>): Pr
  * Add a new employee to a store.
  */
 export async function addEmployee(employee: Omit<AppUser, 'uid' | 'createdAt' | 'role'>, storeSlug: string): Promise<string> {
+  if (!employee.email || !employee.password) {
+    throw new Error('Email and password are required to create an employee');
+  }
+
   const isAvailable = await checkUsernameAvailability(employee.username);
   if (!isAvailable) throw new Error('username_taken');
 
-  const uid = `emp_${Date.now()}`;
+  // Create employee securely without logging out the merchant using a secondary app
+  const secondaryAppName = 'SecondaryAuthApp';
+  let secondaryApp;
+  if (!getApps().some(app => app.name === secondaryAppName)) {
+    secondaryApp = initializeApp(firebaseConfig, secondaryAppName);
+  } else {
+    secondaryApp = getApp(secondaryAppName);
+  }
+  const secondaryAuth = getAuth(secondaryApp);
+  
+  const userCred = await createUserWithEmailAndPassword(secondaryAuth, employee.email, employee.password);
+  await secondaryAuth.signOut(); // Clean up session
+  
+  const uid = userCred.user.uid;
+
   // SECURITY: Use username for per-user salt
-  const hashedPassword = employee.password ? await hashPassword(employee.password, employee.username) : undefined;
+  const hashedPassword = await hashPassword(employee.password, employee.username);
 
   const newUser: AppUser = {
     ...employee,
@@ -1232,8 +1252,7 @@ export async function addEmployee(employee: Omit<AppUser, 'uid' | 'createdAt' | 
     createdAt: new Date().toISOString()
   };
 
-
-  await setDoc(doc(db, 'merchants', employee.username.toLowerCase()), newUser);
+  await setDoc(doc(db, 'merchants', uid), newUser);
   return uid;
 }
 

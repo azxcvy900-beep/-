@@ -3,7 +3,7 @@ import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager
 import { getAuth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 
-const firebaseConfig = {
+export const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyAsSwfz3X-sQ0j_5rQBfWv9UfwRvTnbqck",
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "byers-12ff3.firebaseapp.com",
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "byers-12ff3",
