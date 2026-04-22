@@ -85,8 +85,10 @@ export default function AdminLoginPage() {
       if (successStatus) {
         // Need to check if email is verified via a helper or direct auth check
         // For simplicity, we can use a direct check if we export auth
+        const sessionState = useSessionStore.getState();
         const { auth } = await import('@/lib/firebase');
-        if (auth.currentUser && !auth.currentUser.emailVerified) {
+        // Bypass email verification requirement for employees since merchants trusted them
+        if (sessionState.role !== 'employee' && auth.currentUser && !auth.currentUser.emailVerified) {
           setVerificationPending(true);
           setEmail(auth.currentUser.email || ''); // Capture the email for display
           setError('يرجى تفعيل حسابك عبر الرابط المرسل لبريدك الإلكتروني أولاً.');
