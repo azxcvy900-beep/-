@@ -35,6 +35,7 @@ import {
 } from '@/lib/api';
 import { useStreamingFetch, useProgressiveLoad } from '@/lib/hooks';
 import { useAuthStore } from '@/lib/auth-store';
+import { useSessionStore } from '@/lib/session-store';
 import { StatSkeleton, ListSkeleton, TableSkeleton } from '@/components/shared/Skeletons/Skeletons';
 import UsageGuard from '@/components/shared/UsageGuard/UsageGuard';
 import { 
@@ -51,7 +52,8 @@ import styles from './dashboard.module.css';
 export default function DashboardContent() {
   const t = useTranslations('Admin');
   const locale = useLocale();
-  const { storeSlug, isResolved, username } = useAuthStore();
+  const { storeSlug, isResolved } = useAuthStore();
+  const { username } = useSessionStore();
   const [copied, setCopied] = React.useState(false);
   
   const { data: orders, loading: ordersLoading } = useStreamingFetch(
