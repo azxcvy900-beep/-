@@ -21,7 +21,8 @@ import {
   ExternalLink,
   ShieldCheck,
   Phone,
-  Landmark
+  Landmark,
+  X
 } from 'lucide-react';
 
 import { motion, AnimatePresence } from 'framer-motion';
@@ -59,6 +60,7 @@ export default function AdministrationDashboard() {
   const [kycRequests, setKycRequests] = useState<KYCRequest[]>([]);
   const [verifyingId, setVerifyingId] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const { data: stores, loading: storesLoading } = useStreamingFetch(() => getAllStores(), [], 'all_stores');
   const { data: orders, loading: ordersLoading } = useStreamingFetch(() => getAllPlatformOrders(), [], 'all_orders');
@@ -302,12 +304,12 @@ export default function AdministrationDashboard() {
                       <div key={req.id} className={styles.kycCard}>
                         <div className={styles.kycDocs}>
                           <div className={styles.docMini}>
-                            <img src={req.identityUrl} alt="ID" />
-                            <a href={req.identityUrl} target="_blank">صورة الهوية <ExternalLink size={12}/></a>
+                            <img src={req.identityUrl} alt="ID" className={styles.clickableDoc} onClick={() => setSelectedImage(req.identityUrl)} />
+                            <a href={req.identityUrl} target="_blank" rel="noopener noreferrer">صورة الهوية <ExternalLink size={12}/></a>
                           </div>
                           <div className={styles.docMini}>
-                            <img src={req.utilityBillUrl} alt="Bill" />
-                            <a href={req.utilityBillUrl} target="_blank">فاتورة الخدمات <ExternalLink size={12}/></a>
+                            <img src={req.utilityBillUrl} alt="Bill" className={styles.clickableDoc} onClick={() => setSelectedImage(req.utilityBillUrl)} />
+                            <a href={req.utilityBillUrl} target="_blank" rel="noopener noreferrer">فاتورة الخدمات <ExternalLink size={12}/></a>
                           </div>
                         </div>
                         <div className={styles.kycText}>
@@ -331,9 +333,9 @@ export default function AdministrationDashboard() {
                     {proofs.map(proof => (
                         <div key={proof.id} className={styles.proofCard}>
                             <div className={styles.proofImageWrapper}>
-                                <img src={proof.imageUrl} alt="Receipt" />
-                                <div className={styles.imageOverlay}>
-                                    <a href={proof.imageUrl} target="_blank"><ExternalLink size={20} /></a>
+                                <img src={proof.imageUrl} alt="Receipt" className={styles.clickableDoc} onClick={() => setSelectedImage(proof.imageUrl)} />
+                                <div className={styles.imageOverlay} onClick={() => setSelectedImage(proof.imageUrl)}>
+                                    <ExternalLink size={20} color="white" />
                                 </div>
                             </div>
                             <div className={styles.proofDetails}>
@@ -366,6 +368,16 @@ export default function AdministrationDashboard() {
         )}
 
       </AnimatePresence>
+
+      {/* Image Viewer Modal */}
+      {selectedImage && (
+        <div className={styles.imageModal} onClick={() => setSelectedImage(null)}>
+          <button className={styles.closeModalBtn} onClick={() => setSelectedImage(null)}>
+            <X size={24} />
+          </button>
+          <img src={selectedImage} alt="Fullscreen Document" onClick={(e) => e.stopPropagation()} />
+        </div>
+      )}
 
       <style jsx>{`
         @keyframes spin {

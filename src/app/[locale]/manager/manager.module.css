@@ -427,3 +427,60 @@
   .vSwitcher { flex-direction: column; gap: 0.5rem; }
 }
 
+.imageModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.9);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  backdrop-filter: blur(5px);
+  cursor: zoom-out;
+}
+
+.imageModal img {
+  max-width: 90%;
+  max-height: 90%;
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  cursor: default;
+}
+
+.closeModalBtn {
+  position: absolute;
+  top: 2rem;
+  right: 2rem;
+  background: white;
+  color: #ef4444;
+  border: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  transition: transform 0.2s;
+}
+
+.closeModalBtn:hover {
+  transform: scale(1.1);
+}
+
+.clickableDoc {
+  cursor: zoom-in;
+  transition: transform 0.2s;
+}
+
+.clickableDoc:hover {
+  transform: scale(1.02);
+  border-color: #3b82f6 !important;
+}
+
