@@ -35,7 +35,7 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [mounted, setMounted] = useState(false);
-  const { isLoggedIn, role, username, logout } = useSessionStore();
+  const { isLoggedIn, role, username, logout, _hasHydrated } = useSessionStore();
 
   useEffect(() => {
     setMounted(true);
@@ -46,8 +46,17 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
     return <>{children}</>;
   }
 
+  // Delay auth check until both React has mounted and Zustand has read from localStorage
+  if (!mounted || !_hasHydrated) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: 'var(--background)' }}>
+        <div style={{ color: '#94a3b8' }}>جاري التحميل...</div>
+      </div>
+    );
+  }
+
   // Redirect to manager login if not authenticated as admin
-  if (mounted && (!isLoggedIn || role !== 'admin')) {
+  if (!isLoggedIn || role !== 'admin') {
     return <RedirectToLogin locale={locale} />;
   }
 
