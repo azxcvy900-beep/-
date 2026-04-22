@@ -1269,7 +1269,17 @@ export async function getStoreEmployees(storeSlug: string): Promise<AppUser[]> {
  * Delete an employee and permanently revoke their access to the store.
  */
 export async function deleteEmployee(uid: string): Promise<void> {
-  await deleteDoc(doc(db, 'merchants', uid));
+  const usersRef = collection(db, 'merchants');
+  const q = query(usersRef, where('uid', '==', uid), where('role', '==', 'employee'));
+  const snapshot = await getDocs(q);
+  
+  if (!snapshot.empty) {
+    const promises = snapshot.docs.map(d => deleteDoc(d.ref));
+    await Promise.all(promises);
+  } else {
+    // Fallback for direct ID match just in case
+    await deleteDoc(doc(db, 'merchants', uid));
+  }
 }
 
 /**
