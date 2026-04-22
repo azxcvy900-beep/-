@@ -116,22 +116,23 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
       {/* Main Content */}
       <main className={styles.main}>
         <header className={styles.topBar}>
-          <div className={styles.header}>
-            <div className={styles.titleArea}>
-              <h1 className={styles.title}>لوحة الإدارة الاستراتيجية</h1>
-              <p className={styles.subtitle}>السيطرة الكاملة والرقابة العالمية على منصة بايرز</p>
-            </div>
+          <div className={styles.topBarLeft}>
             <button className={styles.menuBtn} onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
               {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
-            <div className={styles.statusIndicator}>
-              <div className={styles.pulseDot} />
-              <span>المنصة: متصلة وجاهزة</span>
+            <div className={styles.titleArea}>
+              <h1 className={styles.title}>غرفة العمليات المركزية</h1>
+              <p className={styles.subtitle}>تحليلات استراتيجية ورقابة عالمية للبروتوكول</p>
             </div>
           </div>
           
           <div className={styles.topBarRight}>
-             <div className={styles.adminProfile}>
+            <div className={styles.statusIndicator}>
+              <div className={styles.pulseDot} />
+              <span>نظام الرقابة: متصل</span>
+            </div>
+            
+            <div className={styles.adminProfile}>
                <div className={styles.adminInfo}>
                  <p>المدير العام</p>
                  <span>{username || 'Super Admin'}</span>
@@ -139,7 +140,7 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
                <div className={styles.avatar}>
                  <User size={20} />
                </div>
-             </div>
+            </div>
           </div>
         </header>
 

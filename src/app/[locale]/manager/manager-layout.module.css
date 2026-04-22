@@ -6,16 +6,17 @@
 
 /* Theme Variables */
 .light {
-  --mgr-bg: #f8fafc;
+  --mgr-bg: #f1f5f9;
   --mgr-sidebar-bg: #ffffff;
   --mgr-card-bg: #ffffff;
   --mgr-text: #0f172a;
   --mgr-text-muted: #64748b;
   --mgr-border: #e2e8f0;
-  --mgr-active-link: #eff6ff;
-  --mgr-primary: #2563eb;
-  --mgr-accent: #3b82f6;
+  --mgr-active-link: #f1f5f9;
+  --mgr-primary: #4f46e5;
+  --mgr-accent: #6366f1;
   --mgr-pulse: #10b981;
+  --mgr-glass: rgba(255, 255, 255, 0.7);
 }
 
 .dark {
@@ -26,9 +27,10 @@
   --mgr-text-muted: #94a3b8;
   --mgr-border: #334155;
   --mgr-active-link: #1e293b;
-  --mgr-primary: #3b82f6;
-  --mgr-accent: #60a5fa;
+  --mgr-primary: #6366f1;
+  --mgr-accent: #818cf8;
   --mgr-pulse: #22c55e;
+  --mgr-glass: rgba(15, 23, 42, 0.7);
 }
 
 .sidebar {
@@ -48,8 +50,9 @@
 }
 
 .sidebarHeader {
-  padding: 24px;
+  padding: 32px 24px;
   border-bottom: 1px solid var(--mgr-border);
+  background: linear-gradient(to bottom, var(--mgr-sidebar-bg), transparent);
 }
 
 .logo {
@@ -83,24 +86,26 @@
 .navItem {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  border-radius: 12px;
+  gap: 14px;
+  padding: 14px 18px;
+  border-radius: 14px;
   color: var(--mgr-text-muted);
   text-decoration: none;
-  font-weight: 500;
-  transition: all 0.2s;
+  font-weight: 600;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-bottom: 4px;
 }
 
 .navItem:hover {
   background: var(--mgr-active-link);
   color: var(--mgr-primary);
+  transform: translateX(-4px);
 }
 
 .active {
-  background: var(--mgr-active-link);
-  color: var(--mgr-primary);
-  font-weight: 700;
+  background: var(--mgr-primary) !important;
+  color: white !important;
+  box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.2);
 }
 
 .sidebarFooter {
@@ -140,14 +145,18 @@
 }
 
 .topBar {
-  height: 72px;
-  background: var(--mgr-sidebar-bg);
+  height: 80px;
+  background: var(--mgr-glass);
+  backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--mgr-border);
-  padding: 0 24px;
+  padding: 0 32px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 40;
 }
 
 .topBarLeft {

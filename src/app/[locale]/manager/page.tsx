@@ -154,6 +154,25 @@ export default function AdministrationDashboard() {
     { label: 'تحذيرات الرضا', value: reviewsLoading ? '...' : criticalComplaints, icon: AlertTriangle, delta: 'مستقر', color: '#ef4444', ready: !reviewsLoading },
   ];
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { type: 'spring', stiffness: 100 }
+    }
+  };
+
   return (
     <div className={styles.opsRoom}>
       <div className={styles.pulseHeader}>
@@ -172,17 +191,20 @@ export default function AdministrationDashboard() {
         </div>
       </div>
 
-      <div className={styles.statGrid}>
+      <motion.div 
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className={styles.statGrid}
+      >
         {stats.map((stat, i) => (
           <motion.div 
             key={i} 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.08 }}
+            variants={itemVariants}
             className={styles.statCard}
           >
             <div className={styles.statIcon} style={{ background: `${stat.color}15`, color: stat.color }}>
-              <stat.icon size={24} />
+              <stat.icon size={28} />
             </div>
             <div className={styles.statContent}>
               <p>{stat.label}</p>
@@ -191,7 +213,7 @@ export default function AdministrationDashboard() {
             </div>
           </motion.div>
         ))}
-      </div>
+      </motion.div>
 
       <AnimatePresence mode="wait">
         {activeTab === 'radar' ? (
@@ -212,7 +234,11 @@ export default function AdministrationDashboard() {
                   <SectionLoader label="جاري تحميل بيانات المتاجر..." />
                 )}
                 {visibleMerchants.map((merchant: any, i: number) => (
-                  <motion.div key={merchant.slug} className={styles.radarItem}>
+                  <motion.div 
+                    key={merchant.slug} 
+                    variants={itemVariants}
+                    className={styles.radarItem}
+                  >
                     <div className={styles.merchantInfo}>
                        <img src={merchant.logo} alt={merchant.name} />
                        <div>

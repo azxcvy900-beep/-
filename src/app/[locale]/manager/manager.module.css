@@ -1,6 +1,6 @@
 .opsRoom {
-  padding: 2rem;
-  background: #f8fafc;
+  padding: 2.5rem;
+  background: var(--mgr-bg);
   min-height: 100vh;
 }
 
@@ -8,11 +8,26 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2.5rem;
-  background: white;
-  padding: 1.5rem 2rem;
-  border-radius: 20px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  margin-bottom: 3rem;
+  background: linear-gradient(135deg, var(--mgr-sidebar-bg), var(--mgr-bg));
+  padding: 2.5rem 3rem;
+  border-radius: 28px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--mgr-border);
+  position: relative;
+  overflow: hidden;
+}
+
+.pulseHeader::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 60%;
+  height: 200%;
+  background: radial-gradient(circle, var(--mgr-primary) 0%, transparent 70%);
+  opacity: 0.03;
+  pointer-events: none;
 }
 
 .titleInfo h1 {
@@ -82,35 +97,50 @@
 }
 
 .statCard {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 20px;
+  background: var(--mgr-sidebar-bg);
+  padding: 1.75rem;
+  border-radius: 24px;
   display: flex;
   align-items: center;
-  gap: 1.25rem;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
-  border: 1px solid #f1f5f9;
+  gap: 1.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.02);
+  border: 1px solid var(--mgr-border);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.statCard:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06);
+  border-color: var(--mgr-primary);
 }
 
 .statIcon {
-  width: 50px;
-  height: 50px;
-  border-radius: 14px;
+  width: 60px;
+  height: 60px;
+  border-radius: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 1.5rem;
+  transition: transform 0.3s;
+}
+
+.statCard:hover .statIcon {
+  transform: scale(1.1) rotate(5deg);
 }
 
 .statContent p {
-  font-size: 0.85rem;
-  color: #64748b;
-  margin-bottom: 0.25rem;
+  font-size: 0.9rem;
+  color: var(--mgr-text-muted);
+  margin-bottom: 0.4rem;
+  font-weight: 600;
 }
 
 .statContent h3 {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--mgr-text);
+  letter-spacing: -0.5px;
 }
 
 /* Verification Portal */
@@ -273,13 +303,19 @@
 }
 
 .radarItem {
-  background: white;
-  padding: 1.25rem;
-  border-radius: 18px;
+  background: var(--mgr-sidebar-bg);
+  padding: 1.5rem 2rem;
+  border-radius: 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border: 1px solid #f1f5f9;
+  border: 1px solid var(--mgr-border);
+  transition: all 0.2s;
+}
+
+.radarItem:hover {
+  background: var(--mgr-active-link);
+  border-color: var(--mgr-primary);
 }
 
 .merchantInfo {
@@ -306,21 +342,21 @@
   display: flex;
   gap: 1rem;
   margin-bottom: 2rem;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--mgr-border);
   padding-bottom: 1rem;
 }
 
 .vSwitcher button {
   background: none;
   border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
   font-weight: 700;
-  color: #64748b;
+  color: var(--mgr-text-muted);
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
   transition: all 0.2s;
 }
 
@@ -333,8 +369,8 @@
 }
 
 .subActive {
-  background: #f1f5f9 !important;
-  color: #0f172a !important;
+  background: var(--mgr-active-link) !important;
+  color: var(--mgr-primary) !important;
 }
 
 .kycQueue {
@@ -348,8 +384,6 @@
 }
 
 .kycCard {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
   border-radius: 16px;
   padding: 1.5rem;
   display: flex;
