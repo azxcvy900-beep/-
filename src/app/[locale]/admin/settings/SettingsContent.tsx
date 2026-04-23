@@ -664,7 +664,7 @@ export default function SettingsContent() {
                       style={{ paddingRight: '3rem' }}
                       placeholder="967770000000"
                       value={platformSettings.supportPhone || ''}
-                      onChange={(e) => setPlatformSettings(prev => prev ? {...prev, supportPhone: e.target.value} : null)}
+                      onChange={(e) => setPlatformSettings(prev => ({...prev, supportPhone: e.target.value}))}
                     />
                   </div>
                   <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '0.5rem' }}>
