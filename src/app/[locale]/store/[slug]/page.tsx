@@ -118,7 +118,7 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
       
       {/* Sleek Brand Header */}
 
-      <header className={styles.header}>
+      <header className={`${styles.header} ${styles.stickyHeader}`}>
         <div className={styles.headerContent}>
           {(previewLogo || storeInfo?.logo) && (
             <img src={previewLogo || storeInfo?.logo} alt={storeInfo?.name} className={styles.logo} />
@@ -127,6 +127,9 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
             <h1 className={styles.title}>{storeInfo?.name}</h1>
             <p className={styles.subtitle}>{storeInfo?.description}</p>
           </div>
+        </div>
+        <div className={styles.mobileSearchWrapper}>
+           <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder={t('searchPlaceholder')} />
         </div>
       </header>
 
@@ -246,7 +249,7 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
             )}
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1rem' }}>
+          <div className={styles.productGrid}>
             {visibleProducts.map((p: Product) => (
               <motion.div
                 key={p.id}

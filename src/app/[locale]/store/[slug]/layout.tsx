@@ -3,6 +3,7 @@ import Header from '@/components/shared/Header/Header';
 import StoreInitializer from '@/components/shared/StoreInitializer/StoreInitializer';
 import { getStoreInfo, getPlatformSettings } from '@/lib/api';
 import MaintenancePage from '@/components/shared/MaintenancePage/MaintenancePage';
+import BottomNav from '@/components/store/BottomNav/BottomNav';
 
 interface StoreLayoutProps {
   children: React.ReactNode;
@@ -90,6 +91,7 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
       <main style={{ minHeight: '100vh', padding: '2rem 0' }}>
         {children}
       </main>
+      <BottomNav storeSlug={slug} />
     </>
   );
 }

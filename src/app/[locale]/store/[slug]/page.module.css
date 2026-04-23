@@ -343,49 +343,115 @@
 
 @media (max-width: 768px) {
   .header {
-    padding: 2rem 1rem;
+    padding: 1rem 1rem;
+    border-radius: 0 0 24px 24px;
+    margin-bottom: 0.5rem;
   }
+  
+  .stickyHeader {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  }
+
+  :global([data-theme='dark']) .stickyHeader {
+    background: rgba(15, 23, 42, 0.85);
+  }
+
+  .mobileSearchWrapper {
+    display: block;
+    padding: 0 1rem 1rem;
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+
+  .searchWrapper {
+    display: none; /* Hide original search bar on mobile as it's now in header */
+  }
+
   .logo {
-    width: 90px;
-    height: 90px;
-    border-radius: 22px;
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    padding: 6px;
   }
+  
+  .title {
+    font-size: 1.4rem;
+    margin-bottom: 0;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
   .heroBanner {
-    height: 480px;
-    border-radius: 0;
-    margin: 0 0 2.5rem 0;
+    height: 220px;
+    border-radius: 24px;
+    margin: 1rem 1rem 2rem 1rem;
+    width: calc(100% - 2rem);
   }
   .bannerOverlay {
-    padding: 2.5rem 1.5rem;
-    align-items: center;
-    text-align: center;
-    background: linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.3) 100%);
+    padding: 1rem;
+    text-align: right;
+    justify-content: flex-end;
   }
   .bannerOverlay h2 {
-    font-size: 2.5rem;
+    font-size: 1.8rem;
   }
   .bannerOverlay p {
-    font-size: 1.2rem;
+    font-size: 1rem;
   }
+  
+  .categoryBarWrapper {
+    margin-bottom: 2rem;
+    padding: 0.5rem 0;
+  }
+
   .categoryBar {
-    gap: 1.8rem;
-    justify-content: flex-start;
-    padding: 0 1.5rem;
+    gap: 1.2rem;
+    padding: 0 1.2rem;
   }
   .circleIcon {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
+    width: 65px;
+    height: 65px;
   }
-  .circleIcon img {
-    width: 94%;
-    height: 94%;
-    border-radius: 50%;
+  .categoryCircleName {
+    font-size: 0.75rem;
+    max-width: 70px;
   }
-  .activeCircle .circleIcon {
-    transform: translateY(-8px) scale(1.08);
+
+  .productGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Force 2 columns */
+    gap: 0.75rem;
+    padding: 0 0.75rem;
+  }
+
+  .productsSection {
+    padding: 0;
   }
 }
+
+.productGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1.5rem;
+}
+
+.mobileSearchWrapper {
+  display: none;
+}
+
 
 /* Extra Large Screens */
 @media (min-width: 1440px) {
