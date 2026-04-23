@@ -172,6 +172,7 @@ export default function SettingsContent() {
             type="button" 
             onClick={(e) => handleSave(e as any)} 
             className={`${styles.saveBtn} ${hasChanges ? styles.saveBtnUnsaved : ''}`} 
+            style={hasChanges ? { backgroundColor: storeData?.primaryColor || '#10b981', boxShadow: `0 0 0 0 ${storeData?.primaryColor}70` } : {}}
             disabled={saving || (!hasChanges && !saving)}
           >
             {saving ? (
@@ -191,6 +192,28 @@ export default function SettingsContent() {
 
       <Suspense fallback={<div style={{ textAlign: 'center', padding: '10rem' }}><Loader2 className="animate-spin" size={48} color="#3b82f6" /></div>}>
         <form onSubmit={handleSave} className={styles.card}>
+          <div className={styles.section} style={{ borderBottom: '1px solid rgba(128,128,128,0.1)', paddingBottom: '2rem' }}>
+            <h3 className={styles.sectionTitle}>مُعاينة الهوية البصرية (Live Preview)</h3>
+            <div className={styles.themePreview}>
+              <div className={styles.previewCard}>
+                 <div className={styles.previewHeader} style={{ background: storeData?.primaryColor || '#3b82f6' }}>
+                    <div className={styles.previewLogo}>
+                       {logoPreview ? <img src={logoPreview} alt="Logo" /> : <Store size={16} />}
+                    </div>
+                    <span>{storeData?.name || 'اسم المتجر'}</span>
+                 </div>
+                 <div className={styles.previewBody}>
+                    <div className={styles.previewLine} style={{ width: '80%' }} />
+                    <div className={styles.previewLine} style={{ width: '60%' }} />
+                    <button type="button" className={styles.previewBtn} style={{ background: storeData?.primaryColor || '#3b82f6' }}>
+                      زر التجربة
+                    </button>
+                 </div>
+              </div>
+              <p className={styles.previewHint}>هذا شكل تقريبي لكيفية ظهور ألوانك في المتجر للعملاء.</p>
+            </div>
+          </div>
+
           <div className={styles.section} style={{ borderBottom: '1px solid rgba(128,128,128,0.1)', paddingBottom: '2rem' }}>
             <h3 className={styles.sectionTitle}>شعار المتجر</h3>
             <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
@@ -212,7 +235,7 @@ export default function SettingsContent() {
                 />
                 <label 
                   htmlFor="logo-upload" 
-                  style={{ padding: '0.6rem 1.2rem', backgroundColor: '#3b82f6', color: 'white', borderRadius: '8px', fontWeight: 700, cursor: 'pointer', display: 'inline-block', fontSize: '0.9rem' }}
+                  style={{ padding: '0.6rem 1.2rem', backgroundColor: storeData?.primaryColor || '#3b82f6', color: 'white', borderRadius: '8px', fontWeight: 700, cursor: 'pointer', display: 'inline-block', fontSize: '0.9rem' }}
                 >
                   تغيير الشعار
                 </label>
