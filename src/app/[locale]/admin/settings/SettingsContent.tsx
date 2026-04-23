@@ -3,18 +3,15 @@
 import React, { useEffect, useState, Suspense } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { 
-  Store, 
-  Phone, 
-  Info, 
+  Save, 
+  Loader2, 
+  CheckCircle, 
   Globe, 
-  Send, 
-  MessageCircle, 
-  Save,
-  CheckCircle,
-  AlertCircle,
-  Image as ImageIcon,
-  X,
-  Loader2
+  X, 
+  Image as ImageIcon, 
+  Maximize2,
+  Store,
+  ChevronLeft
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getStoreInfo, updateStoreInfo, uploadStoreLogo, StoreInfo } from '@/lib/api';
@@ -204,24 +201,26 @@ export default function SettingsContent() {
       <Suspense fallback={<div style={{ textAlign: 'center', padding: '10rem' }}><Loader2 className="animate-spin" size={48} color="#3b82f6" /></div>}>
         <form onSubmit={handleSave} className={styles.card}>
           <div className={styles.section} style={{ borderBottom: '1px solid rgba(128,128,128,0.1)', paddingBottom: '2rem' }}>
-            <h3 className={styles.sectionTitle}>مُعاينة الهوية البصرية (Live Preview)</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h3 className={styles.sectionTitle} style={{ margin: 0 }}>مُعاينة الهوية البصرية (Live)</h3>
+              <button 
+                type="button" 
+                onClick={() => setShowLivePreview(true)}
+                className={styles.fullScreenBtn}
+              >
+                <Maximize2 size={16} /> ملء الشاشة
+              </button>
+            </div>
+            
             <div className={styles.themePreview}>
-              <div className={styles.previewCard}>
-                 <div className={styles.previewHeader} style={{ background: storeData?.primaryColor || '#3b82f6' }}>
-                    <div className={styles.previewLogo}>
-                       {logoPreview ? <img src={logoPreview} alt="Logo" /> : <Store size={16} />}
-                    </div>
-                    <span>{storeData?.name || 'اسم المتجر'}</span>
-                 </div>
-                 <div className={styles.previewBody}>
-                    <div className={styles.previewLine} style={{ width: '80%' }} />
-                    <div className={styles.previewLine} style={{ width: '60%' }} />
-                    <button type="button" className={styles.previewBtn} style={{ background: storeData?.primaryColor || '#3b82f6' }}>
-                      زر التجربة
-                    </button>
-                 </div>
+              <div className={styles.previewIframeContainer}>
+                <iframe 
+                  key={`${storeData?.primaryColor}-${logoPreview}`}
+                  src={`/${locale}/store/${storeSlug || 'demo'}?preview=true&primaryColor=${encodeURIComponent(storeData?.primaryColor || '')}&logo=${encodeURIComponent(logoPreview || '')}`} 
+                  title="Store Live Preview"
+                />
               </div>
-              <p className={styles.previewHint}>هذا شكل تقريبي لكيفية ظهور ألوانك في المتجر للعملاء.</p>
+              <p className={styles.previewHint}>تظهر هذه المعاينة التغييرات التي تجريها "لحظياً" قبل حفظها.</p>
             </div>
           </div>
 

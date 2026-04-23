@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
 import ProductCard from '@/components/store/ProductCard/ProductCard';
@@ -39,6 +40,12 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
   const [viewMode, setViewMode] = useState<'categories' | 'products'>('categories');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentSlide, setCurrentSlide] = useState(0);
+  const searchParams = useSearchParams();
+  
+  // Preview overrides
+  const previewPrimary = searchParams.get('primaryColor');
+  const previewLogo = searchParams.get('logo');
+  const isPreviewMode = searchParams.get('preview') === 'true';
 
   // Cart Sync Actions
   const { setRates, setManualRate, setShippingFee, setStoreSlug } = useCartStore();
@@ -94,14 +101,24 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
 
   return (
     <div className={styles.container}>
+      {/* Real-time Style Override for Admin Preview */}
+      {isPreviewMode && previewPrimary && (
+        <style dangerouslySetInnerHTML={{ __html: `
+          :root {
+            --primary: ${previewPrimary} !important;
+            --primary-rgb: ${previewPrimary.startsWith('#') ? hexToRgbPreview(previewPrimary) : '59, 130, 246'} !important;
+          }
+        `}} />
+      )}
+
       {showLock && <StoreLockedOverlay storeName={storeInfo?.name} />}
       
       {/* Sleek Brand Header */}
 
       <header className={styles.header}>
         <div className={styles.headerContent}>
-          {storeInfo?.logo && (
-            <img src={storeInfo.logo} alt={storeInfo.name} className={styles.logo} />
+          {(previewLogo || storeInfo?.logo) && (
+            <img src={previewLogo || storeInfo?.logo} alt={storeInfo?.name} className={styles.logo} />
           )}
           <div className={styles.titleGroup}>
             <h1 className={styles.title}>{storeInfo?.name}</h1>
@@ -264,4 +281,12 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
       )}
     </div>
   );
+}
+
+// Helper for preview color conversion
+function hexToRgbPreview(hex: string) {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? 
+    `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : 
+    '59, 130, 246';
 }
