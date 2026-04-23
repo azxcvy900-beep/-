@@ -257,7 +257,6 @@ export default function SettingsContent() {
                       key={`${storeData?.primaryColor}-${logoPreview}-${inlinePreviewDevice}`}
                       src={`/${locale}/store/${storeSlug || 'demo'}?preview=true&primaryColor=${encodeURIComponent(storeData?.primaryColor || '')}&logo=${encodeURIComponent(logoPreview || '')}`} 
                       title="Store Live Preview"
-                      scrolling="no"
                     />
                   </div>
                   {inlinePreviewDevice === 'desktop' && <div className={styles.monitorStand} />}
