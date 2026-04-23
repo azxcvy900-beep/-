@@ -277,6 +277,20 @@
   position: relative;
   transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   background: #0f172a;
+  overflow: hidden; /* Hide anything leaking outside */
+}
+
+.previewIframeContainer iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  /* Hide scrollbars */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.previewIframeContainer iframe::-webkit-scrollbar {
+  display: none;
 }
 
 .mobileFrame {
@@ -316,10 +330,10 @@
   left: 50%;
   transform: translateX(-50%);
   width: 120px;
-  height: 20px;
+  height: 22px;
   background: #0f172a;
   border-radius: 0 0 15px 15px;
-  z-index: 10;
+  z-index: 20;
 }
 
 .monitorStand {
@@ -329,7 +343,7 @@
   transform: translateX(-50%);
   width: 120px;
   height: 60px;
-  background: #334155;
+  background: #0f172a;
   clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
   z-index: -1;
 }
@@ -344,24 +358,32 @@
 
 .inlineDeviceSwitcher {
   display: flex;
-  background: white;
-  padding: 0.4rem;
-  border-radius: 16px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  background: #f8fafc;
+  padding: 0.5rem;
+  border-radius: 18px;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
   border: 1px solid #e2e8f0;
-  gap: 0.5rem;
-  margin-bottom: 2rem;
+  gap: 0.75rem;
+  margin-bottom: 2.5rem;
 }
 
 .inlineDeviceSwitcher button {
-  width: 42px;
-  height: 42px;
+  width: 48px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 12px;
-  color: #94a3b8;
-  transition: all 0.2s;
+  border-radius: 14px;
+  color: #64748b;
+  background: white;
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.inlineDeviceSwitcher button:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+  transform: translateY(-2px);
 }
 
 .activeInlineDevice {

@@ -108,6 +108,9 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
             --primary: ${previewPrimary} !important;
             --primary-rgb: ${previewPrimary.startsWith('#') ? hexToRgbPreview(previewPrimary) : '59, 130, 246'} !important;
           }
+          /* Hide scrollbars in preview */
+          body::-webkit-scrollbar { display: none; }
+          body { -ms-overflow-style: none; scrollbar-width: none; }
         `}} />
       )}
 
