@@ -11,7 +11,11 @@ import {
   Image as ImageIcon, 
   Maximize2,
   Store,
-  ChevronLeft
+  ChevronLeft,
+  Send,
+  MessageCircle,
+  Phone,
+  Info
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getStoreInfo, updateStoreInfo, uploadStoreLogo, StoreInfo } from '@/lib/api';
