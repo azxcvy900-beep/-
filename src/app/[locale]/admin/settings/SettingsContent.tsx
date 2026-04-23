@@ -39,6 +39,8 @@ export default function SettingsContent() {
   const [tempLogoUrl, setTempLogoUrl] = useState<string | null>(null);
   const [isCropping, setIsCropping] = useState(false);
   const [saveStep, setSaveStep] = useState<'' | 'compressing' | 'uploading' | 'saving'>('');
+  const [showLivePreview, setShowLivePreview] = useState(false);
+  const [previewDevice, setPreviewDevice] = useState<'mobile' | 'desktop'>('mobile');
 
   useEffect(() => {
     async function loadStore() {
@@ -167,6 +169,15 @@ export default function SettingsContent() {
               </motion.div>
             )}
           </AnimatePresence>
+
+          <button 
+            type="button"
+            onClick={() => setShowLivePreview(true)}
+            className={styles.previewLiveBtn}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+          >
+            <Globe size={20} /> معاينة المتجر المباشرة
+          </button>
 
           <button 
             type="button" 
@@ -603,6 +614,45 @@ export default function SettingsContent() {
                 </button>
               </div>
             </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {showLivePreview && (
+          <div className={styles.previewModalOverlay}>
+             <motion.div 
+               initial={{ opacity: 0, scale: 0.95 }}
+               animate={{ opacity: 1, scale: 1 }}
+               exit={{ opacity: 0, scale: 0.95 }}
+               className={styles.livePreviewModal}
+             >
+                <div className={styles.previewModalHeader}>
+                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                      <h3>معاينة المتجر (مباشر)</h3>
+                      <div className={styles.deviceSwitcher}>
+                         <button 
+                           onClick={() => setPreviewDevice('mobile')}
+                           className={previewDevice === 'mobile' ? styles.activeDevice : ''}
+                         >جوال</button>
+                         <button 
+                           onClick={() => setPreviewDevice('desktop')}
+                           className={previewDevice === 'desktop' ? styles.activeDevice : ''}
+                         >كمبيوتر</button>
+                      </div>
+                   </div>
+                   <button onClick={() => setShowLivePreview(false)} className={styles.closePreviewBtn}>
+                      <X size={24} />
+                   </button>
+                </div>
+                <div className={styles.previewModalBody}>
+                   <div className={`${styles.iframeContainer} ${previewDevice === 'mobile' ? styles.mobileView : styles.desktopView}`}>
+                      <iframe 
+                        src={`/${locale}/store/${storeSlug || 'demo'}?preview=true`} 
+                        title="Store Preview"
+                      />
+                   </div>
+                </div>
+             </motion.div>
           </div>
         )}
       </AnimatePresence>
