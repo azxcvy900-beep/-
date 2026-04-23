@@ -26,6 +26,7 @@ export default function ManagerSettings() {
     platformFee: 2.5,
     maintenanceMode: false,
     defaultCurrency: 'USD',
+    supportPhone: '967770000000',
     currencyRates: {
       YER: 530,
       SAR: 140
