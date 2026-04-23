@@ -4,14 +4,25 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageCircle, X } from 'lucide-react';
 import { useLocale } from 'next-intl';
+import { getPlatformSettings } from '@/lib/api';
 import styles from './WhatsAppSupport.module.css';
 
 const WhatsAppSupport = () => {
   const [isOpen, setIsOpen] = React.useState(false);
+  const [phoneNumber, setPhoneNumber] = React.useState('967770000000');
   const locale = useLocale();
 
-  const phoneNumber = '967770000000'; // Generic merchant number
-  const message = locale === 'ar' ? 'مرحباً، لدي استفسار بخصوص المتجر...' : 'Hello, I have an inquiry about the store...';
+  React.useEffect(() => {
+    async function loadSettings() {
+      const settings = await getPlatformSettings();
+      if (settings?.supportPhone) {
+        setPhoneNumber(settings.supportPhone);
+      }
+    }
+    loadSettings();
+  }, []);
+
+  const message = locale === 'ar' ? 'مرحباً، لدي استفسار بخصوص المنصة...' : 'Hello, I have an inquiry about the platform...';
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
 
   return (

@@ -22,8 +22,17 @@ import {
   Tv
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getStoreInfo, updateStoreInfo, uploadStoreLogo, StoreInfo } from '@/lib/api';
+import { 
+  getStoreInfo, 
+  updateStoreInfo, 
+  uploadStoreLogo, 
+  StoreInfo, 
+  getPlatformSettings, 
+  updatePlatformSettings, 
+  PlatformSettings 
+} from '@/lib/api';
 import { useAuthStore } from '@/lib/auth-store';
+import { useSessionStore } from '@/lib/session-store';
 import { compressImage, getSquareCroppedImg, fileToBase64 } from '@/lib/utils';
 import styles from './settings.module.css';
 
@@ -31,8 +40,11 @@ export default function SettingsContent() {
   const t = useTranslations('Admin');
   const locale = useLocale();
   const { storeSlug, setStoreInfo } = useAuthStore();
+  const { role } = useSessionStore();
   
   const [storeData, setStoreData] = useState<StoreInfo | null>(null);
+  const [platformSettings, setPlatformSettings] = useState<PlatformSettings | null>(null);
+  const [initialPlatformData, setInitialPlatformData] = useState<PlatformSettings | null>(null);
   const [initialData, setInitialData] = useState<StoreInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -69,6 +81,14 @@ export default function SettingsContent() {
           setStoreData(defaultData);
           setInitialData(defaultData);
         }
+
+        if (role === 'admin') {
+          const pData = await getPlatformSettings();
+          if (pData) {
+            setPlatformSettings(pData);
+            setInitialPlatformData(pData);
+          }
+        }
       } catch (error) {
         console.error("Error loading store settings:", error);
       } finally {
@@ -76,7 +96,7 @@ export default function SettingsContent() {
       }
     }
     loadStore();
-  }, [storeSlug]);
+  }, [storeSlug, role]);
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -115,6 +135,13 @@ export default function SettingsContent() {
     setSuccess(false);
     setSaveStep('compressing');
     try {
+      // 1. Save Platform Settings if Admin
+      if (role === 'admin' && platformSettings) {
+        await updatePlatformSettings(platformSettings);
+        setInitialPlatformData(platformSettings);
+      }
+
+      // 2. Save Store Settings
       let finalLogoUrl = storeData.logo;
       if (selectedLogo) {
         setSaveStep('saving');
@@ -145,10 +172,12 @@ export default function SettingsContent() {
     }
   };
 
-  const hasChanges = storeData && initialData && (
+  const hasChanges = (storeData && initialData && (
     JSON.stringify(storeData) !== JSON.stringify(initialData) || 
     selectedLogo !== null
-  );
+  )) || (role === 'admin' && platformSettings && initialPlatformData && (
+    JSON.stringify(platformSettings) !== JSON.stringify(initialPlatformData)
+  ));
 
   if (loading) {
     return <div style={{ textAlign: 'center', padding: '10rem' }}><Loader2 className="animate-spin" size={48} color="#3b82f6" /></div>;
@@ -605,7 +634,34 @@ export default function SettingsContent() {
                 />
               </div>
             </div>
-          </div>
+          {role === 'admin' && platformSettings && (
+            <div className={styles.section} style={{ borderTop: '2px solid var(--primary)', marginTop: '3rem', paddingTop: '2rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                <ShieldCheck size={24} color="var(--primary)" />
+                <h3 className={styles.sectionTitle} style={{ margin: 0 }}>إعدادات الإدارة العامة (المنصة)</h3>
+              </div>
+              <div className={styles.formGrid}>
+                <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
+                  <label>رقم هاتف الإدارة العامة للشكاوي (واتساب الدعم)</label>
+                  <div style={{ position: 'relative' }}>
+                    <div style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#6b7280' }}>
+                      <Phone size={18} />
+                    </div>
+                    <input 
+                      className={styles.input}
+                      style={{ paddingRight: '3rem' }}
+                      placeholder="967770000000"
+                      value={platformSettings.supportPhone || ''}
+                      onChange={(e) => setPlatformSettings(prev => prev ? {...prev, supportPhone: e.target.value} : null)}
+                    />
+                  </div>
+                  <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '0.5rem' }}>
+                    هذا الرقم هو الذي سيظهر للعملاء والموظفين عند الضغط على زر "تواصل معنا" العائم في المتجر واللوحة.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Save button removed from bottom as requested */}
         </form>
