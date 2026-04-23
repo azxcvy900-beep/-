@@ -15,7 +15,11 @@ import {
   Send,
   MessageCircle,
   Phone,
-  Info
+  Info,
+  Tablet,
+  Monitor,
+  Smartphone,
+  Tv
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getStoreInfo, updateStoreInfo, uploadStoreLogo, StoreInfo } from '@/lib/api';
@@ -42,6 +46,7 @@ export default function SettingsContent() {
   const [saveStep, setSaveStep] = useState<'' | 'compressing' | 'uploading' | 'saving'>('');
   const [showLivePreview, setShowLivePreview] = useState(false);
   const [previewDevice, setPreviewDevice] = useState<'mobile' | 'desktop'>('mobile');
+  const [inlinePreviewDevice, setInlinePreviewDevice] = useState<'mobile' | 'tablet' | 'desktop' | 'wide'>('mobile');
 
   useEffect(() => {
     async function loadStore() {
@@ -217,14 +222,45 @@ export default function SettingsContent() {
             </div>
             
             <div className={styles.themePreview}>
-              <div className={styles.previewIframeContainer}>
-                <iframe 
-                  key={`${storeData?.primaryColor}-${logoPreview}`}
-                  src={`/${locale}/store/${storeSlug || 'demo'}?preview=true&primaryColor=${encodeURIComponent(storeData?.primaryColor || '')}&logo=${encodeURIComponent(logoPreview || '')}`} 
-                  title="Store Live Preview"
-                />
+              <div className={styles.inlineDeviceSwitcher}>
+                <button 
+                  type="button" 
+                  onClick={() => setInlinePreviewDevice('mobile')}
+                  className={inlinePreviewDevice === 'mobile' ? styles.activeInlineDevice : ''}
+                  title="جوال"
+                ><Smartphone size={18} /></button>
+                <button 
+                  type="button" 
+                  onClick={() => setInlinePreviewDevice('tablet')}
+                  className={inlinePreviewDevice === 'tablet' ? styles.activeInlineDevice : ''}
+                  title="أيباد"
+                ><Tablet size={18} /></button>
+                <button 
+                  type="button" 
+                  onClick={() => setInlinePreviewDevice('desktop')}
+                  className={inlinePreviewDevice === 'desktop' ? styles.activeInlineDevice : ''}
+                  title="كمبيوتر"
+                ><Monitor size={18} /></button>
+                <button 
+                  type="button" 
+                  onClick={() => setInlinePreviewDevice('wide')}
+                  className={inlinePreviewDevice === 'wide' ? styles.activeInlineDevice : ''}
+                  title="شاشة كبيرة"
+                ><Tv size={18} /></button>
               </div>
-              <p className={styles.previewHint}>تظهر هذه المعاينة التغييرات التي تجريها "لحظياً" قبل حفظها.</p>
+
+              <div className={styles.previewContainerWrapper}>
+                <div className={`${styles.previewIframeContainer} ${styles[inlinePreviewDevice + 'Frame']}`}>
+                  {inlinePreviewDevice === 'mobile' && <div className={styles.phoneNotch} />}
+                  <iframe 
+                    key={`${storeData?.primaryColor}-${logoPreview}-${inlinePreviewDevice}`}
+                    src={`/${locale}/store/${storeSlug || 'demo'}?preview=true&primaryColor=${encodeURIComponent(storeData?.primaryColor || '')}&logo=${encodeURIComponent(logoPreview || '')}`} 
+                    title="Store Live Preview"
+                  />
+                  {inlinePreviewDevice === 'desktop' && <div className={styles.monitorStand} />}
+                </div>
+              </div>
+              <p className={styles.previewHint}>تتحاكي هذه الشاشة طريقة عرض متجرك على الأجهزة المختلفة بشكل واقعي.</p>
             </div>
           </div>
 

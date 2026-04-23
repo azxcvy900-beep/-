@@ -272,14 +272,102 @@
 }
 
 .previewIframeContainer {
-  width: 320px;
-  height: 550px;
-  border: 8px solid #0f172a;
-  border-radius: 36px;
-  overflow: hidden;
   background: white;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+  box-shadow: 0 30px 60px rgba(0,0,0,0.15);
   position: relative;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #0f172a;
+}
+
+.mobileFrame {
+  width: 300px;
+  height: 600px;
+  border-radius: 40px;
+  border: 10px solid #0f172a;
+}
+
+.tabletFrame {
+  width: 500px;
+  height: 650px;
+  border-radius: 24px;
+  border: 12px solid #0f172a;
+}
+
+.desktopFrame {
+  width: 100%;
+  max-width: 800px;
+  height: 450px;
+  border-radius: 12px;
+  border: 10px solid #0f172a;
+  border-bottom-width: 30px;
+}
+
+.wideFrame {
+  width: 100%;
+  max-width: 950px;
+  height: 500px;
+  border-radius: 8px;
+  border: 8px solid #0f172a;
+}
+
+.phoneNotch {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 20px;
+  background: #0f172a;
+  border-radius: 0 0 15px 15px;
+  z-index: 10;
+}
+
+.monitorStand {
+  position: absolute;
+  bottom: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 60px;
+  background: #334155;
+  clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
+  z-index: -1;
+}
+
+.previewContainerWrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 2rem 0 4rem 0;
+  perspective: 1000px;
+}
+
+.inlineDeviceSwitcher {
+  display: flex;
+  background: white;
+  padding: 0.4rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  border: 1px solid #e2e8f0;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.inlineDeviceSwitcher button {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  color: #94a3b8;
+  transition: all 0.2s;
+}
+
+.activeInlineDevice {
+  background: var(--primary);
+  color: white !important;
+  box-shadow: 0 8px 16px rgba(var(--primary-rgb), 0.2);
 }
 
 .previewIframeContainer iframe {
