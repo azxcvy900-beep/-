@@ -272,25 +272,62 @@
 }
 
 .previewIframeContainer {
-  background: white;
-  box-shadow: 0 30px 60px rgba(0,0,0,0.15);
-  position: relative;
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   background: #0f172a;
-  overflow: hidden; /* Hide anything leaking outside */
+  box-shadow: 0 30px 60px rgba(0,0,0,0.25);
+  position: relative;
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.previewIframeContainer iframe {
+.mobileFrame {
+  width: 320px;
+  height: 640px;
+  border-radius: 48px;
+  border: 12px solid #0f172a;
+}
+
+.tabletFrame {
+  width: 600px;
+  height: 800px;
+  border-radius: 32px;
+  border: 18px solid #0f172a;
+}
+
+.desktopFrame {
+  width: 100%;
+  max-width: 900px;
+  height: 560px;
+  border-radius: 12px;
+  border: 12px solid #0f172a;
+  border-bottom-width: 40px;
+}
+
+.wideFrame {
+  width: 100%;
+  max-width: 1100px;
+  height: 600px;
+  border-radius: 12px;
+  border: 10px solid #0f172a;
+}
+
+.iframeScaleWrapper {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  background: white;
+}
+
+.iframeScaleWrapper iframe {
   width: 100%;
   height: 100%;
   border: none;
-  /* Hide scrollbars */
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.previewIframeContainer iframe::-webkit-scrollbar {
-  display: none;
+  display: block;
+  pointer-events: auto;
+  overflow: hidden !important;
 }
 
 .mobileFrame {

@@ -252,11 +252,14 @@ export default function SettingsContent() {
               <div className={styles.previewContainerWrapper}>
                 <div className={`${styles.previewIframeContainer} ${styles[inlinePreviewDevice + 'Frame']}`}>
                   {inlinePreviewDevice === 'mobile' && <div className={styles.phoneNotch} />}
-                  <iframe 
-                    key={`${storeData?.primaryColor}-${logoPreview}-${inlinePreviewDevice}`}
-                    src={`/${locale}/store/${storeSlug || 'demo'}?preview=true&primaryColor=${encodeURIComponent(storeData?.primaryColor || '')}&logo=${encodeURIComponent(logoPreview || '')}`} 
-                    title="Store Live Preview"
-                  />
+                  <div className={styles.iframeScaleWrapper}>
+                    <iframe 
+                      key={`${storeData?.primaryColor}-${logoPreview}-${inlinePreviewDevice}`}
+                      src={`/${locale}/store/${storeSlug || 'demo'}?preview=true&primaryColor=${encodeURIComponent(storeData?.primaryColor || '')}&logo=${encodeURIComponent(logoPreview || '')}`} 
+                      title="Store Live Preview"
+                      scrolling="no"
+                    />
+                  </div>
                   {inlinePreviewDevice === 'desktop' && <div className={styles.monitorStand} />}
                 </div>
               </div>
