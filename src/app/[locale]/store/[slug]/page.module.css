@@ -334,9 +334,10 @@
 
 @media (max-width: 1024px) {
   .heroBanner {
-    margin-left: 1.5rem;
-    margin-right: 1.5rem;
-    height: 380px;
+    height: 400px;
+  }
+  .bannerOverlay h2 {
+    font-size: 3rem;
   }
 }
 
@@ -372,16 +373,26 @@
     padding: 0 1.5rem;
   }
   .circleIcon {
-    width: 75px;
-    height: 75px;
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
   }
   .circleIcon img {
-    width: 40px;
-    height: 40px;
+    width: 94%;
+    height: 94%;
     border-radius: 50%;
   }
   .activeCircle .circleIcon {
     transform: translateY(-8px) scale(1.08);
+  }
+}
+
+/* Extra Large Screens */
+@media (min-width: 1440px) {
+  .heroBanner {
+    height: 600px;
+  }
+  .bannerOverlay h2 {
+    font-size: 5.5rem;
   }
 }

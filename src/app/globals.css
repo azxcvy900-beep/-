@@ -67,6 +67,9 @@ html, body {
   max-width: 100vw;
   overflow-x: hidden;
   min-height: 100vh;
+  /* Prevent bounce and horizontal scroll */
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 body {
@@ -76,6 +79,8 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.6;
+  /* App-like touch behavior */
+  touch-action: manipulation;
 }
 
 [lang='en'] body {
