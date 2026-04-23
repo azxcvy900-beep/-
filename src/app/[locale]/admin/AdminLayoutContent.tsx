@@ -55,12 +55,12 @@ export default function AdminLayoutContent({ children }: { children: React.React
 
   // Sync session storeSlug with authStore
   useEffect(() => {
-    if (storeSlug && isLoggedIn) {
-      getStoreInfo(storeSlug).then(info => {
+    if (sessionSlug && isLoggedIn) {
+      getStoreInfo(sessionSlug).then(info => {
         if (info) setStoreInfo(info);
       });
     }
-  }, [storeSlug, isLoggedIn, setStoreInfo]);
+  }, [sessionSlug, isLoggedIn, setStoreInfo]);
 
   // Verify access
   useEffect(() => {
@@ -99,7 +99,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
     return <RedirectToLogin locale={locale} />;
   }
 
-  if (role === 'merchant' && !storeSlug && !isSetupPage && !checkingStore) {
+  if (role === 'merchant' && !sessionSlug && !isSetupPage && !checkingStore) {
     // Only redirect to setup if we are 100% sure we are not already there
     return <RedirectToSetup locale={locale} />;
   }
@@ -194,7 +194,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
 
   return (
     <div className={styles.adminLayout}>
-      <OrderNotification storeSlug={storeSlug || 'demo'} />
+      <OrderNotification storeSlug={sessionSlug || 'demo'} />
       <aside className={`${styles.sidebar} ${!isSidebarOpen ? styles.sidebarClosed : ''}`}>
         <Link href="/" className={styles.sidebarLogo}>
           <Store size={28} />
