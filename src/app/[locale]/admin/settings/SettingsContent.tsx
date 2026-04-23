@@ -25,7 +25,7 @@ import styles from './settings.module.css';
 export default function SettingsContent() {
   const t = useTranslations('Admin');
   const locale = useLocale();
-  const { storeSlug } = useAuthStore();
+  const { storeSlug, setStoreInfo } = useAuthStore();
   
   const [storeData, setStoreData] = useState<StoreInfo | null>(null);
   const [initialData, setInitialData] = useState<StoreInfo | null>(null);
@@ -122,6 +122,8 @@ export default function SettingsContent() {
       await updateStoreInfo(storeSlug || 'demo', updatedData);
       setStoreData(updatedData);
       setInitialData(updatedData);
+      setStoreInfo(updatedData); // Update global header logo
+      setLogoPreview(updatedData.logo || null); // Update local preview
       setSelectedLogo(null);
       setSaveStep('');
       setSuccess(true);
@@ -194,7 +196,7 @@ export default function SettingsContent() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
               <div style={{ position: 'relative', width: '100px', height: '100px', borderRadius: '50%', backgroundColor: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', border: '2px solid white', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
                 {logoPreview ? (
-                  <img src={logoPreview} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Logo Preview" />
+                  <img key={logoPreview} src={logoPreview} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Logo Preview" />
                 ) : (
                   <ImageIcon size={40} style={{ color: '#9ca3af' }} />
                 )}
