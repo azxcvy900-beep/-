@@ -19,7 +19,8 @@ import {
   Tablet,
   Monitor,
   Smartphone,
-  Tv
+  Tv,
+  ShieldCheck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
