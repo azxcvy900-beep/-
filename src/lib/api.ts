@@ -99,42 +99,6 @@ export interface KYCRequest {
   rejectionReason?: string;
 }
 
-export interface PlatformSettings {
-  supportPhone: string;
-  commissionRate: number;
-  termsAndConditions?: string;
-  privacyPolicy?: string;
-}
-
-export async function getPlatformSettings(): Promise<PlatformSettings> {
-  const cacheKey = 'platform_settings';
-  const cached = dataCache.get<PlatformSettings>(cacheKey);
-  if (cached) return cached;
-
-  try {
-    const settingsDoc = doc(db, 'platform', 'config');
-    const snap = await getDoc(settingsDoc);
-    if (snap.exists()) {
-      const data = snap.data() as PlatformSettings;
-      dataCache.set(cacheKey, data, 600); // Cache for 10 mins
-      return data;
-    }
-  } catch (error) {
-    console.error("Error fetching platform settings:", error);
-  }
-
-  // Default fallback
-  return {
-    supportPhone: '967770000000',
-    commissionRate: 0.05
-  };
-}
-
-export async function updatePlatformSettings(updates: Partial<PlatformSettings>): Promise<void> {
-  const settingsDoc = doc(db, 'platform', 'config');
-  await setDoc(settingsDoc, updates, { merge: true });
-  dataCache.invalidate('platform_settings');
-}
 
 export interface PaymentProof {
   id: string;
@@ -958,6 +922,8 @@ export interface PlatformSettings {
   platformFee: number;
   maintenanceMode: boolean;
   defaultCurrency: string;
+  supportPhone: string; // Added for complaints department
+  commissionRate?: number;
   currencyRates: {
     YER: number;
     SAR: number;
@@ -975,6 +941,7 @@ export async function getPlatformSettings(): Promise<PlatformSettings> {
     platformFee: 2.5,
     maintenanceMode: false,
     defaultCurrency: 'USD',
+    supportPhone: '967770000000',
     currencyRates: {
       YER: 530,
       SAR: 140

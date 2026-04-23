@@ -634,6 +634,7 @@ export default function SettingsContent() {
                 />
               </div>
             </div>
+          </div>
           {role === 'admin' && platformSettings && (
             <div className={styles.section} style={{ borderTop: '2px solid var(--primary)', marginTop: '3rem', paddingTop: '2rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
