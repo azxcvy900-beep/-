@@ -166,29 +166,52 @@
 }
 
 @media (max-width: 768px) {
+  .header {
+    top: 0;
+    left: 0;
+    transform: none;
+    width: 100%;
+    max-width: none;
+    border-radius: 0 0 16px 16px;
+    padding: 0.6rem 0;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+  }
+
+  .header:hover {
+    transform: none;
+  }
+
   .logo {
     font-size: 1.25rem;
   }
   
   .nav {
-    gap: 0.75rem;
+    gap: 0.5rem;
   }
   
   .hideOnMobile {
     display: none;
   }
 
+  /* Only show essential icons in header since we have BottomNav */
+  .navLink {
+    display: none;
+  }
+
   .localeLink {
-    padding: 0.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    padding: 0.4rem;
     border-radius: 50%;
   }
 
   .cartLink {
-    padding: 0.6rem;
-    border-radius: 50%;
+    display: none; /* Already in BottomNav */
+  }
+
+  .iconButton {
+    padding: 0.4rem;
+    border-radius: 10px;
   }
 
   .cartCount {

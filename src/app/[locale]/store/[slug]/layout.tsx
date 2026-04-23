@@ -88,9 +88,9 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
         storeName={store?.name || slug.toUpperCase()} 
         storeLogo={store?.logo}
       />
-      <main style={{ minHeight: '100vh', padding: '2rem 0' }}>
+      <div className="flexGrow">
         {children}
-      </main>
+      </div>
       <BottomNav storeSlug={slug} />
     </>
   );

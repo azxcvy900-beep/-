@@ -68,13 +68,13 @@ export default function RootLayout({
 
   return (
     <html lang={locale} dir={direction} className={`${inter.variable} ${cairo.variable}`}>
-       <body>
+       <body className="appContainer">
         <NextIntlClientProvider messages={messages} locale={locale}>
           <ThemeProvider>
             <Suspense fallback={null}>
-              <main style={{ minHeight: 'calc(100vh - 400px)' }}>
+              <div className="flexGrow">
                 {children}
-              </main>
+              </div>
               <Toaster richColors position="top-center" />
               <WhatsAppSupport />
               <Footer />

@@ -72,6 +72,27 @@ html, body {
   -webkit-overflow-scrolling: touch;
 }
 
+.appContainer {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.flexGrow {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 768px) {
+  .appContainer {
+    /* Prevent address bar jumping on mobile */
+    min-height: -webkit-fill-available;
+  }
+}
+
 body {
   color: var(--foreground);
   background: var(--background);
