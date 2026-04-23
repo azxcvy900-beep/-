@@ -28,6 +28,7 @@ export default function SettingsContent() {
   const { storeSlug } = useAuthStore();
   
   const [storeData, setStoreData] = useState<StoreInfo | null>(null);
+  const [initialData, setInitialData] = useState<StoreInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -45,9 +46,10 @@ export default function SettingsContent() {
         const data = await getStoreInfo(storeSlug || 'demo');
         if (data) {
           setStoreData(data);
+          setInitialData(data);
           setLogoPreview(data.logo || null);
         } else {
-          setStoreData({
+          const defaultData: StoreInfo = {
             slug: storeSlug || 'demo',
             name: '',
             phone: '',
@@ -55,7 +57,9 @@ export default function SettingsContent() {
             primaryColor: '#3b82f6',
             logo: '',
             social: { instagram: '', twitter: '', facebook: '' }
-          });
+          };
+          setStoreData(defaultData);
+          setInitialData(defaultData);
         }
       } catch (error) {
         console.error("Error loading store settings:", error);
@@ -117,6 +121,8 @@ export default function SettingsContent() {
       };
       await updateStoreInfo(storeSlug || 'demo', updatedData);
       setStoreData(updatedData);
+      setInitialData(updatedData);
+      setSelectedLogo(null);
       setSaveStep('');
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
@@ -129,6 +135,11 @@ export default function SettingsContent() {
     }
   };
 
+  const hasChanges = storeData && initialData && (
+    JSON.stringify(storeData) !== JSON.stringify(initialData) || 
+    selectedLogo !== null
+  );
+
   if (loading) {
     return <div style={{ textAlign: 'center', padding: '10rem' }}><Loader2 className="animate-spin" size={48} color="#3b82f6" /></div>;
   }
@@ -136,8 +147,44 @@ export default function SettingsContent() {
   return (
     <div className={styles.settingsPage}>
       <div className={styles.header}>
-        <h1 className={styles.title}>{t('sidebar.settings')}</h1>
-        <p className={styles.subtitle}>تحكم في هوية متجرك ومعلومات التواصل.</p>
+        <div>
+          <h1 className={styles.title}>{t('sidebar.settings')}</h1>
+          <p className={styles.subtitle}>تحكم في هوية متجرك ومعلومات التواصل.</p>
+        </div>
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <AnimatePresence>
+            {success && (
+              <motion.div 
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                style={{ color: '#16a34a', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+              >
+                <CheckCircle size={20} /> تم الحفظ
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <button 
+            type="button" 
+            onClick={(e) => handleSave(e as any)} 
+            className={`${styles.saveBtn} ${hasChanges ? styles.saveBtnUnsaved : ''}`} 
+            disabled={saving || (!hasChanges && !saving)}
+          >
+            {saving ? (
+              <Loader2 className="animate-spin" size={20} />
+            ) : hasChanges ? (
+              <>
+                <Save size={20} /> حفظ التغييرات
+              </>
+            ) : (
+              <>
+                <CheckCircle size={20} /> تم الحفظ
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       <Suspense fallback={<div style={{ textAlign: 'center', padding: '10rem' }}><Loader2 className="animate-spin" size={48} color="#3b82f6" /></div>}>
@@ -483,35 +530,7 @@ export default function SettingsContent() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-            <button type="submit" className={styles.saveBtn} disabled={saving}>
-              {saving ? (
-                <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  {saveStep === 'compressing' && 'جاري معالجة الصورة...'}
-                  {saveStep === 'uploading' && 'جاري الرفع للسحابة...'}
-                  {saveStep === 'saving' && 'جاري حفظ البيانات...'}
-                  {!saveStep && 'جاري الحفظ...'}
-                </span>
-              ) : (
-                <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <Save size={20} /> حفظ الإعدادات
-                </span>
-              )}
-            </button>
-
-            <AnimatePresence>
-              {success && (
-                <motion.div 
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  style={{ color: '#16a34a', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                >
-                  <CheckCircle size={20} /> تم الحفظ بنجاح!
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+          {/* Save button removed from bottom as requested */}
         </form>
       </Suspense>
 
