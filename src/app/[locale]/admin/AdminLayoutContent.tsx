@@ -42,8 +42,8 @@ export default function AdminLayoutContent({ children }: { children: React.React
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [checkingStore, setCheckingStore] = useState(true);
   const [mounted, setMounted] = useState(false);
-  const { isLoggedIn, role, username, storeSlug, permissions, logout, _hasHydrated } = useSessionStore();
-  const { storeLogo, storeName, setStoreInfo, verificationStatus } = useAuthStore();
+  const { isLoggedIn, role, username, storeSlug: sessionSlug, permissions, logout, _hasHydrated } = useSessionStore();
+  const { storeSlug, storeLogo, storeName, setStoreInfo, verificationStatus } = useAuthStore();
   
   // Handle hydration
   useEffect(() => {
@@ -190,7 +190,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
   const currentItem = navItems.find(item => isPathActive(item.href));
 
 
-  const showVerificationBanner = verificationStatus !== 'active' && verificationStatus !== 'approved' && !pathname.includes('/admin/verification') && storeSlug !== 'demo' && role === 'merchant';
+  const showVerificationBanner = verificationStatus !== 'active' && verificationStatus !== 'approved' && !pathname.includes('/admin/verification') && storeSlug !== 'demo' && role === 'merchant' && !!storeSlug;
 
   return (
     <div className={styles.adminLayout}>

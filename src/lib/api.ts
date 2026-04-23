@@ -343,6 +343,7 @@ export const DUMMY_STORES: StoreInfo[] = [
     ],
     phone: '967770000000',
     description: 'استكشف قوة منصة بايرز بنظام تسعير الريال السعودي (رس).',
+    verificationStatus: 'active',
     currencySettings: {
       default: 'SAR',
       rates: { 'YER': 530, 'USD': 3.75 }
