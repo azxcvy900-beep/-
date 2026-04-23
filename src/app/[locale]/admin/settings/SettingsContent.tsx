@@ -44,7 +44,14 @@ export default function SettingsContent() {
   const { role } = useSessionStore();
   
   const [storeData, setStoreData] = useState<StoreInfo | null>(null);
-  const [platformSettings, setPlatformSettings] = useState<PlatformSettings | null>(null);
+  const [platformSettings, setPlatformSettings] = useState<PlatformSettings>({
+    platformFee: 2.5,
+    maintenanceMode: false,
+    defaultCurrency: 'USD',
+    supportPhone: '967770000000',
+    currencyRates: { YER: 530, SAR: 140 },
+    notifications: { newMerchant: true, highComplaint: true, systemAlert: true }
+  });
   const [initialPlatformData, setInitialPlatformData] = useState<PlatformSettings | null>(null);
   const [initialData, setInitialData] = useState<StoreInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -84,10 +91,13 @@ export default function SettingsContent() {
         }
 
         if (role === 'admin') {
-          const pData = await getPlatformSettings();
-          if (pData) {
+          try {
+            const pData = await getPlatformSettings();
             setPlatformSettings(pData);
             setInitialPlatformData(pData);
+          } catch {
+            // Keep the default value already set
+            setInitialPlatformData(platformSettings);
           }
         }
       } catch (error) {
@@ -636,7 +646,7 @@ export default function SettingsContent() {
               </div>
             </div>
           </div>
-          {role === 'admin' && platformSettings && (
+          {role === 'admin' && (
             <div className={styles.section} style={{ borderTop: '2px solid var(--primary)', marginTop: '3rem', paddingTop: '2rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
                 <ShieldCheck size={24} color="var(--primary)" />
