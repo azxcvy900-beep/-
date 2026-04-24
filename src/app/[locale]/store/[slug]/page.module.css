@@ -343,30 +343,38 @@
 
 @media (max-width: 768px) {
   .header {
-    padding: 1rem 1rem;
-    border-radius: 0 0 24px 24px;
-    margin-bottom: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0;
+    margin-bottom: 0;
+    border-bottom: 1px solid var(--card-border);
   }
   
+  .headerContent {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 1rem;
+    text-align: right;
+  }
+
   .stickyHeader {
     position: sticky;
     top: 0;
     z-index: 100;
-    background: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
   }
 
   :global([data-theme='dark']) .stickyHeader {
-    background: rgba(15, 23, 42, 0.85);
+    background: rgba(15, 23, 42, 0.95);
   }
 
   .mobileSearchWrapper {
     display: block;
-    padding: 0 1rem 1rem;
+    padding: 0.5rem 1rem 0.75rem;
     width: 100%;
-    margin-top: 0.5rem;
+    background: inherit;
   }
 
   .searchWrapper {
@@ -374,42 +382,52 @@
   }
 
   .logo {
-    width: 60px;
-    height: 60px;
-    border-radius: 16px;
-    padding: 6px;
+    width: 45px;
+    height: 45px;
+    border-radius: 12px;
+    padding: 4px;
+    flex-shrink: 0;
   }
   
+  .titleGroup {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
   .title {
-    font-size: 1.4rem;
+    font-size: 1.1rem;
     margin-bottom: 0;
+    line-height: 1.2;
   }
 
   .subtitle {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     display: -webkit-box;
     -webkit-line-clamp: 1;
     line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    opacity: 0.7;
   }
 
   .heroBanner {
-    height: 220px;
-    border-radius: 24px;
-    margin: 1rem 1rem 2rem 1rem;
+    height: 200px;
+    border-radius: 20px;
+    margin: 1rem;
     width: calc(100% - 2rem);
   }
   .bannerOverlay {
     padding: 1rem;
     text-align: right;
-    justify-content: flex-end;
+    justify-content: center;
   }
   .bannerOverlay h2 {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
   }
   .bannerOverlay p {
-    font-size: 1rem;
+    font-size: 0.9rem;
   }
   
   .categoryBarWrapper {
