@@ -10,6 +10,7 @@ import { useTheme } from '@/components/providers/ThemeProvider';
 import { useCartStore } from '@/lib/store';
 import Image from 'next/image';
 import CurrencySwitcher from '@/components/shared/CurrencySwitcher/CurrencySwitcher';
+import { triggerHaptic } from '@/lib/utils';
 import styles from './Header.module.css';
 
 interface HeaderProps {
