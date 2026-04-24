@@ -166,55 +166,49 @@
 }
 
 /* Landing Page Specific Golden Buttons */
-.landingHeader .adminLink {
-  background: var(--golden-gradient);
-  color: var(--golden-dark) !important;
-  border: none;
-  font-weight: 800;
-  text-decoration: none !important;
-  box-shadow: 0 4px 15px rgba(255, 184, 0, 0.3);
-}
-
-.landingHeader .adminLink *,
+.landingHeader .adminLink,
 .landingHeader .adminLink span,
 .landingHeader .adminLink svg,
-.landingHeader .adminLink svg path {
-  color: var(--golden-dark) !important;
-  fill: currentColor !important;
+.landingHeader .adminLink svg * {
+  background: var(--golden-gradient) !important;
+  color: #92400e !important; /* Dark Gold/Brown */
+  fill: #92400e !important;
+  text-decoration: none !important;
+  border-bottom: none !important;
+  font-weight: 800;
+}
+
+.landingHeader .adminLink {
+  border: none;
+  box-shadow: 0 4px 15px rgba(217, 119, 6, 0.3);
+}
+
+.landingHeader .localeLink,
+.landingHeader .localeLink *,
+.landingHeader .iconButton,
+.landingHeader .iconButton * {
+  color: #b45309 !important; /* Rich Dark Gold */
+  fill: #b45309 !important;
   text-decoration: none !important;
   border-bottom: none !important;
 }
 
 .landingHeader .localeLink,
 .landingHeader .iconButton {
-  border-color: rgba(255, 184, 0, 0.4);
-  color: var(--golden-dark) !important;
-  background: rgba(255, 184, 0, 0.05);
-  text-decoration: none !important;
-}
-
-.landingHeader .localeLink *,
-.landingHeader .localeLink span,
-.landingHeader .localeLink svg,
-.landingHeader .localeLink svg path,
-.landingHeader .iconButton svg,
-.landingHeader .iconButton svg path {
-  color: var(--golden-dark) !important;
-  fill: currentColor !important;
-  text-decoration: none !important;
-  border-bottom: none !important;
+  border-color: rgba(217, 119, 6, 0.4) !important;
+  background: rgba(251, 191, 36, 0.08) !important;
 }
 
 .landingHeader .localeLink:hover,
 .landingHeader .iconButton:hover {
-  background: var(--golden-gradient);
-  border-color: var(--golden-yellow);
-  box-shadow: 0 10px 15px -3px rgba(255, 184, 0, 0.3);
+  background: var(--golden-gradient) !important;
+  border-color: #f59e0b !important;
+  box-shadow: 0 10px 15px -3px rgba(217, 119, 6, 0.3);
 }
 
 .landingHeader .localeLink:hover *,
 .landingHeader .iconButton:hover * {
-  color: var(--golden-dark) !important;
+  color: #92400e !important;
 }
 
 @media (max-width: 768px) {
