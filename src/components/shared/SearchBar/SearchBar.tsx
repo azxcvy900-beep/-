@@ -9,9 +9,10 @@ interface SearchBarProps {
   value: string;
   onChange: (value: string) => void;
   placeholder: string;
+  onFocus?: () => void;
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({ value, onChange, placeholder }) => {
+const SearchBar: React.FC<SearchBarProps> = ({ value, onChange, placeholder, onFocus }) => {
   return (
     <div className={styles.searchWrapper}>
       <div className={styles.inputContainer}>
@@ -21,6 +22,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ value, onChange, placeholder }) =
           className={styles.input}
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          onFocus={onFocus}
           placeholder={placeholder}
         />
         <AnimatePresence>

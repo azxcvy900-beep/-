@@ -54,7 +54,7 @@ const Header: React.FC<HeaderProps> = ({ storeName, storeLogo, isLanding }) => {
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
-          <Link href={`/${locale}`} className={styles.logo}>
+          <Link href={`/${locale}`} className={styles.logo} onClick={() => triggerHaptic('light')}>
             {storeLogo ? (
               <img 
                 src={storeLogo} 
@@ -71,7 +71,7 @@ const Header: React.FC<HeaderProps> = ({ storeName, storeLogo, isLanding }) => {
         <nav className={styles.nav}>
           <motion.button 
             onClick={() => {
-              console.log("Toggle Theme Clicked");
+              triggerHaptic('light');
               toggleTheme();
             }} 
             className={styles.iconButton}
@@ -91,20 +91,20 @@ const Header: React.FC<HeaderProps> = ({ storeName, storeLogo, isLanding }) => {
               </motion.div>
             </AnimatePresence>
           </motion.button>
-
+ 
           {!isLanding && (
             <>
-              <Link href={`/${locale}/orders`} className={styles.navLink}>
+              <Link href={`/${locale}/orders`} className={styles.navLink} onClick={() => triggerHaptic('light')}>
                 <ShoppingBag size={18} />
                 <span className={styles.hideOnMobile}>{t('myOrders')}</span>
               </Link>
               
-              <Link href={`/${locale}/track`} className={styles.navLink}>
+              <Link href={`/${locale}/track`} className={styles.navLink} onClick={() => triggerHaptic('light')}>
                 <ClipboardList size={18} />
                 <span className={styles.hideOnMobile}>{t('trackOrder')}</span>
               </Link>
-
-              <Link href={`/${locale}/cart`} className={styles.cartLink}>
+ 
+              <Link href={`/${locale}/cart`} className={styles.cartLink} onClick={() => triggerHaptic('medium')}>
                 <ShoppingCart size={18} />
                 <span className={`${styles.cartText} ${styles.hideOnMobile}`}>{t('cart')}</span>
                 <AnimatePresence>
@@ -123,20 +123,20 @@ const Header: React.FC<HeaderProps> = ({ storeName, storeLogo, isLanding }) => {
                 </AnimatePresence>
               </Link>
               
-              <div className={styles.hideOnMobile}>
+              <div className={styles.hideOnMobile} onClick={() => triggerHaptic('light')}>
                 <CurrencySwitcher />
               </div>
             </>
           )}
-
+ 
           {isLanding && (
-            <Link href={`/${locale}/admin/login`} className={styles.adminLink}>
+            <Link href={`/${locale}/admin/login`} className={styles.adminLink} onClick={() => triggerHaptic('medium')}>
               <LayoutDashboard size={18} />
               <span>لوحة التحكم</span>
             </Link>
           )}
-
-          <Link href={pathname.replace(`/${locale}`, `/${nextLocale}`)} className={styles.localeLink}>
+ 
+          <Link href={pathname.replace(`/${locale}`, `/${nextLocale}`)} className={styles.localeLink} onClick={() => triggerHaptic('medium')}>
             <Globe size={16} />
             <span className={styles.hideOnMobile}>{locale === 'ar' ? 'English' : 'العربية'}</span>
           </Link>

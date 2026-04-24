@@ -5,7 +5,7 @@ import { useTranslations, useLocale } from 'next-intl';
 import { motion } from 'framer-motion';
 import { Plus } from 'lucide-react';
 import { useCartStore } from '@/lib/store';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, triggerHaptic } from '@/lib/utils';
 import styles from './ProductCard.module.css';
 
 interface ProductCardProps {
@@ -36,6 +36,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, slug, name, price, origin
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    triggerHaptic('light');
     addItem({ id, name, price, image, quantity: 1, currency });
   };
 
@@ -43,9 +44,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, slug, name, price, origin
     <motion.div 
       className={styles.card}
       whileHover={{ y: -10 }}
+      whileTap={{ scale: 0.98 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
     >
-      <Link href={`/${locale}/store/${slug}/product/${id}`} className={styles.productLink}>
+      <Link href={`/${locale}/store/${slug}/product/${id}`} className={styles.productLink} onClick={() => triggerHaptic('light')}>
         <div className={styles.imageWrapper}>
           <Image 
             src={image} 
@@ -88,7 +90,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, slug, name, price, origin
             className={styles.addButton}
             onClick={handleAddToCart}
             whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileTap={{ scale: 0.9 }}
           >
             <Plus size={16} />
             <span className={styles.hideTextMobile}>{t('addToCart')}</span>

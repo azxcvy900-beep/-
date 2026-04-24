@@ -159,4 +159,17 @@ export const hashPassword = async (password: string, username: string = ''): Pro
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 };
 
-
+/**
+ * Trigger a small haptic vibration on mobile devices.
+ * Enhances the app-like feel for button clicks and interactions.
+ */
+export const triggerHaptic = (type: 'light' | 'medium' | 'heavy' = 'light') => {
+  if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+    const patterns = {
+      light: 10,
+      medium: 20,
+      heavy: [30, 20, 30]
+    };
+    navigator.vibrate(patterns[type]);
+  }
+};

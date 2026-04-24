@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MessageCircle, X } from 'lucide-react';
 import { useLocale } from 'next-intl';
 import { getPlatformSettings } from '@/lib/api';
+import { triggerHaptic } from '@/lib/utils';
 import styles from './WhatsAppSupport.module.css';
 
 const WhatsAppSupport = () => {
@@ -51,6 +52,7 @@ const WhatsAppSupport = () => {
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
         onMouseEnter={() => setIsOpen(true)}
+        onClick={() => triggerHaptic('light')}
       >
         <MessageCircle size={32} />
         <motion.span 

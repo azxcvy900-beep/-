@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { dataCache } from './cache';
 
 /**
@@ -76,6 +76,12 @@ export function useStreamingFetch<T>(
   const [loading, setLoading] = useState(!initialData);
   const [error, setError] = useState<string | null>(null);
 
+  const [refreshToggle, setRefreshToggle] = useState(0);
+
+  const refetch = useCallback(async () => {
+    setRefreshToggle(prev => prev + 1);
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     
@@ -100,7 +106,7 @@ export function useStreamingFetch<T>(
 
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps);
+  }, [...deps, refreshToggle]);
 
-  return { data, loading, error };
+  return { data, loading, error, refetch };
 }
