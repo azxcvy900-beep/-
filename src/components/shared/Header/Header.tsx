@@ -37,7 +37,7 @@ const Header: React.FC<HeaderProps> = ({ storeName, storeLogo, isLanding }) => {
 
   if (!mounted) {
     return (
-      <header className={styles.header}>
+      <header className={`${styles.header} ${isLanding ? styles.landingHeader : ''}`}>
         <div className={styles.container}>
           <div className={styles.logo}>{storeName}</div>
           <div className={styles.nav}></div>

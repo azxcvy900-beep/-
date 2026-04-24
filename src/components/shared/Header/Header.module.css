@@ -175,8 +175,7 @@
   box-shadow: 0 4px 15px rgba(255, 184, 0, 0.3);
 }
 
-.landingHeader .adminLink span,
-.landingHeader .adminLink svg {
+.landingHeader .adminLink * {
   color: var(--golden-dark) !important;
   text-decoration: none !important;
 }
@@ -189,9 +188,8 @@
   text-decoration: none !important;
 }
 
-.landingHeader .localeLink span,
-.landingHeader .localeLink svg,
-.landingHeader .iconButton svg {
+.landingHeader .localeLink *,
+.landingHeader .iconButton * {
   color: var(--golden-dark) !important;
   text-decoration: none !important;
 }
