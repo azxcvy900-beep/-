@@ -2,6 +2,9 @@
   min-height: 100vh;
   padding: 0 0 4rem 0;
   background-color: var(--background);
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .header {
@@ -438,6 +441,7 @@
   .categoryBar {
     gap: 1.2rem;
     padding: 0 1.2rem;
+    justify-content: flex-start;
   }
   .circleIcon {
     width: 65px;
