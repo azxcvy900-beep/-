@@ -20,7 +20,10 @@ import {
   Monitor,
   Smartphone,
   Tv,
-  ShieldCheck
+  ShieldCheck,
+  Plus,
+  Trash2,
+  Video
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -30,7 +33,9 @@ import {
   StoreInfo, 
   getPlatformSettings, 
   updatePlatformSettings, 
-  PlatformSettings 
+  PlatformSettings,
+  HeroMedia,
+  uploadPlatformMedia
 } from '@/lib/api';
 import { useAuthStore } from '@/lib/auth-store';
 import { useSessionStore } from '@/lib/session-store';
@@ -669,6 +674,112 @@ export default function SettingsContent() {
                   </div>
                   <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '0.5rem' }}>
                     هذا الرقم هو الذي سيظهر للعملاء والموظفين عند الضغط على زر "تواصل معنا" العائم في المتجر واللوحة.
+                  </p>
+                </div>
+
+                <div className={`${styles.inputGroup} ${styles.fullWidth}`} style={{ marginTop: '2rem' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                    <Image size={18} />
+                    وسائط الواجهة الرئيسية (صور وفيديوهات)
+                  </label>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
+                    {platformSettings.heroMedia?.map((media, index) => (
+                      <div key={index} style={{ background: '#f9fafb', padding: '1rem', borderRadius: '12px', border: '1px solid #e5e7eb', position: 'relative' }}>
+                        <button 
+                          type="button"
+                          onClick={() => {
+                            const newMedia = [...(platformSettings.heroMedia || [])];
+                            newMedia.splice(index, 1);
+                            setPlatformSettings(prev => ({...prev, heroMedia: newMedia}));
+                          }}
+                          style={{ position: 'absolute', top: '-0.5rem', left: '-0.5rem', background: '#ef4444', color: 'white', padding: '0.4rem', borderRadius: '50%', cursor: 'pointer', border: 'none', boxShadow: '0 2px 5px rgba(0,0,0,0.2)', zIndex: 10 }}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                        
+                        <div style={{ marginBottom: '0.75rem' }}>
+                          <select 
+                            className={styles.input}
+                            value={media.type}
+                            onChange={(e) => {
+                              const newMedia = [...(platformSettings.heroMedia || [])];
+                              newMedia[index] = { ...media, type: e.target.value as 'image' | 'video' };
+                              setPlatformSettings(prev => ({...prev, heroMedia: newMedia}));
+                            }}
+                          >
+                            <option value="image">صورة</option>
+                            <option value="video">فيديو (رابط مباشر)</option>
+                          </select>
+                        </div>
+                        
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <input 
+                            className={styles.input}
+                            placeholder={media.type === 'image' ? "رابط الصورة..." : "رابط الفيديو..."}
+                            value={media.url}
+                            onChange={(e) => {
+                              const newMedia = [...(platformSettings.heroMedia || [])];
+                              newMedia[index] = { ...media, url: e.target.value };
+                              setPlatformSettings(prev => ({...prev, heroMedia: newMedia}));
+                            }}
+                          />
+                          {media.type === 'image' && (
+                            <label className={styles.iconButton} style={{ cursor: 'pointer' }}>
+                              <Plus size={18} />
+                              <input 
+                                type="file" 
+                                hidden 
+                                accept="image/*"
+                                onChange={async (e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    try {
+                                      const url = await uploadPlatformMedia(file);
+                                      const newMedia = [...(platformSettings.heroMedia || [])];
+                                      newMedia[index] = { ...media, url };
+                                      setPlatformSettings(prev => ({...prev, heroMedia: newMedia}));
+                                    } catch (err) {
+                                      console.error("Upload failed", err);
+                                    }
+                                  }
+                                }}
+                              />
+                            </label>
+                          )}
+                        </div>
+
+                        {media.url && (
+                          <div style={{ marginTop: '1rem', height: '100px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #e5e7eb' }}>
+                            {media.type === 'image' ? (
+                              <img src={media.url} alt="Hero Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000', color: 'white' }}>
+                                <Video size={24} />
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        setPlatformSettings(prev => ({
+                          ...prev, 
+                          heroMedia: [...(prev.heroMedia || []), { type: 'image', url: '' }]
+                        }));
+                      }}
+                      className={styles.addBtn}
+                      style={{ height: '100%', minHeight: '150px', border: '2px dashed #e5e7eb', background: 'transparent', color: '#6b7280' }}
+                    >
+                      <Plus size={24} />
+                      إضافة وسيط جديد
+                    </button>
+                  </div>
+                  <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '1rem' }}>
+                    يمكنك إضافة عدة صور أو روابط فيديو لعرضها في واجهة المنصة الرئيسية. سيتم عرضها بترتيبها الحالي.
                   </p>
                 </div>
               </div>

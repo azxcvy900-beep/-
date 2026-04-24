@@ -499,6 +499,12 @@ export async function uploadStoreLogo(file: File | Blob, storeSlug: string): Pro
   return bulletproofUpload(file, storeSlug, 'logo', fileName);
 }
 
+export async function uploadPlatformMedia(file: File | Blob): Promise<string> {
+  const originalName = (file as any).name || 'media.jpg';
+  const fileName = `${Date.now()}_platform_${originalName.replace(/\s+/g, '_')}`;
+  return bulletproofUpload(file, 'platform', 'media', fileName);
+}
+
 export async function uploadCategoryImage(file: File | Blob, storeSlug: string): Promise<string> {
   const originalName = (file as any).name || 'category.jpg';
   const fileName = `${Date.now()}_cat_${originalName.replace(/\s+/g, '_')}`;
@@ -918,12 +924,18 @@ export async function getStoreAnalytics(slug: string) {
 
 // --- GLOBAL PLATFORM API ---
 
+export interface HeroMedia {
+  type: 'image' | 'video';
+  url: string;
+}
+
 export interface PlatformSettings {
   platformFee: number;
   maintenanceMode: boolean;
   defaultCurrency: string;
   supportPhone: string; // Added for complaints department
   commissionRate?: number;
+  heroMedia?: HeroMedia[]; // Added for landing page hero visuals
   currencyRates: {
     YER: number;
     SAR: number;
@@ -942,6 +954,9 @@ export async function getPlatformSettings(): Promise<PlatformSettings> {
     maintenanceMode: false,
     defaultCurrency: 'USD',
     supportPhone: '967770000000',
+    heroMedia: [
+      { type: 'image', url: '/premium_hero_dashboard_v1_1776535565323.png' }
+    ],
     currencyRates: {
       YER: 530,
       SAR: 140

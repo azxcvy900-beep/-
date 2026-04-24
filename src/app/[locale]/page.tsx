@@ -20,13 +20,30 @@ import {
 import Header from "@/components/shared/Header/Header";
 import styles from "./page.module.css";
 import Image from "next/image";
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
+import { getPlatformSettings, PlatformSettings } from "@/lib/api";
 
 export default function Home() {
   const t = useTranslations("Landing");
   const locale = useLocale();
   const scrollRef = useRef(null);
+  const [platformSettings, setPlatformSettings] = useState<PlatformSettings | null>(null);
+  const [activeMediaIndex, setActiveMediaIndex] = useState(0);
   
+  useEffect(() => {
+    getPlatformSettings().then(setPlatformSettings);
+  }, []);
+
+  // Simple carousel logic for multiple hero media items
+  useEffect(() => {
+    if (platformSettings?.heroMedia && platformSettings.heroMedia.length > 1) {
+      const interval = setInterval(() => {
+        setActiveMediaIndex(prev => (prev + 1) % platformSettings.heroMedia!.length);
+      }, 5000); // Switch every 5 seconds
+      return () => clearInterval(interval);
+    }
+  }, [platformSettings?.heroMedia]);
+
   const { scrollYProgress } = useScroll({
     target: scrollRef,
     offset: ["start start", "end start"]
@@ -34,6 +51,10 @@ export default function Home() {
 
   const y = useTransform(scrollYProgress, [0, 1], [0, 200]);
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+
+  const heroMedia = platformSettings?.heroMedia || [
+    { type: 'image', url: '/premium_hero_dashboard_v1_1776535565323.png' }
+  ];
 
   return (
     <div className={styles.container} ref={scrollRef}>
@@ -97,14 +118,39 @@ export default function Home() {
               className={styles.heroVisual}
             >
               <div className={styles.visualGlow} />
-              <Image 
-                src="/premium_hero_dashboard_v1_1776535565323.png" 
-                alt="Buyers Premium Dashboard Illustration" 
-                width={1200} 
-                height={700} 
-                className={styles.dashboardPreview}
-                priority
-              />
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeMediaIndex}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 1.05 }}
+                  transition={{ duration: 0.8 }}
+                  style={{ width: '100%', height: '100%' }}
+                >
+                  {heroMedia[activeMediaIndex]?.type === 'image' ? (
+                    <Image 
+                      src={heroMedia[activeMediaIndex].url || '/premium_hero_dashboard_v1_1776535565323.png'} 
+                      alt="Buyers Premium Dashboard Illustration" 
+                      width={1200} 
+                      height={700} 
+                      className={styles.dashboardPreview}
+                      priority
+                    />
+                  ) : (
+                    <div className={styles.videoWrapper} style={{ borderRadius: '24px', overflow: 'hidden', boxShadow: 'var(--shadow-lg)', width: '100%', height: '100%' }}>
+                      <video 
+                        src={heroMedia[activeMediaIndex].url} 
+                        autoPlay 
+                        loop 
+                        muted 
+                        playsInline 
+                        className={styles.dashboardPreview}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                      />
+                    </div>
+                  )}
+                </motion.div>
+              </AnimatePresence>
             </motion.div>
             
             <motion.div 
