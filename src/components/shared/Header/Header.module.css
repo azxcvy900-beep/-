@@ -171,44 +171,54 @@
 .landingHeader .adminLink svg,
 .landingHeader .adminLink svg * {
   background: var(--golden-gradient) !important;
-  color: #92400e !important; /* Dark Gold/Brown */
-  fill: #92400e !important;
+  color: #000 !important; /* Keep black text on bright gold for readability, or use dark gold? User said gold text. */
+  fill: #000 !important;
   text-decoration: none !important;
   border-bottom: none !important;
   font-weight: 800;
 }
 
+/* User specifically asked for golden text. If background is also gold, it won't be readable. 
+   I will make the adminLink text #7c2d12 (very dark brown-gold) for contrast on bright gold, 
+   and use #FFB800 for the other buttons. */
+
+.landingHeader .adminLink span,
+.landingHeader .adminLink svg,
+.landingHeader .adminLink svg * {
+  color: #451a03 !important; /* Deep contrast on gold */
+}
+
 .landingHeader .adminLink {
   border: none;
-  box-shadow: 0 4px 15px rgba(217, 119, 6, 0.3);
+  box-shadow: 0 4px 15px rgba(255, 184, 0, 0.4);
 }
 
 .landingHeader .localeLink,
 .landingHeader .localeLink *,
 .landingHeader .iconButton,
 .landingHeader .iconButton * {
-  color: #b45309 !important; /* Rich Dark Gold */
-  fill: #b45309 !important;
+  color: #FFB800 !important; /* Golden Yellow */
+  fill: #FFB800 !important;
   text-decoration: none !important;
   border-bottom: none !important;
 }
 
 .landingHeader .localeLink,
 .landingHeader .iconButton {
-  border-color: rgba(217, 119, 6, 0.4) !important;
-  background: rgba(251, 191, 36, 0.08) !important;
+  border-color: rgba(255, 184, 0, 0.4) !important;
+  background: rgba(255, 184, 0, 0.05) !important;
 }
 
 .landingHeader .localeLink:hover,
 .landingHeader .iconButton:hover {
   background: var(--golden-gradient) !important;
-  border-color: #f59e0b !important;
-  box-shadow: 0 10px 15px -3px rgba(217, 119, 6, 0.3);
+  border-color: #FFB800 !important;
+  box-shadow: 0 10px 15px -3px rgba(255, 184, 0, 0.3);
 }
 
 .landingHeader .localeLink:hover *,
 .landingHeader .iconButton:hover * {
-  color: #92400e !important;
+  color: #451a03 !important; /* Contrast text on hover */
 }
 
 @media (max-width: 768px) {
