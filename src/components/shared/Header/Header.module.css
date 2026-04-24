@@ -174,8 +174,9 @@
   box-shadow: 0 4px 15px rgba(255, 184, 0, 0.3);
 }
 
+.landingHeader .adminLink span,
 .landingHeader .adminLink svg {
-  color: var(--golden-dark);
+  color: var(--golden-dark) !important;
 }
 
 .landingHeader .localeLink,
@@ -185,12 +186,23 @@
   background: rgba(255, 184, 0, 0.05);
 }
 
+.landingHeader .localeLink span,
+.landingHeader .localeLink svg,
+.landingHeader .iconButton svg {
+  color: var(--golden-dark);
+}
+
 .landingHeader .localeLink:hover,
 .landingHeader .iconButton:hover {
   background: var(--golden-gradient);
-  color: var(--golden-dark);
   border-color: var(--golden-yellow);
   box-shadow: 0 10px 15px -3px rgba(255, 184, 0, 0.3);
+}
+
+.landingHeader .localeLink:hover span,
+.landingHeader .localeLink:hover svg,
+.landingHeader .iconButton:hover svg {
+  color: var(--golden-dark) !important;
 }
 
 @media (max-width: 768px) {
