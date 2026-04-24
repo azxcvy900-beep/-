@@ -168,23 +168,27 @@
 /* Landing Page Specific Golden Buttons */
 .landingHeader .adminLink {
   background: var(--golden-gradient);
-  color: #000 !important;
+  color: var(--golden-dark) !important;
   border: none;
   font-weight: 800;
   box-shadow: 0 4px 15px rgba(255, 184, 0, 0.3);
 }
 
+.landingHeader .adminLink svg {
+  color: var(--golden-dark);
+}
+
 .landingHeader .localeLink,
 .landingHeader .iconButton {
   border-color: rgba(255, 184, 0, 0.4);
-  color: var(--golden-yellow);
+  color: var(--golden-dark);
   background: rgba(255, 184, 0, 0.05);
 }
 
 .landingHeader .localeLink:hover,
 .landingHeader .iconButton:hover {
   background: var(--golden-gradient);
-  color: #000;
+  color: var(--golden-dark);
   border-color: var(--golden-yellow);
   box-shadow: 0 10px 15px -3px rgba(255, 184, 0, 0.3);
 }
