@@ -18,6 +18,8 @@ import {
   ChevronRight
 } from "lucide-react";
 import Header from "@/components/shared/Header/Header";
+import AnimatedStats from "@/components/landing/AnimatedStats/AnimatedStats";
+import FloatingCTA from "@/components/landing/FloatingCTA/FloatingCTA";
 import styles from "./page.module.css";
 import Image from "next/image";
 import { useRef, useEffect, useState } from "react";
@@ -169,6 +171,8 @@ export default function Home() {
           </div>
         </section>
 
+        <AnimatedStats t={t} />
+
         {/* The Comparison Section */}
         <section className={styles.comparison}>
           <div className={styles.sectionHeader}>
@@ -300,6 +304,7 @@ export default function Home() {
           &copy; {new Date().getFullYear()} Buyers. All Rights Reserved. Crafted for Yemeni Excellence.
         </div>
       </footer>
+      <FloatingCTA />
     </div>
   );
 }
