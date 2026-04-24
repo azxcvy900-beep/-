@@ -47,7 +47,7 @@ const Header: React.FC<HeaderProps> = ({ storeName, storeLogo, isLanding }) => {
   }
 
   return (
-    <header className={styles.header}>
+    <header className={`${styles.header} ${isLanding ? styles.landingHeader : ''}`}>
       <div className={styles.container}>
         <motion.div 
           initial={{ x: locale === 'ar' ? 20 : -20, opacity: 0 }}

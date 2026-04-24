@@ -68,11 +68,11 @@
 }
 
 .iconButton:hover {
-  background: var(--primary);
-  color: white;
+  background: var(--golden-gradient);
+  color: #000;
   transform: translateY(-2px);
-  border-color: var(--primary);
-  box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.2);
+  border-color: var(--golden-yellow);
+  box-shadow: 0 10px 15px -3px rgba(255, 184, 0, 0.3);
 }
 
 .localeLink {
@@ -91,11 +91,11 @@
 }
 
 .localeLink:hover {
-  background: var(--primary);
-  color: white;
-  border-color: var(--primary);
+  background: var(--golden-gradient);
+  color: #000;
+  border-color: var(--golden-yellow);
   transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.2);
+  box-shadow: 0 10px 15px -3px rgba(255, 184, 0, 0.3);
 }
 
 .cartLink {
@@ -139,30 +139,54 @@
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  background: var(--primary);
-  color: var(--primary-foreground) !important;
+  background: var(--golden-gradient);
+  color: #000 !important;
   padding: 0.6rem 1.25rem;
   border-radius: 14px;
-  font-weight: 700;
+  font-weight: 800;
   font-size: 0.95rem;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: var(--shadow);
+  box-shadow: 0 4px 15px rgba(255, 184, 0, 0.3);
 }
 
 .adminLink:hover {
-  background: var(--accent);
-  color: white !important;
+  background: #000;
+  color: var(--golden-yellow) !important;
   transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 10px 20px -5px rgba(245, 158, 11, 0.4);
+  box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.2);
 }
 
 .adminLink svg {
-  color: var(--primary-foreground);
+  color: #000;
   transition: color 0.3s;
 }
 
 .adminLink:hover svg {
-  color: white;
+  color: var(--golden-yellow);
+}
+
+/* Landing Page Specific Golden Buttons */
+.landingHeader .adminLink {
+  background: var(--golden-gradient);
+  color: #000 !important;
+  border: none;
+  font-weight: 800;
+  box-shadow: 0 4px 15px rgba(255, 184, 0, 0.3);
+}
+
+.landingHeader .localeLink,
+.landingHeader .iconButton {
+  border-color: rgba(255, 184, 0, 0.4);
+  color: var(--golden-yellow);
+  background: rgba(255, 184, 0, 0.05);
+}
+
+.landingHeader .localeLink:hover,
+.landingHeader .iconButton:hover {
+  background: var(--golden-gradient);
+  color: #000;
+  border-color: var(--golden-yellow);
+  box-shadow: 0 10px 15px -3px rgba(255, 184, 0, 0.3);
 }
 
 @media (max-width: 768px) {
