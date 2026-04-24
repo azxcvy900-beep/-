@@ -222,28 +222,30 @@
 }
 
 @media (max-width: 768px) {
-  .landingHeader .container {
-    padding: 0 1rem;
-    justify-content: center;
-    gap: 0.5rem;
-  }
-  
-  .landingHeader .nav {
-    gap: 0.5rem;
+  .landingHeader {
+    top: 1rem !important;
+    left: 1rem !important;
+    right: 1rem !important;
+    width: auto !important;
+    transform: none !important;
+    border-radius: 99px !important;
+    padding: 0.5rem 0 !important;
+    background: rgba(255, 255, 255, 0.8) !important;
+    backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08) !important;
   }
 
-  .header {
-    top: 0;
-    left: 0;
-    transform: none;
-    width: 100%;
-    max-width: none;
-    border-radius: 0 0 16px 16px;
-    padding: 0.6rem 0;
-    border-top: none;
-    border-left: none;
-    border-right: none;
+  :global([data-theme='dark']) .landingHeader {
+    background: rgba(15, 23, 42, 0.8) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
   }
+
+  .landingHeader .container {
+    padding: 0 1.25rem;
+    justify-content: space-between;
+  }
+}
 
   .header:hover {
     transform: none;

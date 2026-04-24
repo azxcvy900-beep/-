@@ -9,6 +9,45 @@
 
 .main {
   position: relative;
+  z-index: 10;
+}
+
+.blobWrapper {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.blob {
+  position: absolute;
+  top: -10%;
+  left: -10%;
+  width: 60%;
+  height: 60%;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+  filter: blur(100px);
+  animation: floatBlob 20s infinite alternate;
+}
+
+.blobSecondary {
+  top: 40%;
+  left: 60%;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+  animation-delay: -5s;
+}
+
+.blobAccent {
+  top: 70%;
+  left: 10%;
+  background: radial-gradient(circle, rgba(236, 72, 153, 0.08) 0%, transparent 70%);
+  animation-delay: -10s;
+}
+
+@keyframes floatBlob {
+  from { transform: translate(0, 0) rotate(0deg) scale(1); }
+  to { transform: translate(10%, 10%) rotate(20deg) scale(1.1); }
 }
 
 .hero {
@@ -99,12 +138,13 @@
 }
 
 .subtitle {
-  font-size: clamp(1.15rem, 3.5vw, 1.45rem);
+  font-size: clamp(1.15rem, 3.5vw, 1.6rem);
   color: #475569;
   max-width: 850px;
   line-height: 1.8;
   margin-bottom: 3.5rem;
   font-weight: 600;
+  letter-spacing: -0.5px;
 }
 
 .ctas {

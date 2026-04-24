@@ -60,6 +60,13 @@ export default function Home() {
 
   return (
     <div className={styles.container} ref={scrollRef}>
+      {/* Dynamic Background Blobs */}
+      <div className={styles.blobWrapper}>
+        <div className={styles.blob} />
+        <div className={`${styles.blob} ${styles.blobSecondary}`} />
+        <div className={`${styles.blob} ${styles.blobAccent}`} />
+      </div>
+
       <Header storeName="بايرز / Buyers" isLanding={true} />
       
       <main className={styles.main}>

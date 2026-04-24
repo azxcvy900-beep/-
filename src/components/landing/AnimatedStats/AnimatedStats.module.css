@@ -1,12 +1,7 @@
 .statsContainer {
   max-width: 1200px;
-  margin: 4rem auto;
-  padding: 3rem 2rem;
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  border-radius: 40px;
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--shadow);
+  margin: 6rem auto;
+  padding: 0 2rem;
   z-index: 5;
   position: relative;
 }
@@ -14,46 +9,69 @@
 .statsGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 2rem;
-  text-align: center;
+  grid-template-rows: repeat(2, 180px);
+  gap: 1.5rem;
 }
 
 .statItem {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 32px;
+  padding: 2.5rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  justify-content: center;
+  align-items: flex-start;
+  transition: all 0.4s ease;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
 }
 
+.statItem:hover {
+  transform: translateY(-8px);
+  border-color: var(--primary);
+  box-shadow: 0 30px 60px -20px rgba(99, 102, 241, 0.15);
+}
+
+/* Bento Sizing */
+.statItem:nth-child(1) { grid-column: span 2; grid-row: span 2; }
+.statItem:nth-child(2) { grid-column: span 2; }
+.statItem:nth-child(3) { grid-column: span 1; }
+.statItem:nth-child(4) { grid-column: span 1; }
+
 .value {
-  font-size: 3rem;
+  font-size: clamp(2.5rem, 5vw, 4.5rem);
   font-weight: 950;
-  color: #4f46e5; /* Primary color fallback */
+  color: #4f46e5;
   background: linear-gradient(135deg, #4f46e5, #7c3aed);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  letter-spacing: -1px;
+  letter-spacing: -2px;
+  line-height: 1;
 }
 
 .label {
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  margin-top: 1rem;
 }
 
 @media (max-width: 850px) {
   .statsGrid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 3rem;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto;
   }
-  .statsContainer {
-    margin: 2rem 1rem;
-    padding: 2.5rem 1.5rem;
-    border-radius: 32px;
+  .statItem:nth-child(1),
+  .statItem:nth-child(2),
+  .statItem:nth-child(3),
+  .statItem:nth-child(4) { 
+    grid-column: span 2; 
+    padding: 2rem;
   }
-  .value {
-    font-size: 2.2rem;
+  .statItem {
+    align-items: center;
+    text-align: center;
   }
 }
 
