@@ -679,7 +679,7 @@ export default function SettingsContent() {
 
                 <div className={`${styles.inputGroup} ${styles.fullWidth}`} style={{ marginTop: '2rem' }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                    <Image size={18} />
+                    <ImageIcon size={18} />
                     وسائط الواجهة الرئيسية (صور وفيديوهات)
                   </label>
                   
