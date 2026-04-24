@@ -222,6 +222,16 @@
 }
 
 @media (max-width: 768px) {
+  .landingHeader .container {
+    padding: 0 1rem;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  
+  .landingHeader .nav {
+    gap: 0.5rem;
+  }
+
   .header {
     top: 0;
     left: 0;

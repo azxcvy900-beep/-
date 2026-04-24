@@ -27,7 +27,8 @@
 .value {
   font-size: 3rem;
   font-weight: 950;
-  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: #4f46e5; /* Primary color fallback */
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   letter-spacing: -1px;
