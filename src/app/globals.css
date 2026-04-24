@@ -32,7 +32,7 @@
   --font-english: var(--font-inter), system-ui, sans-serif;
   
   --golden-yellow: #FFB800;
-  --golden-dark: #92400e;
+  --golden-dark: #c29202;
   --golden-gradient: linear-gradient(135deg, #FFB800, #FFD700);
 }
 
@@ -59,7 +59,7 @@
   --header-bg: rgba(2, 6, 24, 0.6);
   
   --golden-yellow: #FFB800;
-  --golden-dark: #92400e;
+  --golden-dark: #c29202;
   --golden-gradient: linear-gradient(135deg, #FFB800, #FFD700);
 }
 
