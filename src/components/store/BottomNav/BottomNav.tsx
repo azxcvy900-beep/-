@@ -22,6 +22,10 @@ const BottomNav = ({ storeSlug }: { storeSlug: string }) => {
     { icon: User, label: 'تتبع', href: `/${locale}/track` },
   ];
 
+  // Hide BottomNav on product details page to avoid overlap with floating buy bar
+  const isProductPage = pathname.includes('/product/');
+  if (isProductPage) return null;
+
   return (
     <nav className={styles.bottomNav}>
       {navItems.map((item) => {

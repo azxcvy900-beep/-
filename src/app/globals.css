@@ -35,6 +35,8 @@
   --font-arabic: var(--font-cairo), system-ui, sans-serif;
   --font-english: var(--font-inter), system-ui, sans-serif;
   
+  --bg-card-rgb: 255, 255, 255;
+  --primary-rgb: 251, 191, 36;
   --golden-gradient: linear-gradient(135deg, #fbbf24, #f59e0b);
 }
 
@@ -46,10 +48,12 @@
   --primary: #fbbf24;
   --primary-hover: #f59e0b;
   --primary-foreground: #000000;
+  --primary-rgb: 251, 191, 36;
   
   --accent: #fbbf24;
   
   --card-bg: #0f172a;
+  --bg-card-rgb: 15, 23, 42;
   --card-border: rgba(255, 255, 255, 0.05);
   --muted: #1e293b;
   
