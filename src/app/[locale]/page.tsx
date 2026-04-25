@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
-import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import { motion, useScroll, useTransform, AnimatePresence, useSpring } from "framer-motion";
 import { 
   Rocket, 
   ShieldCheck, 
@@ -36,6 +36,13 @@ export default function Home() {
     getPlatformSettings().then(setPlatformSettings);
   }, []);
 
+  const { scrollYProgress: windowProgress } = useScroll();
+  const scaleX = useSpring(windowProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001
+  });
+
   // Simple carousel logic for multiple hero media items
   useEffect(() => {
     if (platformSettings?.heroMedia && platformSettings.heroMedia.length > 1) {
@@ -60,6 +67,9 @@ export default function Home() {
 
   return (
     <div className={styles.container} ref={scrollRef}>
+      {/* Scroll Progress Bar */}
+      <motion.div className={styles.progressBar} style={{ scaleX }} />
+      
       {/* Dynamic Background Blobs */}
       <div className={styles.blobWrapper}>
         <div className={styles.blob} />
@@ -221,13 +231,20 @@ export default function Home() {
             </motion.div>
 
             <motion.div 
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
+              initial={{ opacity: 0, x: -50, scale: 0.95 }}
+              whileInView={{ opacity: 1, x: 0, scale: 1 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
               className={`${styles.compareCard} ${styles.compareGood}`}
             >
-              <div className={styles.compareBadge}>{t("compare_good_badge")}</div>
+              <div className={styles.compareBadge}>
+                <motion.span
+                  animate={{ opacity: [0.5, 1, 0.5] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  {t("compare_good_badge")}
+                </motion.span>
+              </div>
               <div className={styles.compareHeader}>
                 <CheckCircle2 size={28} color="#10b981" />
                 <h3>{t("compare_good_title")} <span>بايرز</span></h3>

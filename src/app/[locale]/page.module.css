@@ -12,6 +12,18 @@
   z-index: 10;
 }
 
+.progressBar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(to right, #fbbf24, #f59e0b);
+  transform-origin: 0%;
+  z-index: 3000;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+}
+
 .blobWrapper {
   position: fixed;
   inset: 0;
@@ -347,6 +359,27 @@
   transform: translateY(-10px);
   z-index: 5;
   box-shadow: 0 30px 60px -15px rgba(16, 185, 129, 0.15);
+  position: relative;
+}
+
+.compareGood::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), transparent, rgba(16, 185, 129, 0.3));
+  border-radius: 34px;
+  z-index: -1;
+  animation: glowPulse 4s infinite alternate;
+}
+
+@keyframes glowPulse {
+  0% { opacity: 0.2; filter: blur(5px); }
+  100% { opacity: 0.6; filter: blur(15px); }
+}
+
+:global(.dark) .compareGood {
+  background: linear-gradient(135deg, #064e3b, #022c22);
+  border-color: rgba(16, 185, 129, 0.2);
 }
 
 .compareBadge {
