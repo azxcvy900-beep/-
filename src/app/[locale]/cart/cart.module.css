@@ -21,6 +21,45 @@
   color: var(--text-secondary);
 }
 
+.freeShippingBanner {
+  background: var(--card-bg);
+  padding: 1.5rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 2rem;
+}
+
+.freeShippingHeader {
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.freeShippingInfo {
+  color: var(--secondary);
+}
+
+.freeShippingSuccess {
+  color: #10b981;
+}
+
+.progressBarWrapper {
+  height: 8px;
+  background: var(--muted);
+  border-radius: 99px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progressBar {
+  height: 100%;
+  background: var(--golden-gradient);
+  border-radius: 99px;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+}
+
 .emptyCart {
   display: flex;
   flex-direction: column;

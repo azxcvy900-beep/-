@@ -235,6 +235,103 @@
   border-top: 1px solid rgba(128, 128, 128, 0.1);
 }
 
+.bankCards {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.bankCard {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+.bankCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--golden-gradient);
+}
+
+.bankHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.bankLogo {
+  font-size: 1.5rem;
+}
+
+.bankName {
+  font-weight: 800;
+  color: var(--foreground);
+  font-size: 1.1rem;
+}
+
+.accountBox {
+  background: var(--muted);
+  padding: 1rem;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.accountNum label {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--secondary);
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.accountNum strong {
+  font-size: 1.25rem;
+  font-family: monospace;
+  letter-spacing: 1px;
+  color: var(--foreground);
+}
+
+.copyBtn {
+  background: var(--primary);
+  color: #000;
+  padding: 0.4rem 1rem;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+
+.copyBtn:active {
+  transform: scale(0.9);
+}
+
+.accountHolder label {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--secondary);
+  font-weight: 700;
+  margin-bottom: 0.15rem;
+}
+
+.accountHolder span {
+  font-weight: 700;
+  color: var(--foreground);
+}
+
 .alert {
   display: flex;
   gap: 0.75rem;

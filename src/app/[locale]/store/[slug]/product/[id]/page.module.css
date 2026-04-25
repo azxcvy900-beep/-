@@ -21,9 +21,10 @@
   gap: 4rem;
   background: var(--card-bg);
   padding: 2.5rem;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow);
+  margin-bottom: 2rem;
 }
 
 .imageSection {
@@ -113,26 +114,103 @@
   font-weight: 700;
 }
 
-.addToCart {
-  flex: 1;
-  background: var(--primary);
-  color: white;
-  padding: 1rem 2rem;
-  border-radius: 8px;
+.trustBadges {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: var(--background);
+  border-radius: 16px;
+  border: 1px solid var(--card-border);
+}
+
+.badgeItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+  color: var(--secondary);
+  font-size: 0.75rem;
   font-weight: 700;
+}
+
+.badgeItem svg {
+  color: var(--primary);
+}
+
+.floatingActions {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  padding: 1rem 1.5rem calc(1rem + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--glass-border);
+  z-index: 1000;
+  display: none;
+  box-shadow: 0 -10px 30px rgba(0,0,0,0.1);
+}
+
+.floatingActionsContent {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.floatingWhatsapp {
+  width: 54px;
+  height: 54px;
+  background: #25d366;
+  color: white;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 15px rgba(37, 211, 102, 0.3);
+}
+
+.floatingAddToCart {
+  flex: 1;
+  height: 54px;
+  background: #000;
+  color: #fff;
+  border-radius: 16px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.floatingAddToCart.added {
+  background: #10b981;
+}
+
+.floatingBuyNow {
+  flex: 1;
+  height: 54px;
+  background: var(--golden-gradient);
+  color: #000;
+  border-radius: 16px;
+  font-weight: 900;
   font-size: 1rem;
-  transition: transform 0.2s ease, background 0.2s ease;
+  box-shadow: 0 8px 20px rgba(245, 158, 11, 0.3);
 }
 
-.addToCart:hover {
-  background: #1d4ed8;
-  transform: translateY(-2px);
-}
-
-.added {
-  background: #22c55e !important;
-  cursor: default;
-  transform: none !important;
+@media (max-width: 768px) {
+  .floatingActions {
+    display: block;
+  }
+  .actions {
+    display: none; /* Hide original actions on mobile as we have floating bar */
+  }
 }
 
 @media (max-width: 1024px) {

@@ -52,6 +52,123 @@
   margin-top: 0.5rem;
 }
 
+.timeline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 3rem 0;
+  padding: 0 1rem;
+}
+
+.timelineItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  position: relative;
+}
+
+.timelineIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--muted);
+  color: var(--secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.9rem;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  z-index: 1;
+}
+
+.timelineItem.active .timelineIcon {
+  background: var(--primary);
+  color: #000;
+  border-color: var(--primary-shadow);
+  box-shadow: 0 0 15px var(--primary-shadow);
+}
+
+.timelineItem span {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--secondary);
+}
+
+.timelineItem.active span {
+  color: var(--foreground);
+}
+
+.timelineLine {
+  flex: 1;
+  height: 2px;
+  background: var(--muted);
+  margin-top: -24px;
+}
+
+.transferAlert {
+  background: var(--golden-gradient);
+  padding: 1.5rem;
+  border-radius: 20px;
+  display: flex;
+  gap: 1.25rem;
+  text-align: right;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(255,255,255,0.3);
+  box-shadow: 0 10px 30px rgba(245, 158, 11, 0.2);
+  color: #000;
+}
+
+.alertIcon {
+  width: 48px;
+  height: 48px;
+  background: rgba(0,0,0,0.1);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.alertContent h3 {
+  font-size: 1.1rem;
+  font-weight: 900;
+  margin-bottom: 0.25rem;
+}
+
+.alertContent p {
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+
+.whatsappBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #000;
+  color: #fff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 480px) {
+  .timeline span {
+    font-size: 0.7rem;
+  }
+  .transferAlert {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+}
+
 .instructions {
   text-align: right;
   margin-bottom: 2.5rem;

@@ -261,10 +261,40 @@ export default function ProductDetails({ params }: { params: Promise<{ slug: str
             </button>
           </div>
           
-          <a href={getWhatsAppLink()} target="_blank" rel="noopener noreferrer" className={styles.whatsappInquiry}>
-            <MessageCircle size={20} />
-            استفسر عبر الواتساب
-          </a>
+          <div className={styles.trustBadges}>
+            <div className={styles.badgeItem}>
+              <CheckCircle2 size={20} />
+              <span>{t('originalProduct')}</span>
+            </div>
+            <div className={styles.badgeItem}>
+              <Zap size={20} />
+              <span>{t('fastDelivery')}</span>
+            </div>
+            <div className={styles.badgeItem}>
+              <RotateCcw size={20} />
+              <span>{t('easyReturn')}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Floating Bottom Bar for Mobile */}
+      <div className={styles.floatingActions}>
+        <div className={styles.floatingActionsContent}>
+           <a href={getWhatsAppLink()} target="_blank" rel="noopener noreferrer" className={styles.floatingWhatsapp}>
+             <MessageCircle size={24} />
+           </a>
+           <button 
+             className={`${styles.floatingAddToCart} ${isAdded ? styles.added : ''}`} 
+             onClick={handleAddToCart} 
+             disabled={isAdded}
+           >
+             <ShoppingCart size={20} />
+             <span>{isAdded ? '✓' : t('addToCart')}</span>
+           </button>
+           <button className={styles.floatingBuyNow} onClick={handleBuyNow}>
+             {t('buyNow')}
+           </button>
         </div>
       </div>
 

@@ -73,6 +73,16 @@ export default function CheckoutContent() {
   const [couponError, setCouponError] = useState<string | null>(null);
   const [isCheckingCoupon, setIsCheckingCoupon] = useState(false);
 
+  const bankAccounts = [
+    { bank: 'بنك الكريمي', account: '123456789', name: 'مؤسسة بايرز للتجارة', logo: '🏦' },
+    { bank: 'بنك اليمن الدولي', account: '987654321', name: 'مؤسسة بايرز للتجارة', logo: '🏛️' }
+  ];
+
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success(t('copied') || 'تم نسخ رقم الحساب!');
+  };
+
   useEffect(() => {
     setMounted(true);
     if (mounted && items.length === 0) {
@@ -446,9 +456,43 @@ export default function CheckoutContent() {
                   exit={{ height: 0, opacity: 0 }}
                   className={styles.uploadSection}
                 >
+                  <div className={styles.bankCards}>
+                    {bankAccounts.map((acc, i) => (
+                      <motion.div 
+                        key={i}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.1 }}
+                        className={styles.bankCard}
+                      >
+                        <div className={styles.bankHeader}>
+                          <span className={styles.bankLogo}>{acc.logo}</span>
+                          <span className={styles.bankName}>{acc.bank}</span>
+                        </div>
+                        <div className={styles.accountBox}>
+                          <div className={styles.accountNum}>
+                            <label>رقم الحساب</label>
+                            <strong>{acc.account}</strong>
+                          </div>
+                          <button 
+                            type="button" 
+                            className={styles.copyBtn} 
+                            onClick={() => handleCopy(acc.account)}
+                          >
+                            نسخ
+                          </button>
+                        </div>
+                        <div className={styles.accountHolder}>
+                          <label>باسم</label>
+                          <span>{acc.name}</span>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+
                   <div className={styles.alert}>
                     <AlertCircle size={18} />
-                    <p>{t('transferInstructions')}</p>
+                    <p>يرجى تحويل المبلغ الإجمالي إلى أحد الحسابات أعلاه، ثم إرفاق صورة واضحة لإيصال التحويل هنا:</p>
                   </div>
                   
                   <label className={styles.uploadBox}>

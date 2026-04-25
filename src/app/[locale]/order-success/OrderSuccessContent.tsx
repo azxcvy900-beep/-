@@ -10,6 +10,40 @@ import { getStoreInfo, StoreInfo } from '@/lib/api';
 import { getMerchantWhatsAppUrl } from '@/lib/whatsapp';
 import styles from './success.module.css';
 
+const ConfettiParticle = ({ delay }: { delay: number }) => {
+  const colors = ['#fbbf24', '#f59e0b', '#3b82f6', '#ef4444', '#10b981'];
+  const color = colors[Math.floor(Math.random() * colors.length)];
+  const x = Math.random() * 100; // random horizontal start
+  
+  return (
+    <motion.div
+      initial={{ y: -20, x: `${x}vw`, opacity: 1, scale: 1, rotate: 0 }}
+      animate={{ 
+        y: '100vh', 
+        rotate: 360,
+        opacity: 0,
+        scale: 0.5
+      }}
+      transition={{ 
+        duration: 2 + Math.random() * 2, 
+        delay: delay,
+        ease: "linear"
+      }}
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '10px',
+        height: '10px',
+        backgroundColor: color,
+        borderRadius: '2px',
+        zIndex: 50,
+        pointerEvents: 'none'
+      }}
+    />
+  );
+};
+
 export default function OrderSuccessContent() {
   const t = useTranslations('Success');
   const locale = useLocale();
@@ -45,6 +79,11 @@ export default function OrderSuccessContent() {
 
   return (
     <div className={styles.container}>
+      {/* Confetti Celebration */}
+      {Array.from({ length: 40 }).map((_, i) => (
+        <ConfettiParticle key={i} delay={Math.random() * 3} />
+      ))}
+      
       <motion.div 
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -70,22 +109,38 @@ export default function OrderSuccessContent() {
         
         <div className={styles.orderInfo}>
           <p>{t('orderNumber')}: <strong>{orderNumber}</strong></p>
-          <p className={styles.statusNote}>{t('statusPending')}</p>
+        </div>
+
+        {/* Tracking Timeline */}
+        <div className={styles.timeline}>
+          <div className={`${styles.timelineItem} ${styles.active}`}>
+            <div className={styles.timelineIcon}><CheckCircle size={16} /></div>
+            <span>{t('orderPlaced')}</span>
+          </div>
+          <div className={styles.timelineLine} />
+          <div className={styles.timelineItem}>
+            <div className={styles.timelineIcon}>2</div>
+            <span>{t('processing')}</span>
+          </div>
+          <div className={styles.timelineLine} />
+          <div className={styles.timelineItem}>
+            <div className={styles.timelineIcon}>3</div>
+            <span>{t('ready')}</span>
+          </div>
         </div>
 
         {orders.length > 0 && orders[0].paymentMethod === 'transfer' && (
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className={styles.whatsappPrompt}
-          >
-            <p>يرجى إرسال صورة سند الحوالة لتأكيد طلبك وتجميد السعر فوراً:</p>
-            <button onClick={handleSendWhatsApp} className={styles.whatsappBtn}>
-              <MessageCircle size={20} />
-              إرسال السند عبر واتساب
-            </button>
-          </motion.div>
+          <div className={styles.transferAlert}>
+            <div className={styles.alertIcon}><Zap size={24} /></div>
+            <div className={styles.alertContent}>
+              <h3>{t('actionRequired')}</h3>
+              <p>{t('transferNote')}</p>
+              <button onClick={handleSendWhatsApp} className={styles.whatsappBtn}>
+                <MessageCircle size={20} />
+                {t('sendReceipt')}
+              </button>
+            </div>
+          </div>
         )}
 
         <div className={styles.instructions}>

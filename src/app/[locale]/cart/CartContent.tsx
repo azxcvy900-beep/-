@@ -45,6 +45,30 @@ export default function CartContent() {
         <p className={styles.count}>{items.length} {t('itemsInCart')}</p>
       </motion.div>
 
+      {items.length > 0 && (
+        <div className={styles.freeShippingBanner}>
+          <div className={styles.freeShippingHeader}>
+            {getTotalPrice() >= 500 ? (
+              <span className={styles.freeShippingSuccess}>
+                تهانينا! لقد حصلت على <strong>شحن مجاني</strong> لطلبك 🎉
+              </span>
+            ) : (
+              <span className={styles.freeShippingInfo}>
+                أضف منتجات بقيمة <strong>{formatPriceLocal(500 - getTotalPrice())}</strong> للحصول على <strong>شحن مجاني</strong> 🚚
+              </span>
+            )}
+          </div>
+          <div className={styles.progressBarWrapper}>
+            <motion.div 
+              className={styles.progressBar}
+              initial={{ width: 0 }}
+              animate={{ width: `${Math.min((getTotalPrice() / 500) * 100, 100)}%` }}
+              transition={{ type: "spring", stiffness: 50 }}
+            />
+          </div>
+        </div>
+      )}
+
       {items.length === 0 ? (
         <motion.div 
           initial={{ opacity: 0, scale: 0.9 }}
