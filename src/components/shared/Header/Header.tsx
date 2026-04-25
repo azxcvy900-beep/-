@@ -34,6 +34,7 @@ const Header: React.FC<HeaderProps> = ({ storeName, storeLogo, isLanding }) => {
     setMounted(true);
   }, []);
 
+  const isStore = !isLanding;
   const nextLocale = locale === 'ar' ? 'en' : 'ar';
 
   if (!mounted) {
