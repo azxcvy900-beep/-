@@ -45,6 +45,14 @@
   transform: scale(1.05);
 }
 
+.logoImage {
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+  transition: transform 0.3s ease;
+}
+
+.logoImage:hover {
+  transform: scale(1.05);
+}
 
 .nav {
   display: flex;
@@ -120,8 +128,8 @@
   position: absolute;
   top: -6px;
   right: -6px;
-  background: #ef4444; /* Bright Red */
-  color: white;
+  background: var(--golden-gradient);
+  color: #000;
   min-width: 18px;
   height: 18px;
   padding: 0 4px;
@@ -171,21 +179,17 @@
 .landingHeader .adminLink svg,
 .landingHeader .adminLink svg * {
   background: var(--golden-gradient) !important;
-  color: #000 !important; /* Keep black text on bright gold for readability, or use dark gold? User said gold text. */
+  color: #000 !important;
   fill: #000 !important;
   text-decoration: none !important;
   border-bottom: none !important;
   font-weight: 800;
 }
 
-/* User specifically asked for golden text. If background is also gold, it won't be readable. 
-   I will make the adminLink text #7c2d12 (very dark brown-gold) for contrast on bright gold, 
-   and use #FFB800 for the other buttons. */
-
 .landingHeader .adminLink span,
 .landingHeader .adminLink svg,
 .landingHeader .adminLink svg * {
-  color: #451a03 !important; /* Deep contrast on gold */
+  color: #451a03 !important;
 }
 
 .landingHeader .adminLink {
@@ -202,7 +206,202 @@
 
 .landingHeader .localeLink,
 .landingHeader .iconButton {
-  color: #b45309 !important; /* Rich Amber for better contrast on white/glass */
+  color: #b45309 !important;
+  background: rgba(251, 191, 36, 0.1) !important;
+  border: 1px solid rgba(251, 191, 36, 0.2) !important;
+}
+
+:global(.dark) .landingHeader .localeLink,
+:global(.dark) .landingHeader .iconButton {
+  color: #fbbf24 !important;
+  background: rgba(251, 191, 36, 0.05) !important;
+  border-color: rgba(251, 191, 36, 0.1) !important;
+}
+
+.landingHeader .localeLink:hover,
+.landingHeader .iconButton:hover {
+  background: #fbbf24 !important;
+  color: #000 !important;
+  border-color: #fbbf24 !important;
+}
+
+.landingHeader .localeLink:hover *,
+.landingHeader .iconButton:hover * {
+  color: #000 !important;
+}
+
+@media (max-width: 768px) {
+  .landingHeader {
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    transform: none !important;
+    border-radius: 0 0 24px 24px !important;
+    padding: 0.5rem 0.75rem !important;
+    background: var(--glass-bg) !important;
+    backdrop-filter: blur(25px) !important;
+    border: none !important;
+    border-bottom: 1px solid var(--glass-border) !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    overflow: hidden;
+  }
+
+  .landingActions {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 0.4rem !important;
+    width: auto !important;
+  }
+
+  .miniActions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.35rem !important;
+  }
+
+  .adminText {
+    display: inline !important;
+    font-size: 0.7rem;
+    font-weight: 800;
+  }
+
+  .landingHeader .adminLink,
+  .landingHeader .localeLink,
+  .landingHeader .themeToggle {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.25rem !important;
+    padding: 0.4rem 0.6rem !important;
+    border-radius: 12px !important;
+    width: auto !important;
+    height: auto !important;
+    min-width: 60px;
+  }
+
+  .adminText,
+  .landingHeader .localeLink span,
+  .landingHeader .themeToggle span {
+    display: inline !important;
+    font-size: 0.6rem !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+  }
+
+  .landingHeader .adminLink {
+    background: linear-gradient(135deg, #fbbf24, #f59e0b) !important;
+    color: #000 !important;
+    box-shadow: 0 4px 10px rgba(245, 158, 11, 0.2) !important;
+    border: none !important;
+  }
+
+  .landingHeader .localeLink {
+    background: rgba(251, 191, 36, 0.1) !important;
+    color: #b45309 !important;
+    border: 1px solid rgba(251, 191, 36, 0.15) !important;
+  }
+
+  .landingHeader .themeToggle {
+    background: rgba(245, 158, 11, 0.1) !important;
+    color: #92400e !important;
+    border: 1px solid rgba(245, 158, 11, 0.15) !important;
+  }
+
+  :global(.dark) .landingHeader .localeLink {
+    background: rgba(251, 191, 36, 0.12) !important;
+    color: #fbbf24 !important;
+  }
+
+  :global(.dark) .landingHeader .themeToggle {
+    background: rgba(245, 158, 11, 0.12) !important;
+    color: #fbbf24 !important;
+  }
+
+  .landingHeader .container {
+    padding: 0 1.25rem;
+    justify-content: space-between;
+  }
+
+  .header {
+    top: 0;
+    left: 0;
+    transform: none;
+    width: 100%;
+    max-width: none;
+    border-radius: 0 0 16px 16px;
+    padding: 0.6rem 0;
+}
+
+.adminLink {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--golden-gradient);
+  color: #000 !important;
+  padding: 0.6rem 1.25rem;
+  border-radius: 14px;
+  font-weight: 800;
+  font-size: 0.95rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(255, 184, 0, 0.3);
+}
+
+.adminLink:hover {
+  background: #000;
+  color: var(--golden-yellow) !important;
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.2);
+}
+
+.adminLink svg {
+  color: #000;
+  transition: color 0.3s;
+}
+
+.adminLink:hover svg {
+  color: var(--golden-yellow);
+}
+
+/* Landing Page Specific Golden Buttons */
+.landingHeader .adminLink,
+.landingHeader .adminLink span,
+.landingHeader .adminLink svg,
+.landingHeader .adminLink svg * {
+  background: var(--golden-gradient) !important;
+  color: #000 !important;
+  fill: #000 !important;
+  text-decoration: none !important;
+  border-bottom: none !important;
+  font-weight: 800;
+}
+
+.landingHeader .adminLink span,
+.landingHeader .adminLink svg,
+.landingHeader .adminLink svg * {
+  color: #451a03 !important;
+}
+
+.landingHeader .adminLink {
+  background: linear-gradient(135, #fbbf24 0%, #f59e0b 100%) !important;
+  color: #000 !important;
+  border: none;
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+  font-weight: 700 !important;
+}
+
+.landingHeader .adminLink * {
+  color: #000 !important;
+}
+
+.landingHeader .localeLink,
+.landingHeader .iconButton {
+  color: #b45309 !important;
   background: rgba(251, 191, 36, 0.1) !important;
   border: 1px solid rgba(251, 191, 36, 0.2) !important;
 }
@@ -337,63 +536,72 @@
     border-right: none;
   }
 
-  .header:hover {
-    transform: none;
+  .header {
+    height: 65px;
+    padding: 0 1rem;
+    background: rgba(var(--bg-card-rgb), 0.8);
   }
 
-  .logo {
-    font-size: 1.25rem;
+  .container {
+    padding: 0;
   }
-  
-  .nav {
-    gap: 0.5rem;
+
+  .logoImage {
+    height: 32px !important;
   }
-  
+
   .hideOnMobile {
-    display: none;
+    display: none !important;
   }
 
-  /* Only show essential icons in header since we have BottomNav */
   .navLink {
-    display: none;
-    padding: 0.4rem;
-    gap: 4px;
-    font-size: 0.7rem;
-  }
-
-  .navLink :global(svg) {
-    width: 16px;
-    height: 16px;
+    display: none !important; /* Hide other links in mobile header */
   }
 
   .cartLink {
-    display: none; /* Already in BottomNav */
-    padding: 0.4rem 0.6rem;
-    font-size: 0.7rem;
+    display: flex !important;
+    padding: 0.4rem 0.8rem;
+    background: var(--golden-gradient);
+    border-radius: 99px;
+    color: #000 !important;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    align-items: center;
+    gap: 4px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-decoration: none;
+    position: relative;
   }
 
   .cartLink :global(svg) {
-    width: 16px;
-    height: 16px;
-  }
-
-  .localeLink {
-    padding: 0.4rem;
-    border-radius: 50%;
-  }
-
-  .iconButton {
-    padding: 0.4rem;
-    border-radius: 10px;
+    width: 18px;
+    height: 18px;
+    color: #000 !important;
   }
 
   .cartCount {
-    top: -4px;
-    right: -4px;
-    min-width: 16px;
-    height: 16px;
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: #000 !important;
+    color: #fff !important;
+    min-width: 18px;
+    height: 18px;
     font-size: 0.65rem;
+    font-weight: 900;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
   }
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
 }
 
 .navLink {
@@ -410,25 +618,40 @@
   color: var(--primary);
 }
 
-.iconWithBadge {
-  position: relative;
+.cartLink {
   display: flex;
   align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(var(--primary-rgb), 0.1);
+  color: var(--primary);
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 700;
+  transition: all 0.3s ease;
+  position: relative;
 }
 
-.badge {
-  position: absolute;
-  top: -8px;
-  right: -8px;
+.cartLink:hover {
   background: var(--primary);
-  color: white;
-  min-width: 16px;
-  height: 16px;
+  color: #000;
+  transform: translateY(-2px);
+}
+
+.cartCount {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: var(--golden-gradient);
+  color: #000;
+  font-size: 0.7rem;
+  font-weight: 800;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
-  font-size: 0.65rem;
-  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1.5px solid var(--header-bg);
+  border: 2px solid var(--bg-card);
+  box-shadow: 0 2px 5px rgba(245, 158, 11, 0.4);
 }
