@@ -120,15 +120,16 @@ const Header: React.FC<HeaderProps> = ({ storeName, storeLogo, isLanding }) => {
                   className={styles.localeLink} 
                   onClick={() => triggerHaptic('medium')}
                 >
-                  <Globe size={18} />
-                  <span>{nextLocale.toUpperCase()}</span>
+                  <Globe size={16} />
+                  <span>{nextLocale === 'ar' ? 'العربية' : 'EN'}</span>
                 </Link>
 
                 <button 
                   className={styles.themeToggle} 
                   onClick={() => { toggleTheme(); triggerHaptic('medium'); }}
                 >
-                  {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+                  {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+                  <span>{theme === 'dark' ? t('lightMode') : t('darkMode')}</span>
                 </button>
               </div>
             </div>
