@@ -356,15 +356,30 @@
   /* Only show essential icons in header since we have BottomNav */
   .navLink {
     display: none;
+    padding: 0.4rem;
+    gap: 4px;
+    font-size: 0.7rem;
+  }
+
+  .navLink :global(svg) {
+    width: 16px;
+    height: 16px;
+  }
+
+  .cartLink {
+    display: none; /* Already in BottomNav */
+    padding: 0.4rem 0.6rem;
+    font-size: 0.7rem;
+  }
+
+  .cartLink :global(svg) {
+    width: 16px;
+    height: 16px;
   }
 
   .localeLink {
     padding: 0.4rem;
     border-radius: 50%;
-  }
-
-  .cartLink {
-    display: none; /* Already in BottomNav */
   }
 
   .iconButton {

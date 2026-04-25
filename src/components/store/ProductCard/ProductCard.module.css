@@ -174,7 +174,11 @@
 
 @media (max-width: 768px) {
   .card {
-    border-radius: 20px;
+    border-radius: 16px;
+  }
+
+  .imageWrapper {
+    height: 160px; /* Smaller height for 2 columns */
   }
 
   .info {
@@ -188,12 +192,18 @@
 
   .title {
     font-size: 0.9rem;
-    min-height: 2.6em;
+    margin-bottom: 0.25rem;
+    height: 2.2rem; /* 2 lines max */
+    min-height: 2.2rem;
     font-weight: 700;
   }
 
   .price {
-    font-size: 1.05rem;
+    font-size: 1.1rem;
+  }
+
+  .currentPrice {
+    font-size: 1.1rem;
   }
 
   .originalPrice {
