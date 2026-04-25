@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Rocket, ArrowRight } from 'lucide-react';
+import { Rocket, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useLocale } from 'next-intl';
 import styles from './FloatingCTA.module.css';
