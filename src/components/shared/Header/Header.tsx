@@ -109,29 +109,30 @@ const Header: React.FC<HeaderProps> = ({ storeName, storeLogo, isLanding }) => {
 
           {isLanding && (
             <div className={styles.landingActions}>
+              {/* Dashboard on the Right (First in RTL) */}
               <Link href={`/${locale}/admin/login`} className={styles.adminLink} onClick={() => triggerHaptic('medium')}>
                 <LayoutDashboard size={18} />
                 <span className={styles.adminText}>{t('adminLogin')}</span>
               </Link>
 
-              <div className={styles.miniActions}>
-                <Link 
-                  href={pathname.replace(`/${locale}`, `/${nextLocale}`)} 
-                  className={styles.localeLink} 
-                  onClick={() => triggerHaptic('medium')}
-                >
-                  <Globe size={16} />
-                  <span>{locale === 'ar' ? 'English' : 'العربية'}</span>
-                </Link>
+              {/* Theme in the Middle */}
+              <button 
+                className={styles.themeToggle} 
+                onClick={() => { toggleTheme(); triggerHaptic('medium'); }}
+              >
+                {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+                <span>{theme === 'dark' ? t('lightMode') : t('darkMode')}</span>
+              </button>
 
-                <button 
-                  className={styles.themeToggle} 
-                  onClick={() => { toggleTheme(); triggerHaptic('medium'); }}
-                >
-                  {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-                  <span>{theme === 'dark' ? t('lightMode') : t('darkMode')}</span>
-                </button>
-              </div>
+              {/* Language on the Left (Last in RTL) */}
+              <Link 
+                href={pathname.replace(`/${locale}`, `/${nextLocale}`)} 
+                className={styles.localeLink} 
+                onClick={() => triggerHaptic('medium')}
+              >
+                <Globe size={16} />
+                <span>{locale === 'ar' ? 'English' : 'العربية'}</span>
+              </Link>
             </div>
           )}
         </nav>
