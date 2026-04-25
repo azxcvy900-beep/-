@@ -160,11 +160,16 @@
 
 /* Professional Glass Category Icons - Premium Redesign */
 .categoryBarWrapper {
-  margin-bottom: 4rem;
-  padding: 1.5rem 0;
+  margin-bottom: 2.5rem;
+  padding: 1rem 0;
   overflow-x: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  position: sticky;
+  top: 100px; /* Below header */
+  background: var(--background);
+  z-index: 50;
+  border-bottom: 1px solid var(--card-border);
 }
 
 .categoryBarWrapper::-webkit-scrollbar {
@@ -173,9 +178,9 @@
 
 .categoryBar {
   display: flex;
-  gap: 2.5rem;
+  gap: 1.5rem;
   justify-content: center;
-  padding: 0 2rem;
+  padding: 0 1.5rem;
   min-width: max-content;
 }
 
@@ -183,126 +188,71 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.25rem;
+  gap: 0.75rem;
   cursor: pointer;
-  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-  perspective: 1000px;
-  position: relative;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .circleIcon {
-  width: 115px;
-  height: 115px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  width: 70px;
+  height: 70px;
+  border-radius: 20px;
+  background: var(--card-bg);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 
-    0 10px 30px -5px rgba(0, 0, 0, 0.2),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
-  border: 1.5px solid rgba(255, 255, 255, 0.1);
-  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid var(--card-border);
+  transition: all 0.4s ease;
   overflow: hidden;
-  position: relative;
-}
-
-:global([data-theme='light']) .circleIcon {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.4) 100%);
-  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.6);
-  border-color: rgba(255, 255, 255, 0.5);
-}
-
-.circleIcon::after {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  border-radius: 50%;
-  padding: 2px;
-  background: linear-gradient(135deg, rgba(255,255,255,0.8), rgba(255,255,255,0.1));
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
-  opacity: 0.5;
 }
 
 .circleIcon img {
-  width: 94%;
-  height: 94%;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-  filter: drop-shadow(0 5px 15px rgba(0,0,0,0.08));
-  border-radius: 50%;
-  background: transparent !important;
-}
-
-.circleIcon :global(svg) {
-  color: var(--secondary);
-  transition: all 0.4s ease;
-}
-
-.activeCircle .circleIcon :global(svg) {
-  color: white;
-}
-
-/* Active & Hover States */
-.categoryCircle:hover .circleIcon {
-  transform: translateY(-12px) scale(1.05);
-  background: white;
-  box-shadow: 
-    0 25px 50px -12px rgba(0, 0, 0, 0.15),
-    0 0 0 4px rgba(59, 130, 246, 0.05);
-  border-color: rgba(59, 130, 246, 0.3);
 }
 
 .activeCircle .circleIcon {
-  background: var(--card-bg);
-  border-color: #3b82f6;
-  box-shadow: 
-    0 15px 35px -5px rgba(59, 130, 246, 0.4),
-    0 0 0 4px rgba(59, 130, 246, 0.15);
-  transform: translateY(-12px) scale(1.05);
-  animation: float 4s ease-in-out infinite;
-}
-
-/* Background for 'All' category and icons without images */
-.activeCircle .circleIcon:not(:has(img)) {
-  background: #3b82f6;
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(-12px) scale(1.05); }
-  50% { transform: translateY(-18px) scale(1.07); }
-}
-
-.activeCircle .circleIcon img {
-  transform: scale(1.05);
-  filter: drop-shadow(0 8px 20px rgba(0,0,0,0.15));
+  background: var(--primary);
+  border-color: var(--primary);
+  box-shadow: 0 8px 20px var(--primary-shadow);
+  transform: translateY(-4px);
 }
 
 .activeCircle .circleIcon :global(svg) {
   color: white;
-  transform: scale(1.1);
 }
 
 .categoryCircleName {
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   font-weight: 800;
   color: #64748b;
-  transition: all 0.4s ease;
-  letter-spacing: -0.01em;
   text-align: center;
-  max-width: 90px;
 }
 
 .activeCircle .categoryCircleName {
-  color: #3b82f6;
-  transform: translateY(-8px);
+  color: var(--primary);
   font-weight: 900;
+}
+
+@media (max-width: 768px) {
+  .categoryBarWrapper {
+    top: 60px;
+    margin-bottom: 1.5rem;
+    padding: 0.75rem 0;
+  }
+  
+  .categoryBar {
+    gap: 1rem;
+    padding: 0 1rem;
+    justify-content: flex-start;
+  }
+
+  .circleIcon {
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+  }
 }
 
 .productsSection {
@@ -346,7 +296,7 @@
 
 @media (max-width: 768px) {
   .header {
-    padding: 0.75rem 1rem;
+    padding: 0.6rem 1rem;
     border-radius: 0;
     margin-bottom: 0;
     border-bottom: 1px solid var(--card-border);
@@ -355,7 +305,7 @@
   .headerContent {
     flex-direction: row;
     justify-content: flex-start;
-    gap: 1rem;
+    gap: 0.75rem;
     text-align: right;
   }
 
@@ -363,33 +313,26 @@
     position: sticky;
     top: 0;
     z-index: 100;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
-  }
-
-  :global([data-theme='dark']) .stickyHeader {
-    background: rgba(15, 23, 42, 0.95);
+    background: var(--glass-bg);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
   }
 
   .mobileSearchWrapper {
     display: block;
-    padding: 0.5rem 1rem 0.75rem;
+    padding: 0.4rem 1rem 0.6rem;
     width: 100%;
     background: inherit;
   }
 
-  .searchWrapper {
-    display: none; /* Hide original search bar on mobile as it's now in header */
-  }
-
   .logo {
-    width: 45px;
-    height: 45px;
-    border-radius: 12px;
-    padding: 4px;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    padding: 3px;
     flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
   }
   
   .titleGroup {
@@ -397,22 +340,25 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
+    gap: 0.1rem;
   }
 
   .title {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     margin-bottom: 0;
     line-height: 1.2;
+    font-weight: 900;
   }
 
   .subtitle {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     display: -webkit-box;
     -webkit-line-clamp: 1;
     line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    opacity: 0.7;
+    opacity: 0.6;
+    font-weight: 600;
   }
 
   .heroBanner {
