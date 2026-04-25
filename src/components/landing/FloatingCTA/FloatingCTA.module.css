@@ -41,8 +41,22 @@
   white-space: nowrap;
 }
 
+.arrowWrapper {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
 @media (max-width: 850px) {
   .wrapper {
-    display: block;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .cta {
+    max-width: 400px;
   }
 }

@@ -39,7 +39,9 @@ const FloatingCTA = () => {
               <Rocket size={20} />
             </div>
             <span className={styles.text}>ابدأ متجرك الآن مجاناً</span>
-            <ArrowRight size={18} />
+            <div className={styles.arrowWrapper}>
+              <ArrowRight size={18} />
+            </div>
           </Link>
         </motion.div>
       )}
