@@ -57,10 +57,6 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
       window.navigator.vibrate(duration);
     }
   };
-  const previewLogo = searchParams.get('logo');
-  const isPreviewMode = searchParams.get('preview') === 'true';
-
-  // Cart Sync Actions
   const { setRates, setManualRate, setShippingFee, setStoreSlug } = useCartStore();
 
   // Each data source loads INDEPENDENTLY
