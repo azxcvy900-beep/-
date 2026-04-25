@@ -135,44 +135,49 @@
 
 .sliderControls {
   position: absolute;
-  bottom: 2.5rem;
-  right: 5rem;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
-  gap: 1rem;
-  z-index: 20;
+  gap: 8px;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 6px 12px;
+  border-radius: 20px;
+  backdrop-filter: blur(4px);
 }
 
 .dot {
-  width: 12px;
-  height: 12px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.2);
+  background: rgba(255, 255, 255, 0.5);
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 2px solid transparent;
 }
 
 .activeDot {
-  background: white;
-  transform: scale(1.3);
-  box-shadow: 0 0 15px rgba(255,255,255,0.5);
+  background: var(--primary);
+  width: 24px;
+  border-radius: 4px;
+  box-shadow: 0 0 10px var(--primary-shadow);
 }
 
 .welcomeSection {
-  padding: 1.5rem 1.5rem 0.5rem;
+  padding: 0 1.5rem;
   max-width: 1200px;
-  margin: 0 auto;
+  margin: 1rem auto 2rem;
 }
 
 .welcomeText h2 {
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   font-weight: 900;
   color: var(--foreground);
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.15rem;
 }
 
 .welcomeText p {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--secondary);
   font-weight: 600;
 }
@@ -206,10 +211,10 @@
 }
 
 .sectionHeader h2 {
-  font-size: 1.4rem;
+  font-size: 1.6rem;
   font-weight: 900;
   color: var(--foreground);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
 }
 
 .headerLine {
@@ -265,14 +270,15 @@
 }
 
 .activeCircle .circleIcon {
-  background: var(--primary);
+  background: var(--golden-gradient);
   border-color: var(--primary);
-  box-shadow: 0 8px 25px var(--primary-shadow);
-  transform: translateY(-5px);
+  box-shadow: 0 12px 30px var(--primary-shadow);
+  transform: translateY(-8px) scale(1.05);
 }
 
 .activeCircle .circleIcon :global(svg) {
-  color: #000;
+  color: #000 !important;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
 }
 
 .categoryCircleName {
@@ -348,10 +354,10 @@
 
 .floatingCart {
   position: fixed;
-  bottom: 85px; /* Above BottomNav */
+  bottom: 95px; /* Higher to avoid BottomNav */
   left: 50%;
   transform: translateX(-50%);
-  z-index: 999;
+  z-index: 1000;
   width: auto;
   max-width: 90%;
 }

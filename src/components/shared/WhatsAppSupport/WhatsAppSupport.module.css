@@ -1,6 +1,6 @@
 .container {
   position: fixed;
-  bottom: 2.5rem; /* Back to bottom */
+  bottom: 85px; /* Above BottomNav to avoid overlap */
   right: 2rem;
   z-index: 1000;
   pointer-events: none;

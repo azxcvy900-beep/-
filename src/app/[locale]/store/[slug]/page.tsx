@@ -242,14 +242,7 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
           </div>
         </section>
 
-        <div className={styles.searchWrapper}>
-           <SearchBar 
-             value={searchQuery} 
-             onChange={setSearchQuery} 
-             placeholder={t('searchPlaceholder')} 
-             onFocus={() => setIsSearchOpen(true)}
-           />
-        </div>
+
 
         {/* Professional Glass Category Bar */}
         <div className={styles.categoryBarWrapper}>
