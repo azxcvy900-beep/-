@@ -121,7 +121,7 @@ const Header: React.FC<HeaderProps> = ({ storeName, storeLogo, isLanding }) => {
                   onClick={() => triggerHaptic('medium')}
                 >
                   <Globe size={16} />
-                  <span>{nextLocale === 'ar' ? 'العربية' : 'EN'}</span>
+                  <span>{locale === 'ar' ? 'English' : 'العربية'}</span>
                 </Link>
 
                 <button 

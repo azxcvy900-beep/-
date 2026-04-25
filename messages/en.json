@@ -3,7 +3,11 @@
     "cart": "Cart",
     "trackOrder": "Track Order",
     "myOrders": "My Orders",
-    "wishlist": "Wishlist"
+    "wishlist": "Wishlist",
+    "adminLogin": "Dashboard",
+    "lightMode": "Light Mode",
+    "darkMode": "Dark Mode",
+    "language": "Language"
   },
   "Cart": {
     "title": "Shopping Cart",

@@ -2,7 +2,11 @@
   "Header": {
     "cart": "السلة",
     "trackOrder": "تتبع الطلب",
-    "myOrders": "طلباتي"
+    "myOrders": "طلباتي",
+    "adminLogin": "لوحة التحكم",
+    "lightMode": "الوضع النهاري",
+    "darkMode": "الوضع الليلي",
+    "language": "اللغة"
   },
   "Cart": {
     "title": "سلة المشتريات",
