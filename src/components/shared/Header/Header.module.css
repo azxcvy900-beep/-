@@ -233,63 +233,80 @@
     right: 0 !important;
     width: 100% !important;
     transform: none !important;
-    border-radius: 0 0 20px 20px !important;
-    padding: 0.5rem 1rem !important;
+    border-radius: 0 0 24px 24px !important;
+    padding: 0.5rem 0.75rem !important;
     background: var(--glass-bg) !important;
-    backdrop-filter: blur(20px) !important;
+    backdrop-filter: blur(25px) !important;
     border: none !important;
     border-bottom: 1px solid var(--glass-border) !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    overflow: hidden;
   }
 
   .landingActions {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0.4rem;
-    width: 100%;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 0.4rem !important;
+    width: auto !important;
   }
 
   .miniActions {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    width: 100%;
-    justify-content: flex-end;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.35rem !important;
   }
 
   .adminText {
     display: inline !important;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 800;
   }
 
   .landingHeader .adminLink {
-    padding: 0.4rem 0.8rem !important;
-    width: auto;
-    height: auto;
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    border-radius: 10px !important;
-    background: var(--golden-gradient) !important;
+    padding: 0.45rem 0.9rem !important;
+    border-radius: 99px !important;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b) !important;
     color: #000 !important;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3) !important;
+    white-space: nowrap;
+    border: none !important;
   }
 
-  .landingHeader .localeLink,
+  .landingHeader .localeLink {
+    padding: 0.45rem 0.8rem !important;
+    background: rgba(59, 130, 246, 0.1) !important;
+    color: #3b82f6 !important;
+    border: 1px solid rgba(59, 130, 246, 0.2) !important;
+    border-radius: 99px !important;
+    font-size: 0.7rem !important;
+    font-weight: 800;
+  }
+
   .landingHeader .themeToggle {
-    width: auto;
-    height: auto;
-    padding: 0.3rem 0.6rem !important;
+    padding: 0.45rem 0.8rem !important;
+    background: rgba(139, 92, 246, 0.1) !important;
+    color: #8b5cf6 !important;
+    border: 1px solid rgba(139, 92, 246, 0.2) !important;
+    border-radius: 99px !important;
+    font-size: 0.7rem !important;
+    font-weight: 800;
     display: flex;
     align-items: center;
     gap: 0.3rem;
-    border-radius: 8px !important;
-    font-size: 0.7rem !important;
-    font-weight: 700;
-    color: var(--foreground) !important;
-    background: rgba(128, 128, 128, 0.05) !important;
-    border: 1px solid rgba(128, 128, 128, 0.1) !important;
+  }
+
+  :global(.dark) .landingHeader .localeLink {
+    background: rgba(96, 165, 250, 0.15) !important;
+    color: #93c5fd !important;
+  }
+
+  :global(.dark) .landingHeader .themeToggle {
+    background: rgba(167, 139, 250, 0.15) !important;
+    color: #c4b5fd !important;
   }
 
   .landingHeader .localeLink span,
