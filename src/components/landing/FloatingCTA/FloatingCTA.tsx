@@ -35,12 +35,12 @@ const FloatingCTA = () => {
           transition={{ type: 'spring', damping: 20, stiffness: 100 }}
         >
           <Link href={`/${locale}/admin/login`} className={styles.cta}>
-            <div className={styles.icon}>
-              <Rocket size={20} />
+            <div className={styles.arrowWrapper}>
+              <ArrowLeft size={18} />
             </div>
             <span className={styles.text}>ابدأ متجرك الآن مجاناً</span>
-            <div className={styles.arrowWrapper}>
-              <ArrowRight size={18} />
+            <div className={styles.icon}>
+              <Rocket size={20} />
             </div>
           </Link>
         </motion.div>
