@@ -62,10 +62,10 @@
 .heroBanner {
   position: relative;
   width: 100%;
-  height: 220px; /* Increased height */
-  border-radius: 24px;
+  height: 280px; /* Even taller for a more premium look */
+  border-radius: 30px; /* More rounded */
   overflow: hidden;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.25);
   background: var(--card-bg);
 }
 
@@ -77,8 +77,8 @@
 .slide img {
   width: 100%;
   height: 100%;
-  object-fit: contain; /* Ensure not cropped */
-  background: #f8fafc;
+  object-fit: cover; /* Cover everything, no white backgrounds */
+  background: transparent;
   /* Ken Burns Effect */
   animation: kenBurns 20s infinite alternate;
 }
@@ -91,11 +91,11 @@
 .bannerOverlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to right, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0) 100%);
+  background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 60%, transparent 100%);
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding: 0 5rem;
+  justify-content: flex-end; /* Text at bottom for better visibility of image */
+  padding: 2rem 1.5rem;
   color: white;
   z-index: 10;
 }
