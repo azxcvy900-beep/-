@@ -297,6 +297,7 @@ export default function SettingsContent() {
               <div className={styles.previewContainerWrapper}>
                 <div className={`${styles.previewIframeContainer} ${styles[inlinePreviewDevice + 'Frame']}`}>
                   {inlinePreviewDevice === 'mobile' && <div className={styles.phoneNotch} />}
+                  {inlinePreviewDevice === 'tablet' && <div className={styles.tabletHomeButton} />}
                   <div className={styles.iframeScaleWrapper}>
                     <iframe 
                       key={`${storeData?.primaryColor}-${logoPreview}-${inlinePreviewDevice}`}
@@ -304,7 +305,7 @@ export default function SettingsContent() {
                       title="Store Live Preview"
                     />
                   </div>
-                  {inlinePreviewDevice === 'desktop' && <div className={styles.monitorStand} />}
+                  {(inlinePreviewDevice === 'desktop' || inlinePreviewDevice === 'wide') && <div className={styles.monitorStand} />}
                 </div>
               </div>
               <p className={styles.previewHint}>تتحاكي هذه الشاشة طريقة عرض متجرك على الأجهزة المختلفة بشكل واقعي.</p>

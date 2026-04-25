@@ -58,20 +58,31 @@
 }
 
 @media (max-width: 850px) {
+  .statsContainer {
+    margin: 2rem 1rem 6rem; /* Prevent Floating CTA overlap */
+    padding: 0 0.5rem;
+  }
   .statsGrid {
     grid-template-columns: 1fr 1fr;
     grid-template-rows: auto;
+    gap: 1rem;
   }
   .statItem:nth-child(1),
   .statItem:nth-child(2),
   .statItem:nth-child(3),
   .statItem:nth-child(4) { 
-    grid-column: span 2; 
-    padding: 2rem;
-  }
-  .statItem {
+    grid-column: span 1; 
+    padding: 1.5rem 1rem;
+    border-radius: 20px;
     align-items: center;
     text-align: center;
+  }
+  .value {
+    font-size: 1.8rem;
+  }
+  .label {
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
   }
 }
 

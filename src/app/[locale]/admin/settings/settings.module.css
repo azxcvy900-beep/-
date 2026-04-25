@@ -273,44 +273,61 @@
 
 .previewIframeContainer {
   background: #0f172a;
-  box-shadow: 0 30px 60px rgba(0,0,0,0.25);
+  box-shadow: 
+    0 50px 100px -20px rgba(0,0,0,0.3),
+    0 30px 60px -30px rgba(0,0,0,0.4),
+    inset 0 0 20px rgba(255,255,255,0.05);
   position: relative;
   transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-  overflow: hidden;
+  overflow: visible; /* Allow notch/stand to be outside if needed, but notch is inside */
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .mobileFrame {
-  width: 320px;
-  height: 640px;
-  border-radius: 48px;
-  border: 12px solid #0f172a;
+  width: 280px;
+  height: 560px;
+  border-radius: 40px;
+  border: 10px solid #1e293b;
+  position: relative;
+}
+
+.mobileFrame::after {
+  content: '';
+  position: absolute;
+  left: -13px;
+  top: 100px;
+  width: 3px;
+  height: 40px;
+  background: #0f172a;
+  border-radius: 2px 0 0 2px;
+  box-shadow: 0 50px 0 #0f172a; /* Volume buttons */
 }
 
 .tabletFrame {
-  width: 600px;
-  height: 800px;
-  border-radius: 32px;
-  border: 18px solid #0f172a;
+  width: 520px;
+  height: 680px;
+  border-radius: 24px;
+  border: 14px solid #1e293b;
 }
 
 .desktopFrame {
   width: 100%;
-  max-width: 900px;
-  height: 560px;
+  max-width: 800px;
+  height: 480px;
   border-radius: 12px;
-  border: 12px solid #0f172a;
-  border-bottom-width: 40px;
+  border: 10px solid #1e293b;
+  border-bottom-width: 30px;
 }
 
 .wideFrame {
   width: 100%;
-  max-width: 1100px;
-  height: 600px;
-  border-radius: 12px;
-  border: 10px solid #0f172a;
+  max-width: 1000px;
+  height: 520px;
+  border-radius: 10px;
+  border: 8px solid #1e293b;
+  border-bottom-width: 24px;
 }
 
 .iframeScaleWrapper {
@@ -335,59 +352,66 @@
   display: block;
 }
 
-.mobileFrame {
-  width: 300px;
-  height: 600px;
-  border-radius: 40px;
-  border: 10px solid #0f172a;
-}
-
-.tabletFrame {
-  width: 500px;
-  height: 650px;
-  border-radius: 24px;
-  border: 12px solid #0f172a;
-}
-
-.desktopFrame {
-  width: 100%;
-  max-width: 800px;
-  height: 450px;
-  border-radius: 12px;
-  border: 10px solid #0f172a;
-  border-bottom-width: 30px;
-}
-
-.wideFrame {
-  width: 100%;
-  max-width: 950px;
-  height: 500px;
-  border-radius: 8px;
-  border: 8px solid #0f172a;
-}
-
 .phoneNotch {
   position: absolute;
   top: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 120px;
-  height: 22px;
+  width: 100px;
+  height: 18px;
+  background: #1e293b;
+  border-radius: 0 0 12px 12px;
+  z-index: 20;
+}
+
+.phoneNotch::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 4px;
+  background: #334155;
+  border-radius: 2px;
+}
+
+.tabletHomeButton {
+  position: absolute;
+  bottom: -11px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid #334155;
   background: #0f172a;
-  border-radius: 0 0 15px 15px;
   z-index: 20;
 }
 
 .monitorStand {
   position: absolute;
-  bottom: -60px;
+  bottom: -50px;
   left: 50%;
   transform: translateX(-50%);
-  width: 120px;
-  height: 60px;
+  width: 100px;
+  height: 50px;
   background: #0f172a;
-  clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
+  clip-path: polygon(15% 0%, 85% 0%, 100% 100%, 0% 100%);
   z-index: -1;
+  background: linear-gradient(to bottom, #1e293b, #0f172a);
+}
+
+.monitorStand::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 160px;
+  height: 6px;
+  background: #1e293b;
+  border-radius: 3px;
 }
 
 .previewContainerWrapper {

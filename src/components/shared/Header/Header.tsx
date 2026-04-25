@@ -75,7 +75,7 @@ const Header: React.FC<HeaderProps> = ({ storeName, storeLogo, isLanding }) => {
               triggerHaptic('light');
               toggleTheme();
             }} 
-            className={styles.iconButton}
+            className={`${styles.iconButton} ${isLanding ? styles.hideOnMobile : ''}`}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             title={theme === 'light' ? 'Dark Mode' : 'Light Mode'}
@@ -133,11 +133,11 @@ const Header: React.FC<HeaderProps> = ({ storeName, storeLogo, isLanding }) => {
           {isLanding && (
             <Link href={`/${locale}/admin/login`} className={styles.adminLink} onClick={() => triggerHaptic('medium')}>
               <LayoutDashboard size={18} />
-              <span>لوحة التحكم</span>
+              <span className={styles.hideOnMobile}>لوحة التحكم</span>
             </Link>
           )}
  
-          <Link href={pathname.replace(`/${locale}`, `/${nextLocale}`)} className={styles.localeLink} onClick={() => triggerHaptic('medium')}>
+          <Link href={pathname.replace(`/${locale}`, `/${nextLocale}`)} className={`${styles.localeLink} ${isLanding ? styles.hideOnMobile : ''}`} onClick={() => triggerHaptic('medium')}>
             <Globe size={16} />
             <span className={styles.hideOnMobile}>{locale === 'ar' ? 'English' : 'العربية'}</span>
           </Link>
