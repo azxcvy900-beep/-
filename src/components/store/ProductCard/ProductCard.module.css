@@ -73,13 +73,19 @@
 }
 
 .saleBadge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
   background: linear-gradient(135deg, #ef4444, #b91c1c);
   color: white;
-  padding: 0.3rem 0.7rem;
-  border-radius: 8px;
+  padding: 0.4rem 0.6rem;
+  border-radius: 50px;
   font-size: 0.7rem;
-  font-weight: 900;
-  box-shadow: 0 5px 15px rgba(239, 68, 68, 0.3);
+  font-weight: 800;
+  z-index: 2;
+  box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .info {

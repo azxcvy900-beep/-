@@ -292,10 +292,15 @@
 
 @media (max-width: 768px) {
   .categoryBarWrapper {
-    top: 60px;
-    margin-bottom: 1.5rem;
-    padding: 0.75rem 0;
-  }
+  position: sticky;
+  top: 60px; /* Below sticky header */
+  background: var(--bg-card);
+  z-index: 90;
+  padding: 1rem 0;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--card-border);
+  backdrop-filter: blur(10px);
+}
   
   .categoryBar {
     gap: 1rem;
