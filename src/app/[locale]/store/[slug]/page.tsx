@@ -10,11 +10,12 @@ import SearchBar from '@/components/shared/SearchBar/SearchBar';
 import { getStoreProducts, getStoreCategories, getStoreInfo, Product, Category } from '@/lib/api';
 import { useCartStore } from '@/lib/store';
 import { useStreamingFetch, useProgressiveLoad } from '@/lib/hooks';
-import { ArrowLeft, Grid, Loader2, Package } from 'lucide-react';
+import { ArrowLeft, Grid, Loader2, Package, ShoppingBag } from 'lucide-react';
 import StoreLockedOverlay from '@/components/store/StoreLockedOverlay/StoreLockedOverlay';
 import StoreSkeleton from '@/components/store/StoreSkeleton/StoreSkeleton';
 import PullToRefresh from '@/components/shared/PullToRefresh/PullToRefresh';
 import SearchOverlay from '@/components/store/SearchOverlay/SearchOverlay';
+import { Link } from '@/i18n/routing';
 import styles from './page.module.css';
 
 
@@ -46,8 +47,16 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
   const [currentSlide, setCurrentSlide] = useState(0);
   const searchParams = useSearchParams();
   
-  // Preview overrides
   const previewPrimary = searchParams.get('primaryColor');
+  const previewLogo = searchParams.get('logo');
+  const isPreviewMode = searchParams.get('preview') === 'true';
+
+  const triggerHaptic = (style: 'light' | 'medium' | 'heavy' = 'light') => {
+    if (typeof window !== 'undefined' && window.navigator.vibrate) {
+      const duration = style === 'light' ? 10 : style === 'medium' ? 20 : 30;
+      window.navigator.vibrate(duration);
+    }
+  };
   const previewLogo = searchParams.get('logo');
   const isPreviewMode = searchParams.get('preview') === 'true';
 
@@ -111,6 +120,8 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
   const showLock = storeInfo && resolvedParams.slug !== 'demo' && storeInfo.verificationStatus !== 'active' && storeInfo.verificationStatus !== 'approved';
 
 
+  const cartItems = useCartStore(state => state.items);
+
   return (
     <PullToRefresh onRefresh={handleGlobalRefresh}>
       <div className={styles.container}>
@@ -158,6 +169,18 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
           onChange={setSearchQuery} 
           placeholder={t('searchPlaceholder')} 
         />
+
+        {/* Premium Welcome & Quick Actions */}
+        <div className={styles.welcomeSection}>
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className={styles.welcomeText}
+          >
+            <h2>{t('welcomeTo')} {storeInfo?.name || 'Store'} 👋</h2>
+            <p>{t('startShopping')}</p>
+          </motion.div>
+        </div>
 
         {/* Dynamic Hero Slider */}
         <section className={styles.heroSection}>
@@ -234,34 +257,43 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
 
         {/* Professional Glass Category Bar */}
         <div className={styles.categoryBarWrapper}>
+          <div className={styles.sectionHeaderCompact}>
+            <h3>{t('categories')}</h3>
+          </div>
           <div className={styles.categoryBar}>
             <div 
               className={`${styles.categoryCircle} ${activeCategory === 'all' ? styles.activeCircle : ''}`}
-              onClick={() => setActiveCategory('all')}
+              onClick={() => { setActiveCategory('all'); triggerHaptic('light'); }}
             >
               <div className={styles.circleIcon}>
-                <Grid size={40} strokeWidth={2.5} />
+                <Grid size={28} strokeWidth={2.5} />
               </div>
-              <span className={styles.categoryCircleName}>الكل</span>
+              <span className={styles.categoryCircleName}>{t('all')}</span>
             </div>
 
             {(storeCategories || []).map((cat: Category) => (
               <div 
                 key={cat.id}
                 className={`${styles.categoryCircle} ${activeCategory === cat.name ? styles.activeCircle : ''}`}
-                onClick={() => setActiveCategory(cat.name)}
+                onClick={() => { setActiveCategory(cat.name); triggerHaptic('light'); }}
               >
                 <div className={styles.circleIcon}>
                   {cat.image ? (
                     <img src={cat.image} alt={cat.name} />
                   ) : (
-                    <Package size={28} />
+                    <Package size={24} />
                   )}
                 </div>
                 <span className={styles.categoryCircleName}>{cat.name}</span>
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Featured Products Title */}
+        <div className={styles.sectionHeader}>
+          <h2>{activeCategory === 'all' ? t('featuredProducts') : activeCategory}</h2>
+          <div className={styles.headerLine} />
         </div>
 
         {productsLoading && !products ? (
@@ -312,6 +344,27 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
             )}
           </div>
         )}
+        {/* Floating Cart for Mobile */}
+        <AnimatePresence>
+          {cartItems.length > 0 && (
+            <motion.div 
+              initial={{ scale: 0, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0, y: 20 }}
+              className={styles.floatingCart}
+            >
+              <Link href={`/store/${resolvedParams.slug}/cart`} onClick={() => triggerHaptic('medium')}>
+                <div className={styles.floatingCartContent}>
+                  <div className={styles.cartIconWrapper}>
+                    <ShoppingBag size={24} />
+                    <span className={styles.cartBadgeCount}>{cartItems.length}</span>
+                  </div>
+                  <span className={styles.cartLabel}>{t('viewCart')}</span>
+                </div>
+              </Link>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </PullToRefresh>
   );

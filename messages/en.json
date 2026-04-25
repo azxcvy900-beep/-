@@ -78,12 +78,14 @@
     "searchPlaceholder": "Search for a product..."
   },
   "StoreHome": {
-    "title": "Welcome to our store",
-    "subtitle": "Discover the best products carefully selected for you",
-    "allCategories": "All",
-    "loading": "Loading products...",
-    "noProducts": "Sorry, no products match your search.",
-    "searchPlaceholder": "Search for a product..."
+    "searchPlaceholder": "Search for a product...",
+    "noProducts": "No products found in this category.",
+    "welcomeTo": "Welcome to",
+    "startShopping": "Discover the best products selected for you ✨",
+    "categories": "Categories",
+    "all": "All",
+    "featuredProducts": "Featured Products",
+    "viewCart": "View Cart"
   },
   "Tracking": {
     "title": "Track Order",

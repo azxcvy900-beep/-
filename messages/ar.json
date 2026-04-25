@@ -85,11 +85,14 @@
     "searchPlaceholder": "ابحث عن منتج..."
   },
   "StoreHome": {
-    "title": "مرحباً بك في متجرنا",
-    "subtitle": "اكتشف أفضل المنتجات المختارة بعناية لك",
-    "allCategories": "الكل",
+    "welcomeTo": "أهلاً بك في",
+    "startShopping": "استكشف أفضل المنتجات المختارة لك ✨",
+    "categories": "الأقسام",
+    "all": "الكل",
+    "featuredProducts": "منتجات مختارة",
+    "viewCart": "عرض السلة",
     "loading": "جاري تحميل المنتجات...",
-    "noProducts": "عذراً، لا توجد منتجات تطابق بحثك.",
+    "noProducts": "لا توجد منتجات في هذا القسم حالياً.",
     "searchPlaceholder": "ابحث عن منتج..."
   },
   "Tracking": {
