@@ -164,13 +164,62 @@
     "delivered": "Delivered",
     "cancelled": "Cancelled",
     "copyright": "All Rights Reserved Buyers Platform",
-    "terms": "Terms & Conditions",
-    "Admin": {
-      "loginTitle": "Merchant Login via Email",
-      "email": "Email Address",
-      "emailPlaceholder": "Enter your email",
-      "password": "Password",
-      "loginBtn": "Login Now"
+    "terms": "Terms & Conditions"
+  },
+  "Admin": {
+    "loginTitle": "Merchant Login via Email",
+    "email": "Email Address",
+    "emailPlaceholder": "Enter your email",
+    "password": "Password",
+    "loginBtn": "Login Now",
+    "sidebar": {
+      "dashboard": "Dashboard",
+      "products": "Products",
+      "categories": "Categories",
+      "coupons": "Coupons",
+      "reviews": "Reviews",
+      "orders": "Orders",
+      "customers": "Customers",
+      "employees": "Team",
+      "settings": "Settings",
+      "logout": "Logout"
     }
+  },
+  "Manager": {
+    "title": "Platform Global Pulse",
+    "subtitle": "Live monitoring of store performance and financial activity in Yemen",
+    "tabs": {
+      "radar": "Activity Radar",
+      "verifications": "Verification Requests"
+    },
+    "verificationPortal": {
+      "title": "Subscription Verification Requests",
+      "subtitle": "Review transfer receipts and activate stores (Pro / Business)",
+      "approve": "Activate Store",
+      "reject": "Reject Request",
+      "empty": "No pending verification requests at the moment"
+    }
+  },
+  "Footer": {
+    "fastDelivery": "Fast Delivery",
+    "fastDeliveryDesc": "Reliable delivery service to all regions of Yemen",
+    "securePayment": "Secure Payment",
+    "securePaymentDesc": "Fully protected and encrypted payment options",
+    "easyReturn": "Easy Exchange",
+    "easyReturnDesc": "Flexible policy for exchanging damaged products",
+    "support24": "Continuous Support",
+    "support24Desc": "Technical support team ready to serve you 24/7",
+    "brandDescription": "The first choice for merchants and shoppers in Yemen. One platform combining the best Yemeni and international stores.",
+    "quickLinks": "Quick Links",
+    "home": "Home",
+    "myOrders": "My Orders",
+    "trackOrder": "Track Order",
+    "privacyPolicies": "Privacy & Policies",
+    "managerLogin": "Administration",
+    "merchantLogin": "Merchant Login",
+    "terms": "Terms & Conditions",
+    "privacy": "Privacy Policy",
+    "refundPolicy": "Refund Policy",
+    "copyright": "Buyers. All rights reserved."
   }
 }
