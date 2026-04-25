@@ -1,6 +1,6 @@
 .container {
   position: fixed;
-  bottom: 2rem;
+  bottom: 7.5rem; /* Raised to avoid overlapping with Floating CTA */
   right: 2rem;
   z-index: 1000;
   pointer-events: none;
@@ -14,8 +14,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 64px;
-  height: 64px;
+  width: 54px; /* Slightly smaller */
+  height: 54px; /* Slightly smaller */
   background: #25d366;
   color: white;
   border-radius: 50%;

@@ -54,7 +54,7 @@ const WhatsAppSupport = () => {
         onMouseEnter={() => setIsOpen(true)}
         onClick={() => triggerHaptic('light')}
       >
-        <MessageCircle size={32} />
+        <MessageCircle size={26} />
         <motion.span 
           className={styles.pulse}
           animate={{ scale: [1, 1.4, 1], opacity: [0.5, 0, 0.5] }}
