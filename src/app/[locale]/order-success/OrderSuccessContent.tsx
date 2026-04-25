@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
 import { motion } from 'framer-motion';
 import { useCartStore } from '@/lib/store';
-import { CheckCircle, Home, MessageCircle, ArrowRight } from 'lucide-react';
+import { CheckCircle, Home, MessageCircle, ArrowRight, Zap } from 'lucide-react';
 import { getStoreInfo, StoreInfo } from '@/lib/api';
 import { getMerchantWhatsAppUrl } from '@/lib/whatsapp';
 import styles from './success.module.css';
