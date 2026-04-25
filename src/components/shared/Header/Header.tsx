@@ -69,31 +69,8 @@ const Header: React.FC<HeaderProps> = ({ storeName, storeLogo, isLanding }) => {
           </Link>
         </motion.div>
         
-        <nav className={styles.nav}>
-          <motion.button 
-            onClick={() => {
-              triggerHaptic('light');
-              toggleTheme();
-            }} 
-            className={`${styles.iconButton} ${isLanding ? styles.hideOnMobile : ''}`}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            title={theme === 'light' ? 'Dark Mode' : 'Light Mode'}
-          >
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={theme}
-                initial={{ y: -10, opacity: 0, rotate: 45 }}
-                animate={{ y: 0, opacity: 1, rotate: 0 }}
-                exit={{ y: 10, opacity: 0, rotate: -45 }}
-                transition={{ duration: 0.2 }}
-              >
-                {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
-              </motion.div>
-            </AnimatePresence>
-          </motion.button>
- 
-          {!isLanding && (
+        <nav className={styles.actions}>
+          {isStore && (
             <>
               <Link href={`/${locale}/orders`} className={styles.navLink} onClick={() => triggerHaptic('light')}>
                 <ShoppingBag size={18} />
@@ -104,7 +81,7 @@ const Header: React.FC<HeaderProps> = ({ storeName, storeLogo, isLanding }) => {
                 <ClipboardList size={18} />
                 <span className={styles.hideOnMobile}>{t('trackOrder')}</span>
               </Link>
- 
+
               <Link href={`/${locale}/cart`} className={styles.cartLink} onClick={() => triggerHaptic('medium')}>
                 <ShoppingCart size={18} />
                 <span className={`${styles.cartText} ${styles.hideOnMobile}`}>{t('cart')}</span>
@@ -116,7 +93,6 @@ const Header: React.FC<HeaderProps> = ({ storeName, storeLogo, isLanding }) => {
                       initial={{ scale: 0, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       exit={{ scale: 0, opacity: 0 }}
-                      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                     >
                       {totalItems}
                     </motion.span>
@@ -124,23 +100,38 @@ const Header: React.FC<HeaderProps> = ({ storeName, storeLogo, isLanding }) => {
                 </AnimatePresence>
               </Link>
               
-              <div className={styles.hideOnMobile} onClick={() => triggerHaptic('light')}>
+              <div className={styles.hideOnMobile}>
                 <CurrencySwitcher />
               </div>
             </>
           )}
- 
+
           {isLanding && (
-            <Link href={`/${locale}/admin/login`} className={styles.adminLink} onClick={() => triggerHaptic('medium')}>
-              <LayoutDashboard size={18} />
-              <span className={styles.hideOnMobile}>لوحة التحكم</span>
-            </Link>
+            <div className={styles.landingActions}>
+              <Link href={`/${locale}/admin/login`} className={styles.adminLink} onClick={() => triggerHaptic('medium')}>
+                <LayoutDashboard size={18} />
+                <span className={styles.adminText}>{t('adminLogin')}</span>
+              </Link>
+
+              <div className={styles.miniActions}>
+                <Link 
+                  href={pathname.replace(`/${locale}`, `/${nextLocale}`)} 
+                  className={styles.localeLink} 
+                  onClick={() => triggerHaptic('medium')}
+                >
+                  <Globe size={18} />
+                  <span>{nextLocale.toUpperCase()}</span>
+                </Link>
+
+                <button 
+                  className={styles.themeToggle} 
+                  onClick={() => { toggleTheme(); triggerHaptic('medium'); }}
+                >
+                  {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+                </button>
+              </div>
+            </div>
           )}
- 
-          <Link href={pathname.replace(`/${locale}`, `/${nextLocale}`)} className={`${styles.localeLink} ${isLanding ? styles.hideOnMobile : ''}`} onClick={() => triggerHaptic('medium')}>
-            <Globe size={16} />
-            <span className={styles.hideOnMobile}>{locale === 'ar' ? 'English' : 'العربية'}</span>
-          </Link>
         </nav>
       </div>
     </header>

@@ -52,7 +52,7 @@
   align-items: center;
 }
 
-.iconButton {
+.iconButton, .themeToggle {
   font-size: 1.25rem;
   padding: 0.65rem;
   border-radius: 12px;
@@ -67,7 +67,7 @@
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
-.iconButton:hover {
+.iconButton:hover, .themeToggle:hover {
   background: var(--golden-gradient);
   color: #000;
   transform: translateY(-2px);
@@ -234,28 +234,68 @@
     width: auto !important;
     transform: none !important;
     border-radius: 99px !important;
-    padding: 0.25rem 0 !important;
+    padding: 0.35rem 0.75rem !important;
     background: var(--glass-bg) !important;
     backdrop-filter: blur(20px) !important;
     border: 1px solid var(--glass-border) !important;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
   }
 
-  :global(.dark) .landingHeader {
-    background: rgba(15, 23, 42, 0.8) !important;
-    border-color: rgba(255, 255, 255, 0.1) !important;
+  .landingActions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .miniActions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(128, 128, 128, 0.05);
+    padding: 0.2rem;
+    border-radius: 99px;
+    border: 1px solid rgba(128, 128, 128, 0.1);
+  }
+
+  .adminText {
+    display: none !important; /* Icon only on mobile dashboard */
   }
 
   .landingHeader .adminLink {
-    padding: 0.4rem 0.8rem !important;
-    font-size: 0.8rem !important;
-    border-radius: 99px !important;
+    padding: 0.5rem !important;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50% !important;
   }
 
-  .landingHeader .iconButton,
-  .landingHeader .localeLink {
-    padding: 0.35rem !important;
-    font-size: 0.75rem !important;
+  .landingHeader .localeLink,
+  .landingHeader .themeToggle {
+    width: 34px;
+    height: 34px;
+    padding: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50% !important;
+    font-size: 0.7rem !important;
+    border: none !important;
+    background: transparent !important;
+  }
+
+  .landingHeader .localeLink span {
+    display: none; /* Icon only */
+  }
+
+  .landingHeader .themeToggle {
+    background: none;
+    border: none;
+    cursor: pointer;
   }
 
   .landingHeader .container {
