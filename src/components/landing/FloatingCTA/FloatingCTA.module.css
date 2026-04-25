@@ -1,25 +1,28 @@
 .wrapper {
   position: fixed;
-  bottom: 2rem;
+  bottom: 7.5rem; /* Moved up above WhatsApp */
   left: 1rem;
   right: 1rem;
   z-index: 2000;
   display: none; /* Only on mobile/tablet */
+  pointer-events: none;
 }
 
 .cta {
   background: rgba(15, 23, 42, 0.95);
   backdrop-filter: blur(20px);
-  padding: 0.6rem 1rem;
+  padding: 0.7rem 1.2rem;
   border-radius: 99px;
   display: flex;
   align-items: center;
   gap: 0.75rem;
   color: white;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  width: 100%;
-  justify-content: space-between;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  width: auto; /* Not full width */
+  max-width: 340px;
+  margin: 0 auto;
+  pointer-events: auto;
 }
 
 .icon {
@@ -36,7 +39,6 @@
 .text {
   font-weight: 800;
   font-size: 0.85rem;
-  flex: 1;
   text-align: center;
   white-space: nowrap;
 }
@@ -54,9 +56,5 @@
   .wrapper {
     display: flex;
     justify-content: center;
-  }
-  
-  .cta {
-    max-width: 400px;
   }
 }

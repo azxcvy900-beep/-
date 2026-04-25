@@ -1,6 +1,6 @@
 .container {
   position: fixed;
-  bottom: 7.5rem; /* Raised to avoid overlapping with Floating CTA */
+  bottom: 2.5rem; /* Back to bottom */
   right: 2rem;
   z-index: 1000;
   pointer-events: none;
