@@ -166,30 +166,18 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
           placeholder={t('searchPlaceholder')} 
         />
 
-        {/* Premium Welcome & Quick Actions */}
-        <div className={styles.welcomeSection}>
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className={styles.welcomeText}
-          >
-            <h2>{t('welcomeTo')} {storeInfo?.name || 'Store'} 👋</h2>
-            <p>{t('startShopping')}</p>
-          </motion.div>
-        </div>
-
-        {/* Dynamic Hero Slider */}
+        {/* Dynamic Hero Slider - Now at the Top */}
         <section className={styles.heroSection}>
           <div className={styles.heroBanner}>
             <AnimatePresence mode="wait">
               {storeInfo?.heroBanners && storeInfo.heroBanners.length > 0 ? (
                 <motion.div 
-                  key={currentSlide}
-                  className={styles.slide}
-                  initial={{ opacity: 0, scale: 1.05 }}
-                  animate={{ opacity: 1, scale: 1.0 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 1.2 }}
+                   key={currentSlide}
+                   className={styles.slide}
+                   initial={{ opacity: 0, scale: 1.05 }}
+                   animate={{ opacity: 1, scale: 1.0 }}
+                   exit={{ opacity: 0 }}
+                   transition={{ duration: 1.2 }}
                 >
                   <img 
                     src={storeInfo.heroBanners[currentSlide].image} 
@@ -211,13 +199,6 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
                     >
                       {storeInfo.heroBanners[currentSlide].title}
                     </motion.h2>
-                    <motion.p
-                      initial={{ opacity: 0, y: 30 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.5 }}
-                    >
-                      {storeInfo.heroBanners[currentSlide].subtitle}
-                    </motion.p>
                   </div>
                 </motion.div>
               ) : (
@@ -227,7 +208,7 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
               )}
             </AnimatePresence>
 
-            {/* Slider Indicators (Dots) */}
+            {/* Slider Indicators */}
             {storeInfo?.heroBanners && storeInfo.heroBanners.length > 1 && (
               <div className={styles.sliderControls}>
                 {storeInfo.heroBanners.map((_, idx) => (
@@ -242,8 +223,27 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
           </div>
         </section>
 
+        {/* Floating Search Bar Overlap */}
+        <div className={styles.searchWrapper}>
+           <SearchBar 
+             value={searchQuery} 
+             onChange={setSearchQuery} 
+             placeholder={t('searchPlaceholder')} 
+             onFocus={() => setIsSearchOpen(true)}
+           />
+        </div>
 
-
+        {/* Premium Welcome Below Search */}
+        <div className={styles.welcomeSection}>
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={styles.welcomeText}
+          >
+            <h2>{t('welcomeTo')} {storeInfo?.name || 'Store'} 👋</h2>
+            <p>{t('startShopping')}</p>
+          </motion.div>
+        </div>
         {/* Professional Glass Category Bar */}
         <div className={styles.categoryBarWrapper}>
           <div className={styles.sectionHeaderCompact}>
