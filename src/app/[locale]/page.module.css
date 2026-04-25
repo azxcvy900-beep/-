@@ -18,10 +18,10 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(to right, #fbbf24, #f59e0b);
+  background: var(--golden-gradient);
   transform-origin: 0%;
   z-index: 3000;
-  box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+  box-shadow: var(--shadow-glow);
 }
 
 .blobWrapper {
@@ -38,7 +38,7 @@
   left: -10%;
   width: 60%;
   height: 60%;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.08) 0%, transparent 70%);
   filter: blur(100px);
   animation: floatBlob 20s infinite alternate;
 }
@@ -46,14 +46,14 @@
 .blobSecondary {
   top: 40%;
   left: 60%;
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.06) 0%, transparent 70%);
   animation-delay: -5s;
 }
 
 .blobAccent {
   top: 70%;
   left: 10%;
-  background: radial-gradient(circle, rgba(236, 72, 153, 0.08) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.04) 0%, transparent 70%);
   animation-delay: -10s;
 }
 
@@ -91,8 +91,8 @@
   position: absolute;
   inset: 0;
   background-image: 
-    linear-gradient(rgba(99, 102, 241, 0.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(99, 102, 241, 0.07) 1px, transparent 1px);
+    linear-gradient(rgba(251, 191, 36, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(251, 191, 36, 0.05) 1px, transparent 1px);
   background-size: 60px 60px;
   mask-image: radial-gradient(circle at center, black, transparent 90%);
   z-index: 2;
@@ -135,11 +135,11 @@
 .title span {
   display: block;
   margin-top: 0.5rem;
-  background: linear-gradient(135deg, #4f46e5, #9333ea, #ec4899);
+  background: linear-gradient(135deg, #fbbf24, #f59e0b, #d97706);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  color: #4f46e5; /* Fallback */
+  color: #fbbf24; /* Fallback */
   background-size: 200% auto;
   animation: shine 5s linear infinite;
   padding-bottom: 0.1em;
@@ -167,18 +167,18 @@
 }
 
 .primaryBtn {
-  background: linear-gradient(135deg, #4f46e5, #7c3aed);
-  color: white !important;
+  background: var(--golden-gradient);
+  color: #000 !important;
   padding: 1.2rem 3rem;
-  border-radius: 20px;
+  border-radius: var(--radius-md);
   font-weight: 900;
   font-size: 1.2rem;
   display: flex;
   align-items: center;
   gap: 1rem;
-  box-shadow: 0 20px 40px -10px rgba(79, 70, 229, 0.45);
+  box-shadow: 0 20px 40px -10px rgba(245, 158, 11, 0.4);
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   text-decoration: none !important;
 }
 
@@ -256,7 +256,7 @@
   transform: translate(-50%, -50%);
   width: 90%;
   height: 70%;
-  background: radial-gradient(circle, hsla(250, 100%, 65%, 0.12), transparent 70%);
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.08), transparent 70%);
   filter: blur(80px);
   z-index: -1;
 }

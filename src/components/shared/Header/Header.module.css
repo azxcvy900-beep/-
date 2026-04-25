@@ -9,7 +9,7 @@
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--glass-border);
-  border-radius: 24px;
+  border-radius: var(--radius-md);
   padding: 0.8rem 0;
   z-index: 1000;
   box-shadow: var(--shadow);
@@ -298,25 +298,25 @@
   }
 
   .landingHeader .localeLink {
-    background: rgba(59, 130, 246, 0.1) !important;
-    color: #3b82f6 !important;
-    border: 1px solid rgba(59, 130, 246, 0.15) !important;
+    background: rgba(251, 191, 36, 0.1) !important;
+    color: #b45309 !important;
+    border: 1px solid rgba(251, 191, 36, 0.15) !important;
   }
 
   .landingHeader .themeToggle {
-    background: rgba(139, 92, 246, 0.1) !important;
-    color: #8b5cf6 !important;
-    border: 1px solid rgba(139, 92, 246, 0.15) !important;
+    background: rgba(245, 158, 11, 0.1) !important;
+    color: #92400e !important;
+    border: 1px solid rgba(245, 158, 11, 0.15) !important;
   }
 
   :global(.dark) .landingHeader .localeLink {
-    background: rgba(96, 165, 250, 0.12) !important;
-    color: #93c5fd !important;
+    background: rgba(251, 191, 36, 0.12) !important;
+    color: #fbbf24 !important;
   }
 
   :global(.dark) .landingHeader .themeToggle {
-    background: rgba(167, 139, 250, 0.12) !important;
-    color: #c4b5fd !important;
+    background: rgba(245, 158, 11, 0.12) !important;
+    color: #fbbf24 !important;
   }
 
   .landingHeader .container {
