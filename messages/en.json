@@ -92,7 +92,12 @@
     "categories": "Categories",
     "all": "All",
     "featuredProducts": "Featured Products",
-    "viewCart": "View Cart"
+    "viewCart": "View Cart",
+    "aboutStore": "About Store",
+    "location": "Location",
+    "phone": "Phone Number",
+    "socialMedia": "Social Media",
+    "shareStore": "Share Store"
   },
   "Tracking": {
     "title": "Track Order",

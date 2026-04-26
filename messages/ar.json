@@ -102,7 +102,12 @@
     "viewCart": "عرض السلة",
     "loading": "جاري تحميل المنتجات...",
     "noProducts": "لا توجد منتجات في هذا القسم حالياً.",
-    "searchPlaceholder": "ابحث عن منتج..."
+    "searchPlaceholder": "ابحث عن منتج...",
+    "aboutStore": "عن المتجر",
+    "location": "الموقع",
+    "phone": "رقم التواصل",
+    "socialMedia": "وسائل التواصل",
+    "shareStore": "مشاركة المتجر"
   },
   "Tracking": {
     "title": "تتبع الطلب",

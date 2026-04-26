@@ -10,7 +10,7 @@ import SearchBar from '@/components/shared/SearchBar/SearchBar';
 import { getStoreProducts, getStoreCategories, getStoreInfo, Product, Category } from '@/lib/api';
 import { useCartStore } from '@/lib/store';
 import { useStreamingFetch, useProgressiveLoad } from '@/lib/hooks';
-import { ArrowLeft, Grid, Loader2, Package, ShoppingBag } from 'lucide-react';
+import { ArrowLeft, Grid, Loader2, Package, ShoppingBag, Info, Phone, MapPin, Globe, Share2 } from 'lucide-react';
 import StoreLockedOverlay from '@/components/store/StoreLockedOverlay/StoreLockedOverlay';
 import StoreSkeleton from '@/components/store/StoreSkeleton/StoreSkeleton';
 import PullToRefresh from '@/components/shared/PullToRefresh/PullToRefresh';
@@ -44,6 +44,7 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
   const [viewMode, setViewMode] = useState<'categories' | 'products'>('categories');
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isInfoOpen, setIsInfoOpen] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const searchParams = useSearchParams();
   
@@ -140,12 +141,24 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
 
         <header className={`${styles.header} ${styles.stickyHeader}`}>
           <div className={styles.headerContent}>
-            {(previewLogo || storeInfo?.logo) && (
-              <img src={previewLogo || storeInfo?.logo} alt={storeInfo?.name} className={styles.logo} />
-            )}
-            <div className={styles.titleGroup}>
-              <h1 className={styles.title}>{storeInfo?.name}</h1>
-              <p className={styles.subtitle}>{storeInfo?.description}</p>
+            <div className={styles.headerLeading}>
+              {(previewLogo || storeInfo?.logo) && (
+                <img src={previewLogo || storeInfo?.logo} alt={storeInfo?.name} className={styles.logo} />
+              )}
+              <div className={styles.titleGroup}>
+                <h1 className={styles.title}>{storeInfo?.name}</h1>
+                <p className={styles.subtitle}>{storeInfo?.description}</p>
+              </div>
+            </div>
+            
+            <div className={styles.headerActions}>
+              <motion.button 
+                whileTap={{ scale: 0.9 }}
+                className={styles.infoButton}
+                onClick={() => { setIsInfoOpen(true); triggerHaptic('light'); }}
+              >
+                <Info size={22} />
+              </motion.button>
             </div>
           </div>
           <div className={styles.mobileSearchWrapper}>
@@ -275,9 +288,27 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
                 className={`${styles.categoryCircle} ${activeCategory === cat.name ? styles.activeCircle : ''}`}
                 onClick={() => { setActiveCategory(cat.name); triggerHaptic('light'); }}
                 whileTap={{ scale: 0.9 }}
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.2 + (index * 0.05) }}
+                initial={{ scale: 0.8, opacity: 0, y: 10 }}
+                animate={{ 
+                  scale: 1, 
+                  opacity: 1, 
+                  y: 0,
+                  transition: {
+                    delay: 0.2 + (index * 0.05),
+                    type: "spring",
+                    stiffness: 260,
+                    damping: 20
+                  }
+                }}
+                whileInView={{
+                  y: [0, -4, 0],
+                  transition: {
+                    duration: 2,
+                    repeat: Infinity,
+                    repeatType: "reverse",
+                    delay: index * 0.2
+                  }
+                }}
               >
                 <div className={styles.circleIcon}>
                   {cat.image ? (
@@ -374,6 +405,86 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
                 </div>
               </Link>
             </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Store Info Drawer */}
+        <AnimatePresence>
+          {isInfoOpen && (
+            <>
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className={styles.drawerOverlay}
+                onClick={() => setIsInfoOpen(false)}
+              />
+              <motion.div 
+                initial={{ y: '100%' }}
+                animate={{ y: 0 }}
+                exit={{ y: '100%' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                className={styles.infoDrawer}
+              >
+                <div className={styles.drawerHandle} />
+                <div className={styles.drawerHeader}>
+                  <h2>{t('aboutStore')}</h2>
+                  <button onClick={() => setIsInfoOpen(false)} className={styles.closeDrawer}>×</button>
+                </div>
+                
+                <div className={styles.drawerContent}>
+                  <div className={styles.infoItem}>
+                    <MapPin size={20} />
+                    <div>
+                      label={t('location')}
+                      <p>{storeInfo?.address || 'المملكة العربية السعودية'}</p>
+                    </div>
+                  </div>
+                  
+                  <div className={styles.infoItem}>
+                    <Phone size={20} />
+                    <div>
+                      <span className={styles.infoLabel}>{t('phone')}</span>
+                      <p dir="ltr">{storeInfo?.phone || '+966 50 000 0000'}</p>
+                    </div>
+                  </div>
+
+                  <div className={styles.infoItem}>
+                    <Globe size={20} />
+                    <div>
+                      <span className={styles.infoLabel}>{t('socialMedia')}</span>
+                      <div className={styles.socialLinks}>
+                         {/* Placeholder for social links */}
+                         <span className={styles.socialTag}>Snapchat</span>
+                         <span className={styles.socialTag}>Instagram</span>
+                         <span className={styles.socialTag}>TikTok</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className={styles.storeBio}>
+                    <p>{storeInfo?.description || 'مرحباً بكم في متجرنا الرائع!'}</p>
+                  </div>
+                </div>
+
+                <div className={styles.drawerFooter}>
+                  <button 
+                    className={styles.shareButton}
+                    onClick={() => {
+                      if (navigator.share) {
+                        navigator.share({
+                          title: storeInfo?.name,
+                          url: window.location.href
+                        });
+                      }
+                    }}
+                  >
+                    <Share2 size={18} />
+                    {t('shareStore')}
+                  </button>
+                </div>
+              </motion.div>
+            </>
           )}
         </AnimatePresence>
       </div>

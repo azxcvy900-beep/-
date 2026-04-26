@@ -177,6 +177,11 @@
   filter: brightness(1.1);
 }
 
+.addedButton {
+  background: #10b981 !important;
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3) !important;
+}
+
 @media (max-width: 768px) {
   .card {
     border-radius: 16px;

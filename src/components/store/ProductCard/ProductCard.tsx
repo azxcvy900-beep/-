@@ -2,8 +2,8 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
-import { motion } from 'framer-motion';
-import { Plus } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Plus, Check } from 'lucide-react';
 import { useCartStore } from '@/lib/store';
 import { formatPrice, triggerHaptic } from '@/lib/utils';
 import styles from './ProductCard.module.css';
@@ -27,6 +27,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, slug, name, price, origin
   const useManual = useCartStore(state => state.useManualSARRate);
   const manualRate = useCartStore(state => state.manualSARRate);
   const { addItem } = useCartStore();
+  const [isAdded, setIsAdded] = React.useState(false);
 
   const renderedPrice = formatPrice(price, displayCurrency, rates, useManual, manualRate, t('currency'), currency);
   const renderedOriginalPrice = originalPrice 
@@ -38,6 +39,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, slug, name, price, origin
     e.stopPropagation();
     triggerHaptic('light');
     addItem({ id, name, price, image, quantity: 1, currency });
+    setIsAdded(true);
+    setTimeout(() => setIsAdded(false), 2000);
   };
 
   return (
@@ -87,13 +90,34 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, slug, name, price, origin
             </span>
           </div>
           <motion.button 
-            className={styles.addButton}
+            className={`${styles.addButton} ${isAdded ? styles.addedButton : ''}`}
             onClick={handleAddToCart}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.9 }}
           >
-            <Plus size={16} />
-            <span className={styles.hideTextMobile}>{t('addToCart')}</span>
+            <AnimatePresence mode="wait">
+              {isAdded ? (
+                <motion.div
+                  key="check"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  exit={{ scale: 0 }}
+                >
+                  <Check size={16} />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="plus"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  exit={{ scale: 0 }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                >
+                  <Plus size={16} />
+                  <span className={styles.hideTextMobile}>{t('addToCart')}</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.button>
         </div>
       </div>

@@ -16,11 +16,44 @@
 
 .headerContent {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
+  justify-content: space-between;
   gap: 1.5rem;
   max-width: 1200px;
   margin: 0 auto;
+}
+
+.headerLeading {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.infoButton {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  color: var(--foreground);
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+}
+
+.infoButton:hover {
+  background: var(--muted);
+  transform: translateY(-2px);
 }
 
 .logo {
@@ -425,6 +458,145 @@
 .cartLabel {
   font-size: 0.95rem;
   white-space: nowrap;
+}
+
+/* Store Info Drawer Styles */
+.drawerOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 2000;
+}
+
+.infoDrawer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--background);
+  border-radius: 32px 32px 0 0;
+  padding: 1.5rem;
+  z-index: 2001;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2);
+  border-top: 1px solid var(--card-border);
+}
+
+.drawerHandle {
+  width: 40px;
+  height: 4px;
+  background: var(--card-border);
+  border-radius: 2px;
+  margin: 0 auto 1.5rem;
+}
+
+.drawerHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.drawerHeader h2 {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--foreground);
+}
+
+.closeDrawer {
+  font-size: 2rem;
+  color: var(--secondary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.drawerContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.infoItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: var(--card-bg);
+  border-radius: 20px;
+  border: 1px solid var(--card-border);
+}
+
+.infoItem svg {
+  color: var(--primary);
+  margin-top: 2px;
+}
+
+.infoLabel {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.25rem;
+}
+
+.infoItem p {
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.socialLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.socialTag {
+  background: var(--muted);
+  color: var(--foreground);
+  padding: 0.4rem 0.8rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border: 1px solid var(--card-border);
+}
+
+.storeBio {
+  margin-top: 1rem;
+  padding: 1.25rem;
+  background: var(--muted);
+  border-radius: 20px;
+  line-height: 1.6;
+  color: var(--secondary);
+  font-weight: 500;
+}
+
+.drawerFooter {
+  margin-top: 2.5rem;
+  padding-bottom: 1rem;
+}
+
+.shareButton {
+  width: 100%;
+  padding: 1.25rem;
+  background: var(--golden-gradient);
+  border: none;
+  border-radius: 20px;
+  color: #000;
+  font-weight: 800;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(245, 158, 11, 0.3);
 }
 
 @media (max-width: 768px) {
