@@ -249,22 +249,35 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
           <div className={styles.sectionHeaderCompact}>
             <h3>{t('categories')}</h3>
           </div>
-          <div className={styles.categoryBar}>
-            <div 
+          <motion.div 
+            className={styles.categoryBar}
+            initial={{ x: 50, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 100, damping: 20 }}
+          >
+            <motion.div 
               className={`${styles.categoryCircle} ${activeCategory === 'all' ? styles.activeCircle : ''}`}
               onClick={() => { setActiveCategory('all'); triggerHaptic('light'); }}
+              whileTap={{ scale: 0.9 }}
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.1 }}
             >
               <div className={styles.circleIcon}>
                 <Grid size={28} strokeWidth={2.5} />
               </div>
               <span className={styles.categoryCircleName}>{t('all')}</span>
-            </div>
+            </motion.div>
 
-            {(storeCategories || []).map((cat: Category) => (
-              <div 
+            {(storeCategories || []).map((cat: Category, index: number) => (
+              <motion.div 
                 key={cat.id}
                 className={`${styles.categoryCircle} ${activeCategory === cat.name ? styles.activeCircle : ''}`}
                 onClick={() => { setActiveCategory(cat.name); triggerHaptic('light'); }}
+                whileTap={{ scale: 0.9 }}
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.2 + (index * 0.05) }}
               >
                 <div className={styles.circleIcon}>
                   {cat.image ? (
@@ -274,9 +287,18 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
                   )}
                 </div>
                 <span className={styles.categoryCircleName}>{cat.name}</span>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
+          
+          {/* Visual Hint for Scrollability */}
+          <motion.div 
+            className={styles.scrollHint}
+            animate={{ x: [0, -10, 0] }}
+            transition={{ repeat: Infinity, duration: 1.5 }}
+          >
+            <ArrowLeft size={16} />
+          </motion.div>
         </div>
 
         {/* Featured Products Title */}

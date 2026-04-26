@@ -52,24 +52,18 @@ const Header: React.FC<HeaderProps> = ({ storeName, storeLogo, isLanding }) => {
     <header className={`${styles.header} ${isLanding ? styles.landingHeader : ''}`}>
       <div className={styles.container}>
         <motion.div 
-          initial={{ x: locale === 'ar' ? 20 : -20, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.5 }}
+          className={styles.logoWrapper}
+          whileHover={{ scale: 1.02 }}
         >
-          <Link href={`/${locale}`} className={styles.logo} onClick={() => triggerHaptic('light')}>
+          <Link href={isLanding ? `/${locale}` : `/${locale}/store/${storeSlug}`} className={styles.logo}>
             {storeLogo ? (
-              <img 
-                src={storeLogo} 
-                alt={storeName} 
-                className={styles.logoImage}
-                style={{ height: '36px', width: 'auto', objectFit: 'contain' }}
-              />
+              <img src={storeLogo} alt={storeName} className={styles.logoImage} />
             ) : (
-              storeName
+              <span className={styles.logoText}>{storeName}</span>
             )}
           </Link>
         </motion.div>
-        
+
         <nav className={styles.actions}>
           {isStore && (
             <>
@@ -77,44 +71,35 @@ const Header: React.FC<HeaderProps> = ({ storeName, storeLogo, isLanding }) => {
                 <ShoppingBag size={18} />
                 <span className={styles.hideOnMobile}>{t('myOrders')}</span>
               </Link>
-              
               <Link href={`/${locale}/track`} className={styles.navLink} onClick={() => triggerHaptic('light')}>
-                <ClipboardList size={18} />
+                <Package size={18} />
                 <span className={styles.hideOnMobile}>{t('trackOrder')}</span>
               </Link>
-
-              <Link href={`/${locale}/cart`} className={styles.cartLink} onClick={() => triggerHaptic('medium')}>
-                <ShoppingCart size={18} />
-                <span className={`${styles.cartText} ${styles.hideOnMobile}`}>{t('cart')}</span>
-                <AnimatePresence>
-                  {totalItems > 0 && (
-                    <motion.span 
-                      key="cart-badge"
-                      className={styles.cartCount}
-                      initial={{ scale: 0, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      exit={{ scale: 0, opacity: 0 }}
-                    >
-                      {totalItems}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </Link>
-              
-              <div className={styles.hideOnMobile}>
-                <CurrencySwitcher />
-              </div>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Link href={`/${locale}/cart`} className={styles.cartLink} onClick={() => triggerHaptic('medium')}>
+                  <div className={styles.iconWithBadge}>
+                    <ShoppingCart size={20} />
+                    <AnimatePresence>
+                      {totalItems > 0 && (
+                        <motion.span 
+                          className={styles.cartCount}
+                          initial={{ scale: 0 }}
+                          animate={{ scale: [1, 1.2, 1] }}
+                          transition={{ repeat: Infinity, duration: 2, repeatDelay: 1 }}
+                        >
+                          {totalItems}
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                  <span className={styles.hideOnMobile}>{t('cart')}</span>
+                </Link>
+              </motion.div>
             </>
           )}
 
           {isLanding && (
             <div className={styles.landingActions}>
-              {/* Dashboard on the Right (First in RTL) */}
-              <Link href={`/${locale}/admin/login`} className={styles.adminLink} onClick={() => triggerHaptic('medium')}>
-                <LayoutDashboard size={18} />
-                <span className={styles.adminText}>{t('adminLogin')}</span>
-              </Link>
-
               {/* Theme in the Middle */}
               <button 
                 className={styles.themeToggle} 
