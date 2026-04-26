@@ -21,17 +21,26 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ storeName, storeLogo, isLanding }) => {
   const t = useTranslations('Header');
-  const ot = useTranslations('Orders');
   const locale = useLocale();
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
+  const [isSticky, setIsSticky] = React.useState(false);
   
-  // Hydration safety for Zustand persist
+  // Derive storeSlug from pathname if it's a store page
+  const pathParts = pathname.split('/');
+  const storeSlug = pathParts.includes('store') ? pathParts[pathParts.indexOf('store') + 1] : '';
+
+  // Hydration safety
   const [mounted, setMounted] = useState(false);
   const totalItems = useCartStore((state) => state.getTotalItems());
 
   useEffect(() => {
     setMounted(true);
+    const handleScroll = () => {
+      setIsSticky(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const isStore = !isLanding;
@@ -49,7 +58,12 @@ const Header: React.FC<HeaderProps> = ({ storeName, storeLogo, isLanding }) => {
   }
 
   return (
-    <header className={`${styles.header} ${isLanding ? styles.landingHeader : ''}`}>
+    <motion.header 
+      className={`${styles.header} ${isSticky ? styles.stickyHeader : ''} ${isLanding ? styles.landingHeader : ''}`}
+      initial={{ y: -50, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+    >
       <div className={styles.container}>
         <motion.div 
           className={styles.logoWrapper}
@@ -100,29 +114,34 @@ const Header: React.FC<HeaderProps> = ({ storeName, storeLogo, isLanding }) => {
 
           {isLanding && (
             <div className={styles.landingActions}>
-              {/* Theme in the Middle */}
-              <button 
-                className={styles.themeToggle} 
-                onClick={() => { toggleTheme(); triggerHaptic('medium'); }}
-              >
-                {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-                <span>{theme === 'dark' ? t('lightMode') : t('darkMode')}</span>
-              </button>
-
-              {/* Language on the Left (Last in RTL) */}
-              <Link 
-                href={pathname.replace(`/${locale}`, `/${nextLocale}`)} 
-                className={styles.localeLink} 
-                onClick={() => triggerHaptic('medium')}
-              >
-                <Globe size={16} />
-                <span>{locale === 'ar' ? 'English' : 'العربية'}</span>
-              </Link>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Link href={`/${locale}/admin/dashboard`} className={styles.adminLink}>
+                   <LayoutDashboard size={18} />
+                   <span className={styles.adminText}>{t('adminLogin')}</span>
+                </Link>
+              </motion.div>
+              
+              <div className={styles.miniActions}>
+                <button 
+                  className={styles.themeToggle} 
+                  onClick={() => { toggleTheme(); triggerHaptic('light'); }}
+                >
+                  {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+                </button>
+                <Link 
+                  href={pathname.replace(`/${locale}`, `/${nextLocale}`)} 
+                  className={styles.localeLink} 
+                  onClick={() => triggerHaptic('light')}
+                >
+                   <Globe size={18} />
+                   <span>{locale === 'ar' ? 'EN' : 'عربي'}</span>
+                </Link>
+              </div>
             </div>
           )}
         </nav>
       </div>
-    </header>
+    </motion.header>
   );
 };
 
