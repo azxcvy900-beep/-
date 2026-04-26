@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Moon, Sun, Globe, ShoppingCart, ClipboardList, ShoppingBag, LayoutDashboard } from 'lucide-react';
+import { Moon, Sun, Globe, ShoppingCart, ClipboardList, ShoppingBag, LayoutDashboard, Package } from 'lucide-react';
 import { useTheme } from '@/components/providers/ThemeProvider';
 import { useCartStore } from '@/lib/store';
 import Image from 'next/image';
