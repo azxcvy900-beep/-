@@ -121,17 +121,17 @@
   background: var(--golden-gradient);
   color: #000 !important;
   padding: 0.6rem 1.4rem;
-  border-radius: 0;
+  border-radius: 99px;
   font-weight: 800;
   text-decoration: none;
-  border: 1px solid #000;
-  box-shadow: 3px 3px 0 rgba(0,0,0,1);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 10px 25px -5px rgba(245, 158, 11, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .adminLink:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 5px 5px 0 rgba(0,0,0,1);
+  transform: translateY(-3px);
+  box-shadow: 0 15px 35px -5px rgba(245, 158, 11, 0.5);
 }
 
 .landingActions {
