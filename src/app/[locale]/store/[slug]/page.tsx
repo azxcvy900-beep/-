@@ -436,7 +436,7 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
                   <div className={styles.infoItem}>
                     <MapPin size={20} />
                     <div>
-                      label={t('location')}
+                      <span className={styles.infoLabel}>{t('location')}</span>
                       <p>{storeInfo?.address || 'المملكة العربية السعودية'}</p>
                     </div>
                   </div>

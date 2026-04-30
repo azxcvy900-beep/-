@@ -20,6 +20,9 @@ import {
 import Header from "@/components/shared/Header/Header";
 import AnimatedStats from "@/components/landing/AnimatedStats/AnimatedStats";
 import FloatingCTA from "@/components/landing/FloatingCTA/FloatingCTA";
+import MagneticButton from "@/components/landing/MagneticButton/MagneticButton";
+import TiltCard from "@/components/landing/TiltCard/TiltCard";
+import CheckoutVisualizer from "@/components/landing/CheckoutVisualizer/CheckoutVisualizer";
 import styles from "./page.module.css";
 import Image from "next/image";
 import { useRef, useEffect, useState } from "react";
@@ -121,12 +124,16 @@ export default function Home() {
               transition={{ duration: 0.8, delay: 0.3 }}
               className={styles.ctas}
             >
-              <Link href={`/${locale}/admin/login`} className={styles.primaryBtn}>
-                {t("cta_start")} <ArrowRight size={20} />
-              </Link>
-              <Link href={`/${locale}/store/demo`} className={styles.secondaryBtn}>
-                <Globe size={18} /> {t("cta_demo")}
-              </Link>
+              <MagneticButton>
+                <Link href={`/${locale}/admin/login`} className={styles.primaryBtn}>
+                  {t("cta_start")} <ArrowRight size={20} />
+                </Link>
+              </MagneticButton>
+              <MagneticButton>
+                <Link href={`/${locale}/store/demo`} className={styles.secondaryBtn}>
+                  <Globe size={18} /> {t("cta_demo")}
+                </Link>
+              </MagneticButton>
             </motion.div>
 
             {/* Premium Hero Visual */}
@@ -274,21 +281,25 @@ export default function Home() {
               { icon: <Globe />, title: t("f5_title"), desc: t("f5_desc") },
               { icon: <MessageCircle />, title: t("f6_title"), desc: t("f6_desc") }
             ].map((feature, index) => (
-              <motion.div 
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className={styles.featureCard}
-              >
-                <div className={styles.featureIcon}>{feature.icon}</div>
-                <h3>{feature.title}</h3>
-                <p>{feature.desc}</p>
-              </motion.div>
+              <TiltCard key={index}>
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                  className={styles.featureCard}
+                >
+                  <div className={styles.featureIcon}>{feature.icon}</div>
+                  <h3>{feature.title}</h3>
+                  <p>{feature.desc}</p>
+                </motion.div>
+              </TiltCard>
             ))}
           </div>
         </section>
+
+        {/* Checkout Flow Visualizer */}
+        <CheckoutVisualizer />
 
         {/* Final CTA */}
         <section className={styles.finalCta}>
@@ -302,9 +313,11 @@ export default function Home() {
             <div className={styles.ctaContent}>
               <h2>{t("final_cta_title")}</h2>
               <p>{t("final_cta_desc")}</p>
-              <Link href={`/${locale}/admin/login`} className={styles.primaryBtn}>
-                {t("final_cta_btn")} <ChevronRight size={22} />
-              </Link>
+              <MagneticButton>
+                <Link href={`/${locale}/admin/login`} className={styles.primaryBtn}>
+                  {t("final_cta_btn")} <ChevronRight size={22} />
+                </Link>
+              </MagneticButton>
             </div>
             <div className={styles.ctaGraphic}>
               <Store size={320} strokeWidth={0.5} />

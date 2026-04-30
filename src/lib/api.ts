@@ -85,6 +85,7 @@ export interface StoreInfo {
   rejectionReason?: string;
   orderCountMonth?: number;
   lastCountReset?: string;
+  address?: string;
 }
 
 export interface KYCRequest {
@@ -311,27 +312,6 @@ const DUMMY_PRODUCTS: Product[] = [
 
 export const DUMMY_STORES: StoreInfo[] = [
   {
-    slug: 'yemen-digital',
-    name: 'يمن ديجيتال - Yemen Digital',
-    logo: '/assets/demo/logo.png',
-    heroBanner: '/assets/demo/banner.png',
-    heroBanners: [
-      { image: '/assets/demo/banner.png', title: 'عالم الهواتف الذكية', subtitle: 'أحدث الابتكارات بين يديك' },
-      { image: '/assets/demo/banner.png', title: 'عالم الألعاب', subtitle: 'انغمس في التجربة مع PS5' },
-      { image: '/assets/demo/banner.png', title: 'صوت مذهل', subtitle: 'استمتع بنقاوة الصوت مع AirPods Pro' },
-      { image: '/assets/demo/banner.png', title: 'القوة والإنتاجية', subtitle: 'أقوى أجهزة اللابتوب للأعمال والتصميم' },
-      { image: '/assets/demo/banner.png', title: 'أناقة ذكية', subtitle: 'ساعات ذكية تتبع نمط حياتك' }
-    ],
-    phone: '967771234567',
-    description: 'وجهتك الأولى لأحدث التقنيات بأسعار منافسة في اليمن.',
-    primaryColor: '#007AFF',
-    currencySettings: {
-      default: 'SAR',
-      rates: { 'YER': 530, 'USD': 3.75 }
-    },
-    social: { instagram: 'yemen_digital', whatsapp: '967771234567' }
-  },
-  {
     slug: 'demo',
     name: 'يمن ديجيتال (ديمو)',
     logo: '/assets/demo/logo.png',
@@ -342,6 +322,7 @@ export const DUMMY_STORES: StoreInfo[] = [
       { image: '/assets/demo/banner.png', title: 'صوت مذهل', subtitle: 'استمتع بنقاوة الصوت مع AirPods Pro' }
     ],
     phone: '967770000000',
+    address: 'المملكة العربية السعودية - الرياض',
     description: 'استكشف قوة منصة بايرز بنظام تسعير الريال السعودي (رس).',
     verificationStatus: 'active',
     currencySettings: {
