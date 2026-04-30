@@ -131,40 +131,53 @@
 }
 
 /* Mock UI Elements */
-.mockImage {
+.productImage {
   width: 100%;
-  height: 200px;
-  background: #e2e8f0;
+  height: 220px;
   border-radius: 20px;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  object-fit: cover;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
 }
-.mockTitle {
-  height: 20px;
-  width: 75%;
-  background: #cbd5e1;
-  border-radius: 6px;
+
+.productTitle {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #1e293b;
   margin-bottom: 0.5rem;
 }
-.mockPrice {
-  height: 16px;
-  width: 30%;
-  background: #cbd5e1;
-  border-radius: 6px;
+
+.productPrice {
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: var(--primary);
   margin-bottom: 1.5rem;
 }
+
+.productRating {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #f59e0b;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+
 .mockBtn {
   margin-top: auto;
   width: 100%;
-  background: var(--primary);
-  color: white;
-  font-weight: bold;
-  padding: 1rem;
-  border-radius: 12px;
+  background: var(--golden-gradient);
+  color: #000;
+  font-weight: 900;
+  padding: 1.1rem;
+  border-radius: 16px;
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 0.5rem;
   border: none;
+  box-shadow: 0 10px 20px rgba(245, 158, 11, 0.3);
+  cursor: pointer;
 }
 
 .successCircle {
@@ -191,33 +204,90 @@
   font-size: 0.9rem;
 }
 
-.mockHeader {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding-bottom: 1rem;
-  margin-bottom: 1.5rem;
-  border-bottom: 1px solid #e2e8f0;
-}
-.mockAvatar {
-  width: 40px;
-  height: 40px;
-  background: #cbd5e1;
-  border-radius: 50%;
-}
-.mockHeaderTitle {
-  height: 16px;
-  width: 100px;
-  background: #cbd5e1;
-  border-radius: 6px;
-}
-.mockOrderItem {
-  height: 60px;
+/* Fast Checkout Drawer */
+.checkoutDrawer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
   width: 100%;
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-  margin-bottom: 0.75rem;
+  border-top-left-radius: 32px;
+  border-top-right-radius: 32px;
+  padding: 2rem 1.5rem;
+  box-shadow: 0 -20px 40px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 50;
+}
+
+.drawerHandle {
+  width: 40px;
+  height: 5px;
+  background: #cbd5e1;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+}
+
+.merchantScreen {
+  background: #0f172a;
+  color: white;
+  padding: 1.5rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.merchantHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.merchantAvatar {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.orderCard {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.orderCard.newOrder {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.4);
+  box-shadow: inset 4px 0 0 #10b981;
+}
+
+.orderInfo h4 {
+  font-size: 0.95rem;
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+}
+.orderInfo p {
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+.orderPrice {
+  font-weight: bold;
+  color: #10b981;
 }
 
 .dashboardNotification {

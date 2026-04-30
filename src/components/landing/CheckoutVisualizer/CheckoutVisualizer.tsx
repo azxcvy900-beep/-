@@ -86,16 +86,20 @@ export default function CheckoutVisualizer() {
               {activeStep === 0 && (
                 <motion.div 
                   key="step1"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  style={{ padding: '1rem', display: 'flex', flexDirection: 'column', height: '100%' }}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  style={{ padding: '1rem', display: 'flex', flexDirection: 'column', height: '100%', background: 'white' }}
                 >
-                  <div className={styles.mockImage}></div>
-                  <div className={styles.mockTitle}></div>
-                  <div className={styles.mockPrice}></div>
+                  <img src="/assets/demo/airpods.png" className={styles.productImage} alt="AirPods Pro" />
+                  <h3 className={styles.productTitle}>Apple AirPods Pro 2</h3>
+                  <div className={styles.productRating}>
+                    {"★★★★★".split('').map((star, i) => <span key={i}>{star}</span>)} <span style={{ color: '#64748b', marginLeft: '0.25rem' }}>(128)</span>
+                  </div>
+                  <div className={styles.productPrice}>850 ر.س</div>
+                  
                   <motion.button 
-                    animate={{ scale: [1, 1.05, 1] }} 
+                    animate={{ scale: [1, 1.03, 1] }} 
                     transition={{ repeat: Infinity, duration: 2 }}
                     className={styles.mockBtn}
                   >
@@ -106,34 +110,79 @@ export default function CheckoutVisualizer() {
               {activeStep === 1 && (
                 <motion.div 
                   key="step2"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 1.1 }}
-                  style={{ padding: '1rem', display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'center', textAlign: 'center' }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'rgba(0,0,0,0.6)', position: 'relative' }}
                 >
-                  <div className={styles.successCircle}>
-                    <CheckCircle2 size={36} />
+                  {/* Background product blurred */}
+                  <div style={{ padding: '1rem', opacity: 0.5, filter: 'blur(5px)', background: 'white', height: '100%' }}>
+                    <img src="/assets/demo/airpods.png" className={styles.productImage} alt="AirPods Pro" />
                   </div>
-                  <h3 className={styles.successTitle}>تم الدفع بنجاح!</h3>
-                  <p className={styles.successDesc}>سيتم توصيل طلبك قريباً</p>
+                  
+                  <motion.div 
+                    initial={{ y: "100%" }}
+                    animate={{ y: 0 }}
+                    exit={{ y: "100%" }}
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    className={styles.checkoutDrawer}
+                  >
+                    <div className={styles.drawerHandle}></div>
+                    
+                    <motion.div
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ delay: 0.6, type: "spring" }}
+                      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}
+                    >
+                      <div className={styles.successCircle}>
+                        <CheckCircle2 size={36} />
+                      </div>
+                      <h3 className={styles.successTitle}>تم الدفع بنجاح!</h3>
+                      <p className={styles.successDesc}>بواسطة Apple Pay</p>
+                    </motion.div>
+                  </motion.div>
                 </motion.div>
               )}
               {activeStep === 2 && (
                 <motion.div 
                   key="step3"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  style={{ padding: '1rem', display: 'flex', flexDirection: 'column', height: '100%', background: '#f1f5f9' }}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className={styles.merchantScreen}
                 >
-                   <div className={styles.mockHeader}>
-                     <div className={styles.mockAvatar}></div>
-                     <div className={styles.mockHeaderTitle}></div>
+                   <div className={styles.merchantHeader}>
+                     <div style={{ fontWeight: 'bold' }}>لوحة التحكم</div>
+                     <div className={styles.merchantAvatar}>M</div>
                    </div>
                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                     <div className={styles.mockOrderItem}></div>
-                     <div className={styles.mockOrderItem}></div>
-                     <div className={styles.mockOrderItem}></div>
+                     <motion.div 
+                       initial={{ height: 0, opacity: 0, marginBottom: 0 }}
+                       animate={{ height: 'auto', opacity: 1, marginBottom: '1rem' }}
+                       transition={{ duration: 0.5, type: 'spring' }}
+                       className={`${styles.orderCard} ${styles.newOrder}`}
+                     >
+                       <div className={styles.orderInfo}>
+                         <h4>طلب #1024</h4>
+                         <p>Apple AirPods Pro 2</p>
+                       </div>
+                       <div className={styles.orderPrice}>850 ر.س</div>
+                     </motion.div>
+                     <div className={styles.orderCard}>
+                       <div className={styles.orderInfo}>
+                         <h4>طلب #1023</h4>
+                         <p>كفر حماية آيفون</p>
+                       </div>
+                       <div className={styles.orderPrice} style={{ color: 'white' }}>25 ر.س</div>
+                     </div>
+                     <div className={styles.orderCard}>
+                       <div className={styles.orderInfo}>
+                         <h4>طلب #1022</h4>
+                         <p>شاحن أنكر 65W</p>
+                       </div>
+                       <div className={styles.orderPrice} style={{ color: 'white' }}>140 ر.س</div>
+                     </div>
                    </div>
                 </motion.div>
               )}
