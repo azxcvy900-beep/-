@@ -167,7 +167,7 @@
 }
 
 .primaryBtn {
-  background: var(--golden-gradient);
+  background: linear-gradient(135deg, #fbbf24, #f59e0b) !important;
   color: #000 !important;
   padding: 1.2rem 3rem;
   border-radius: var(--radius-md);
