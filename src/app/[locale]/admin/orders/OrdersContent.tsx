@@ -29,7 +29,7 @@ import {
   subscribeToStoreOrders 
 } from '@/lib/api';
 import { Order } from '@/lib/store';
-import { getWhatsAppUrl } from '@/lib/whatsapp';
+import { getWhatsAppUrl, WhatsAppMessageType } from '@/lib/whatsapp';
 import { useStreamingFetch, useProgressiveLoad } from '@/lib/hooks';
 import { useAuthStore } from '@/lib/auth-store';
 import { TableSkeleton } from '@/components/shared/Skeletons/Skeletons';
@@ -44,6 +44,7 @@ export default function OrdersContent() {
   const [localOrders, setLocalOrders] = useState<Order[] | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [waOrder, setWaOrder] = useState<Order | null>(null);
+  const [waType, setWaType] = useState<WhatsAppMessageType>('confirm_payment');
   
   const { data: initialOrders, loading: ordersLoading } = useStreamingFetch(
     () => getStoreOrders(storeSlug || 'demo'), 
@@ -119,11 +120,17 @@ export default function OrdersContent() {
 
   const handleWhatsApp = (order: Order) => {
     setWaOrder(order);
+    // Default to confirm_payment if order is pending and not COD
+    if (order.status === 'pending' && order.paymentMethod !== 'cod') {
+      setWaType('confirm_payment');
+    } else {
+      setWaType('status_update');
+    }
   };
 
   const confirmWhatsApp = () => {
     if (!waOrder || !storeInfo) return;
-    const url = getWhatsAppUrl(waOrder, storeInfo);
+    const url = getWhatsAppUrl(waOrder, storeInfo, waType);
     window.open(url, '_blank');
     setWaOrder(null);
   };
@@ -169,7 +176,7 @@ export default function OrdersContent() {
               <h3>معلومات الفاتورة</h3>
               <p>رقم الطلب: #${order.id}</p>
               <p>تاريخ الطلب: ${new Date(order.date).toLocaleDateString('ar-YE')}</p>
-              <p>طريقة الدفع: ${order.paymentMethod === 'electronic' ? 'بطاقة إلكترونية' : 'حوالة بنكية'}</p>
+              <p>طريقة الدفع: ${order.paymentMethod === 'cod' ? 'الدفع عند الاستلام' : 'حوالة بنكية'}</p>
               ${order.isPriceLocked ? `<p style="color: #10b981;">الحالة المالية: مجمّد (ثابت)</p>` : ''}
             </div>
             <div class="info-box">
@@ -420,16 +427,33 @@ export default function OrdersContent() {
                 <button onClick={() => setWaOrder(null)}><X size={20} /></button>
               </div>
               <div className={styles.modalBody}>
-                <p>هل تريد إرسال تحديث حالة الطلب للعميل عبر واتساب؟</p>
+                <p>اختر نوع الرسالة التي تود إرسالها للعميل:</p>
+                <div className={styles.waTypeSelector}>
+                  <button 
+                    className={`${styles.waTypeBtn} ${waType === 'confirm_payment' ? styles.waTypeBtnActive : ''}`}
+                    onClick={() => setWaType('confirm_payment')}
+                  >
+                    <CheckCircle2 size={16} />
+                    <span>تأكيد الطلب وطلب الدفع</span>
+                  </button>
+                  <button 
+                    className={`${styles.waTypeBtn} ${waType === 'status_update' ? styles.waTypeBtnActive : ''}`}
+                    onClick={() => setWaType('status_update')}
+                  >
+                    <Clock size={16} />
+                    <span>تحديث حالة الطلب (الحالية)</span>
+                  </button>
+                </div>
+                
                 <div className={styles.waPreview}>
                   <strong>إلى:</strong> {waOrder.address.fullName} ({waOrder.address.phone})<br/>
-                  <strong>الحالة:</strong> {getStatusLabel(waOrder.status)}
+                  <strong>نوع الرسالة:</strong> {waType === 'confirm_payment' ? 'تأكيد ودفع' : 'تحديث حالة'}
                 </div>
               </div>
               <div className={styles.modalFooter}>
                 <button className={styles.cancelModalBtn} onClick={() => setWaOrder(null)}>إلغاء</button>
                 <button className={styles.confirmWaBtn} onClick={confirmWhatsApp}>
-                  <Send size={16} /> إرسال الآن
+                  <Send size={16} /> فتح واتساب
                 </button>
               </div>
             </motion.div>

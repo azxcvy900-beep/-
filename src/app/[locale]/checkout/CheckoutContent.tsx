@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle2, AlertCircle, ChevronRight, MapPin, Plus, Landmark, CreditCard, Upload } from 'lucide-react';
+import { CheckCircle2, AlertCircle, ChevronRight, MapPin, Plus, Landmark, CreditCard, Upload, Truck } from 'lucide-react';
 import { useCartStore, UserInfo, Order } from '@/lib/store';
 import { formatPrice } from '@/lib/utils';
 import BackButton from '@/components/shared/BackButton/BackButton';
@@ -12,7 +12,7 @@ import { validateCoupon, Coupon } from '@/lib/api';
 import { toast } from 'sonner';
 import styles from './checkout.module.css';
 
-type PaymentMethod = 'electronic' | 'transfer';
+type PaymentMethod = 'cod' | 'transfer';
 
 export default function CheckoutContent() {
   const t = useTranslations('Checkout');
@@ -47,7 +47,8 @@ export default function CheckoutContent() {
   };
   
   const [mounted, setMounted] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('electronic');
+  const [storeInfo, setStoreInfo] = useState<any>(null);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cod');
   const [receipt, setReceipt] = useState<File | null>(null);
   const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -85,6 +86,23 @@ export default function CheckoutContent() {
 
   useEffect(() => {
     setMounted(true);
+    async function loadStore() {
+      const slug = useCartStore.getState().storeSlug || 'demo';
+      const info = await getStoreInfo(slug);
+      if (info) {
+        setStoreInfo(info);
+        // Default payment method based on priority
+        if (info.paymentSettings?.enableCOD !== false) {
+          setPaymentMethod('cod');
+        } else if (info.paymentSettings?.enableTransfer !== false) {
+          setPaymentMethod('transfer');
+        }
+      }
+    }
+    loadStore();
+  }, []);
+
+  useEffect(() => {
     if (mounted && items.length === 0) {
       router.push(`/${locale}/cart`);
     }
@@ -232,7 +250,7 @@ export default function CheckoutContent() {
     const subtotal = getTotalPrice();
     const discount = calculateDiscount();
     const finalTotal = lockedPrice !== null ? lockedPrice : Math.max(0, subtotal - discount + shippingFee);
-    const autoConfirmMethod = paymentMethod === 'electronic' || (paymentMethod === 'transfer' && receipt);
+    const autoConfirmMethod = paymentMethod === 'cod' || (paymentMethod === 'transfer' && receipt);
     const newOrder: Order = {
       id: `ORD-${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
       items: [...items],
@@ -423,101 +441,85 @@ export default function CheckoutContent() {
           <div className={styles.card}>
             <h3>{t('paymentMethod')}</h3>
             <div className={styles.paymentMethods}>
-              <div 
-                className={`${styles.methodOption} ${paymentMethod === 'electronic' ? styles.methodSelected : ''}`}
-                onClick={() => setPaymentMethod('electronic')}
-              >
-                <div className={styles.methodHeader}>
-                  <CreditCard size={24} />
-                  <span>{t('electronicPayment')}</span>
+              {(storeInfo?.paymentSettings?.enableCOD !== false) && (
+                <div 
+                  className={`${styles.methodOption} ${paymentMethod === 'cod' ? styles.methodSelected : ''}`}
+                  onClick={() => setPaymentMethod('cod')}
+                >
+                  <div className={styles.methodHeader}>
+                    <Truck size={24} />
+                    <span>{t('electronicPayment')}</span>
+                  </div>
+                  <p>{t('electronicPaymentDesc')}</p>
+                  {paymentMethod === 'cod' && <CheckCircle2 className={styles.checkIcon} size={20} />}
                 </div>
-                <p>{t('electronicPaymentDesc')}</p>
-                {paymentMethod === 'electronic' && <CheckCircle2 className={styles.checkIcon} size={20} />}
-              </div>
+              )}
 
-              <div 
-                className={`${styles.methodOption} ${paymentMethod === 'transfer' ? styles.methodSelected : ''}`}
-                onClick={() => setPaymentMethod('transfer')}
-              >
-                <div className={styles.methodHeader}>
-                  <Landmark size={24} />
-                  <span>{t('transferPayment')}</span>
+              {(storeInfo?.paymentSettings?.enableTransfer !== false) && (
+                <div 
+                  className={`${styles.methodOption} ${paymentMethod === 'transfer' ? styles.methodSelected : ''}`}
+                  onClick={() => setPaymentMethod('transfer')}
+                >
+                  <div className={styles.methodHeader}>
+                    <Landmark size={24} />
+                    <span>{t('transferPayment')}</span>
+                  </div>
+                  <p>{t('transferPaymentDesc')}</p>
+                  {paymentMethod === 'transfer' && <CheckCircle2 className={styles.checkIcon} size={20} />}
                 </div>
-                <p>{t('transferPaymentDesc')}</p>
-                {paymentMethod === 'transfer' && <CheckCircle2 className={styles.checkIcon} size={20} />}
-              </div>
+              )}
             </div>
 
             <AnimatePresence>
               {paymentMethod === 'transfer' && (
                 <motion.div 
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className={styles.uploadSection}
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className={styles.transferInfo}
                 >
-                  <div className={styles.bankCards}>
-                    {bankAccounts.map((acc, i) => (
-                      <motion.div 
-                        key={i}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.1 }}
-                        className={styles.bankCard}
-                      >
-                        <div className={styles.bankHeader}>
-                          <span className={styles.bankLogo}>{acc.logo}</span>
-                          <span className={styles.bankName}>{acc.bank}</span>
-                        </div>
-                        <div className={styles.accountBox}>
-                          <div className={styles.accountNum}>
-                            <label>رقم الحساب</label>
-                            <strong>{acc.account}</strong>
-                          </div>
-                          <button 
-                            type="button" 
-                            className={styles.copyBtn} 
-                            onClick={() => handleCopy(acc.account)}
-                          >
-                            نسخ
-                          </button>
-                        </div>
-                        <div className={styles.accountHolder}>
-                          <label>باسم</label>
-                          <span>{acc.name}</span>
-                        </div>
-                      </motion.div>
-                    ))}
+                  <div className={styles.bankCard}>
+                    <div className={styles.bankHeader}>
+                      <div className={styles.bankName}>
+                        <Landmark size={18} />
+                        <span>{storeInfo?.paymentSettings?.bankDetails?.bankName || 'شركة الكريمي'}</span>
+                      </div>
+                      <button type="button" className={styles.copyBtn} onClick={() => {
+                        navigator.clipboard.writeText(storeInfo?.paymentSettings?.bankDetails?.accountNumber || '123456789');
+                        toast.success(t('copied'));
+                      }}>نسخ</button>
+                    </div>
+                    <div className={styles.accountNumber}>{storeInfo?.paymentSettings?.bankDetails?.accountNumber || '123456789'}</div>
+                    <div className={styles.accountName}>{storeInfo?.paymentSettings?.bankDetails?.accountName || 'مؤسسة بايرز للتجارة'}</div>
                   </div>
 
-                  <div className={styles.alert}>
-                    <AlertCircle size={18} />
-                    <p>يرجى تحويل المبلغ الإجمالي إلى أحد الحسابات أعلاه، ثم إرفاق صورة واضحة لإيصال التحويل هنا:</p>
-                  </div>
-                  
-                  <label className={styles.uploadBox}>
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      onChange={handleFileChange} 
-                      className={styles.fileInput}
-                    />
-                    {receiptPreview ? (
-                      <div className={styles.previewContainer}>
-                        <img src={receiptPreview} alt="Receipt Preview" className={styles.previewImage} />
-                        <div className={styles.changeOverlay}>
-                          <Upload size={20} />
-                          <span>{t('changePhoto')}</span>
-                        </div>
+                  <div className={styles.uploadSection}>
+                    <label htmlFor="receipt-upload" className={styles.uploadLabel}>
+                      <div className={styles.uploadIcon}>
+                        {receiptPreview ? (
+                          <img src={receiptPreview} alt="Receipt Preview" />
+                        ) : (
+                          <Upload size={32} />
+                        )}
                       </div>
-                    ) : (
-                      <div className={styles.uploadPlaceholder}>
-                        <Upload size={32} />
-                        <span>{t('uploadReceipt')}</span>
-                        <p>{t('uploadReceiptDesc')}</p>
+                      <div className={styles.uploadText}>
+                        <strong>{t('uploadReceipt')}</strong>
+                        <span>{t('uploadReceiptDesc')}</span>
                       </div>
+                      <input 
+                        type="file" 
+                        id="receipt-upload" 
+                        accept="image/*" 
+                        hidden 
+                        onChange={handleFileChange}
+                      />
+                    </label>
+                    {receipt && (
+                      <button type="button" className={styles.changeFileBtn} onClick={() => {
+                        setReceipt(null);
+                        setReceiptPreview(null);
+                      }}>{t('changePhoto')}</button>
                     )}
-                  </label>
+                  </div>
                   {lockedPrice !== null && (
                     <motion.div 
                       key="locked"

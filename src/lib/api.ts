@@ -86,6 +86,15 @@ export interface StoreInfo {
   orderCountMonth?: number;
   lastCountReset?: string;
   address?: string;
+  paymentSettings?: {
+    enableCOD: boolean;
+    enableTransfer: boolean;
+    bankDetails?: {
+      bankName: string;
+      accountNumber: string;
+      accountName: string;
+    };
+  };
 }
 
 export interface KYCRequest {
@@ -1448,3 +1457,20 @@ export async function updateKYCStatus(requestId: string, storeSlug: string, stat
   dataCache.invalidate(`store_${storeSlug}`);
 }
 
+
+/**
+ * Fetch a single order by ID for public tracking.
+ */
+export async function getOrderById(orderId: string): Promise<Order | null> {
+  try {
+    const orderDoc = doc(db, 'orders', orderId);
+    const orderSnap = await getDoc(orderDoc);
+    if (orderSnap.exists()) {
+      return { id: orderSnap.id, ...orderSnap.data() } as Order;
+    }
+    return null;
+  } catch (error) {
+    console.error("Error fetching order:", error);
+    return null;
+  }
+}

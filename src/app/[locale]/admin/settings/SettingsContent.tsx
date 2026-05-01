@@ -607,6 +607,118 @@ export default function SettingsContent() {
           </div>
 
           <div className={styles.section}>
+            <h3 className={styles.sectionTitle}>إعدادات الدفع (نظام اليمن المحلي)</h3>
+            <div className={styles.formGrid}>
+              <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', background: '#f8fafc', padding: '1rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                  <input 
+                    type="checkbox" 
+                    style={{ width: '20px', height: '20px' }}
+                    checked={storeData?.paymentSettings?.enableCOD ?? true}
+                    onChange={(e) => setStoreData(prev => prev ? {
+                      ...prev,
+                      paymentSettings: {
+                        ...(prev.paymentSettings || { enableTransfer: true }),
+                        enableCOD: e.target.checked
+                      }
+                    } : null)}
+                  />
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ fontWeight: 800 }}>تفعيل الدفع عند الاستلام (COD)</span>
+                    <span style={{ fontSize: '0.8rem', color: '#64748b' }}>يسمح للعملاء بطلب المنتجات والدفع نقداً عند التوصيل.</span>
+                  </div>
+                </label>
+              </div>
+
+              <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', background: '#f8fafc', padding: '1rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                  <input 
+                    type="checkbox" 
+                    style={{ width: '20px', height: '20px' }}
+                    checked={storeData?.paymentSettings?.enableTransfer ?? true}
+                    onChange={(e) => setStoreData(prev => prev ? {
+                      ...prev,
+                      paymentSettings: {
+                        ...(prev.paymentSettings || { enableCOD: true }),
+                        enableTransfer: e.target.checked
+                      }
+                    } : null)}
+                  />
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ fontWeight: 800 }}>تفعيل الحوالات البنكية / المحافظ</span>
+                    <span style={{ fontSize: '0.8rem', color: '#64748b' }}>يطلب من العميل تحويل المبلغ يدوياً ورفع صورة السند.</span>
+                  </div>
+                </label>
+              </div>
+
+              {storeData?.paymentSettings?.enableTransfer && (
+                <div className={`${styles.bankDetailsBox} ${styles.fullWidth}`} style={{ marginTop: '1rem', padding: '1.5rem', background: '#eff6ff', borderRadius: '16px', border: '1px solid #dbeafe' }}>
+                  <h4 style={{ margin: '0 0 1rem 0', color: '#1e40af', fontWeight: 900 }}>بيانات التحويل البنكي الافتراضية</h4>
+                  <div className={styles.formGrid}>
+                    <div className={styles.inputGroup}>
+                      <label>اسم البنك / المحفظة</label>
+                      <input 
+                        className={styles.input}
+                        placeholder="مثال: الكريمي، النجم، ون كاش"
+                        value={storeData?.paymentSettings?.bankDetails?.bankName || ''}
+                        onChange={(e) => setStoreData(prev => {
+                          if (!prev) return null;
+                          const ps = prev.paymentSettings || { enableCOD: true, enableTransfer: true };
+                          return {
+                            ...prev,
+                            paymentSettings: {
+                              ...ps,
+                              bankDetails: { ...(ps.bankDetails || { accountNumber: '', accountName: '' }), bankName: e.target.value }
+                            }
+                          };
+                        })}
+                      />
+                    </div>
+                    <div className={styles.inputGroup}>
+                      <label>رقم الحساب / الجوال</label>
+                      <input 
+                        className={styles.input}
+                        placeholder="أدخل رقم الحساب بدقة"
+                        value={storeData?.paymentSettings?.bankDetails?.accountNumber || ''}
+                        onChange={(e) => setStoreData(prev => {
+                          if (!prev) return null;
+                          const ps = prev.paymentSettings || { enableCOD: true, enableTransfer: true };
+                          return {
+                            ...prev,
+                            paymentSettings: {
+                              ...ps,
+                              bankDetails: { ...(ps.bankDetails || { bankName: '', accountName: '' }), accountNumber: e.target.value }
+                            }
+                          };
+                        })}
+                      />
+                    </div>
+                    <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
+                      <label>اسم صاحب الحساب</label>
+                      <input 
+                        className={styles.input}
+                        placeholder="الاسم الكامل كما هو في البنك"
+                        value={storeData?.paymentSettings?.bankDetails?.accountName || ''}
+                        onChange={(e) => setStoreData(prev => {
+                          if (!prev) return null;
+                          const ps = prev.paymentSettings || { enableCOD: true, enableTransfer: true };
+                          return {
+                            ...prev,
+                            paymentSettings: {
+                              ...ps,
+                              bankDetails: { ...(ps.bankDetails || { bankName: '', accountNumber: '' }), accountName: e.target.value }
+                            }
+                          };
+                        })}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className={styles.section}>
             <h3 className={styles.sectionTitle}>تحسين محركات البحث (SEO)</h3>
             <div className={styles.formGrid}>
               <div className={`${styles.inputGroup} ${styles.fullWidth}`}>

@@ -54,7 +54,8 @@ export default function OrderSuccessContent() {
   useEffect(() => {
     async function init() {
       try {
-        const info = await getStoreInfo('demo');
+        const currentStore = useCartStore.getState().storeSlug || 'demo';
+        const info = await getStoreInfo(currentStore);
         setStoreInfo(info);
       } catch (e) {
         console.error(e);
@@ -109,6 +110,15 @@ export default function OrderSuccessContent() {
         
         <div className={styles.orderInfo}>
           <p>{t('orderNumber')}: <strong>{orderNumber}</strong></p>
+          <button 
+            className={styles.copyBtn} 
+            onClick={() => {
+              navigator.clipboard.writeText(orderNumber);
+              alert('تم نسخ رقم الطلب');
+            }}
+          >
+            نسخ
+          </button>
         </div>
 
         {/* Tracking Timeline */}
@@ -146,21 +156,27 @@ export default function OrderSuccessContent() {
         <div className={styles.instructions}>
           <h3>{t('nextSteps')}</h3>
           <ul>
-            <li>{t('step1')}</li>
+            <li>{orders[0]?.paymentMethod === 'cod' ? 'سيقوم المتجر بتجهيز طلبك وتوصيله إليك.' : t('step1')}</li>
             <li>{t('step2')}</li>
             <li>{t('step3')}</li>
           </ul>
         </div>
 
         <div className={styles.actions}>
-          <Link href={`/${locale}`} className={styles.primaryBtn}>
-            <Home size={20} />
-            {t('backToHome')}
+          <Link href={`/${locale}/track?id=${orderNumber}`} className={styles.trackBtn}>
+            <Truck size={20} />
+            تتبع حالة الطلب الآن
           </Link>
-          <Link href={`/${locale}`} className={styles.secondaryBtn}>
-            {t('browseMore')}
-            <ArrowRight size={20} />
-          </Link>
+          <div className={styles.mainActions}>
+            <Link href={`/${locale}`} className={styles.primaryBtn}>
+              <Home size={20} />
+              {t('backToHome')}
+            </Link>
+            <Link href={`/${locale}`} className={styles.secondaryBtn}>
+              {t('browseMore')}
+              <ArrowRight size={20} />
+            </Link>
+          </div>
         </div>
       </motion.div>
     </div>
