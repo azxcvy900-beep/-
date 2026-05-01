@@ -163,12 +163,14 @@ export const hashPassword = async (password: string, username: string = ''): Pro
  * Trigger a small haptic vibration on mobile devices.
  * Enhances the app-like feel for button clicks and interactions.
  */
-export const triggerHaptic = (type: 'light' | 'medium' | 'heavy' = 'light') => {
+export const triggerHaptic = (type: 'light' | 'medium' | 'heavy' | 'success' | 'error' = 'light') => {
   if (typeof window !== 'undefined' && 'vibrate' in navigator) {
     const patterns = {
       light: 10,
       medium: 20,
-      heavy: [30, 20, 30]
+      heavy: [30, 20, 30],
+      success: [20, 50, 20],
+      error: [50, 30, 50, 30, 50]
     };
     navigator.vibrate(patterns[type]);
   }
