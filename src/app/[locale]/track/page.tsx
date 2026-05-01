@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Package, Truck, CheckCircle, Clock, AlertCircle, Calendar, MapPin, CreditCard, ChevronRight } from 'lucide-react';
+import { Search, Package, Truck, CheckCircle, Clock, AlertCircle, Calendar, MapPin, CreditCard, ChevronRight, Zap } from 'lucide-react';
 import { getOrderById, Order } from '@/lib/api';
 import { triggerHaptic } from '@/lib/utils';
 import BackButton from '@/components/shared/BackButton/BackButton';

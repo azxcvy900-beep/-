@@ -8,7 +8,7 @@ import { CheckCircle2, AlertCircle, ChevronRight, MapPin, Plus, Landmark, Credit
 import { useCartStore, UserInfo, Order } from '@/lib/store';
 import { formatPrice } from '@/lib/utils';
 import BackButton from '@/components/shared/BackButton/BackButton';
-import { validateCoupon, Coupon } from '@/lib/api';
+import { validateCoupon, Coupon, getStoreInfo } from '@/lib/api';
 import { toast } from 'sonner';
 import styles from './checkout.module.css';
 
