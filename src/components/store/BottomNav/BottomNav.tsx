@@ -32,6 +32,13 @@ const BottomNav = ({ storeSlug }: { storeSlug: string }) => {
         const isActive = pathname === item.href;
         return (
           <Link key={item.href} href={item.href} className={`${styles.navItem} ${isActive ? styles.active : ''}`}>
+            {isActive && (
+              <motion.div
+                layoutId="bottomNavActive"
+                className={styles.activeBackground}
+                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+              />
+            )}
             <div className={styles.iconWrapper}>
               <item.icon size={22} strokeWidth={isActive ? 2.5 : 2} />
               <AnimatePresence>
@@ -47,7 +54,7 @@ const BottomNav = ({ storeSlug }: { storeSlug: string }) => {
                 )}
               </AnimatePresence>
             </div>
-            <span>{item.label}</span>
+            <span className={styles.navLabel}>{item.label}</span>
           </Link>
         );
       })}

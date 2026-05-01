@@ -1,42 +1,59 @@
 .bottomNav {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 65px;
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 400px;
+  height: 68px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
   display: none; /* Only show on mobile */
-  justify-content: space-around;
+  justify-content: space-between;
   align-items: center;
-  border-top: 1px solid var(--glass-border);
+  border-radius: 99px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
   z-index: 1000;
-  padding-bottom: env(safe-area-inset-bottom);
-  box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.05);
+  padding: 0 0.5rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
 }
 
 :global([data-theme='dark']) .bottomNav {
-  background: var(--glass-bg);
-  border-top: 1px solid var(--glass-border);
+  background: rgba(30, 41, 59, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .navItem {
+  position: relative;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 4px;
-  color: var(--secondary);
+  justify-content: center;
+  gap: 8px;
+  color: #64748b;
   text-decoration: none;
-  font-size: 0.75rem;
-  font-weight: 700;
-  transition: all 0.3s ease;
-  flex: 1;
+  font-size: 0.85rem;
+  font-weight: 800;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  height: 52px;
+  padding: 0 16px;
+  border-radius: 99px;
+  flex: 0 1 auto;
+  z-index: 2;
 }
 
 .active {
-  color: var(--primary);
-  transform: translateY(-2px);
+  color: #fff; /* White text for active pill */
+  flex: 1 0 auto;
+}
+
+.activeBackground {
+  position: absolute;
+  inset: 0;
+  background: var(--primary);
+  border-radius: 99px;
+  z-index: -1;
+  box-shadow: 0 4px 15px var(--primary-shadow);
 }
 
 .iconWrapper {
@@ -44,11 +61,21 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.3s ease;
 }
 
-.active .iconWrapper {
-  transform: scale(1.1);
+.navLabel {
+  display: none;
+  white-space: nowrap;
+}
+
+.active .navLabel {
+  display: block;
+  animation: fadeIn 0.3s forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateX(-5px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 .badge {

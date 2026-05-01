@@ -1,6 +1,7 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Check, Eye } from 'lucide-react';
@@ -24,6 +25,7 @@ interface ProductCardProps {
 const ProductCard: React.FC<ProductCardProps> = ({ id, slug, name, price, originalPrice, image, category, currency = 'YER', viewMode = 'grid', onQuickView }) => {
   const t = useTranslations('Product');
   const locale = useLocale();
+  const router = useRouter();
   const displayCurrency = useCartStore(state => state.currency);
   const rates = useCartStore(state => state.rates);
   const useManual = useCartStore(state => state.useManualSARRate);
@@ -52,7 +54,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, slug, name, price, origin
       whileTap={{ scale: 0.98 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
     >
-      <Link href={`/${locale}/store/${slug}/product/${id}`} className={styles.productLink} onClick={() => triggerHaptic('light')}>
+      <Link 
+        href={`/${locale}/store/${slug}/product/${id}`}
+        className={styles.productLink}
+        onMouseEnter={() => router.prefetch(`/${locale}/store/${slug}/product/${id}`)}
+        onTouchStart={() => router.prefetch(`/${locale}/store/${slug}/product/${id}`)}
+        onClick={() => triggerHaptic('light')}
+      >
         <div className={styles.imageWrapper}>
           <Image 
             src={image} 
@@ -60,6 +68,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, slug, name, price, origin
             fill 
             className={styles.image}
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            placeholder="blur"
+            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mO88x8AAp0BzdNKe1wAAAAASUVORK5CYII="
           />
           <div className={styles.badges}>
             <span className={styles.categoryBadge}>{category}</span>
