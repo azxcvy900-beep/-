@@ -10,11 +10,13 @@ import SearchBar from '@/components/shared/SearchBar/SearchBar';
 import { getStoreProducts, getStoreCategories, getStoreInfo, Product, Category } from '@/lib/api';
 import { useCartStore } from '@/lib/store';
 import { useStreamingFetch, useProgressiveLoad } from '@/lib/hooks';
-import { ArrowLeft, Grid, Loader2, Package, ShoppingBag, Info, Phone, MapPin, Globe, Share2 } from 'lucide-react';
+import { ArrowLeft, Grid, List, Loader2, Package, ShoppingBag, Info, Phone, MapPin, Globe, Share2 } from 'lucide-react';
 import StoreLockedOverlay from '@/components/store/StoreLockedOverlay/StoreLockedOverlay';
 import StoreSkeleton from '@/components/store/StoreSkeleton/StoreSkeleton';
 import PullToRefresh from '@/components/shared/PullToRefresh/PullToRefresh';
 import SearchOverlay from '@/components/store/SearchOverlay/SearchOverlay';
+import CartDrawer from '@/components/store/CartDrawer/CartDrawer';
+import ProductQuickView from '@/components/store/ProductQuickView/ProductQuickView';
 import { Link } from '@/i18n/routing';
 import styles from './page.module.css';
 
@@ -46,6 +48,10 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [sortBy, setSortBy] = useState('newest');
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  
   const searchParams = useSearchParams();
   
   const previewPrimary = searchParams.get('primaryColor');
@@ -103,13 +109,24 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
   }, [storeInfo?.heroBanners]);
 
   const filteredProducts = useMemo(() => {
-    return (products || []).filter((p: Product) => {
+    let result = (products || []).filter((p: Product) => {
       const matchesCategory = activeCategory === 'all' || p.category === activeCategory;
       const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                            (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase()));
       return matchesCategory && matchesSearch;
     });
-  }, [products, activeCategory, searchQuery]);
+
+    if (sortBy === 'priceAsc') {
+      result = result.sort((a, b) => a.price - b.price);
+    } else if (sortBy === 'priceDesc') {
+      result = result.sort((a, b) => b.price - a.price);
+    } else {
+      // default 'newest', assuming original array order is newest first for now
+      // If there's a date field, we would use it here.
+    }
+
+    return result;
+  }, [products, activeCategory, searchQuery, sortBy]);
 
   // Progressive rendering for products
   const { visibleItems: visibleProducts, isStreaming } = useProgressiveLoad(filteredProducts, 4, 150);
@@ -343,14 +360,47 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
         ) : (
           <div className={styles.productsSection}>
             <div className={styles.filterInfo}>
-              {activeCategory !== 'all' && (
-                <span className={styles.activeTag}>
-                  عرض قسم: {activeCategory} ({filteredProducts.length} منتج)
-                </span>
-              )}
+              <div className={styles.filterHeaderRow}>
+                {activeCategory !== 'all' && (
+                  <span className={styles.activeTag}>
+                    عرض قسم: {activeCategory} ({filteredProducts.length} منتج)
+                  </span>
+                )}
+                {activeCategory === 'all' && (
+                  <span className={styles.activeTag}>
+                    جميع المنتجات ({filteredProducts.length})
+                  </span>
+                )}
+                
+                <div className={styles.controlsGroup}>
+                  <div className={styles.viewToggle}>
+                    <button 
+                      className={`${styles.toggleBtn} ${viewMode === 'categories' ? styles.activeToggle : ''}`} 
+                      onClick={() => setViewMode('categories')}
+                    >
+                      <Grid size={16} />
+                    </button>
+                    <button 
+                      className={`${styles.toggleBtn} ${viewMode === 'products' ? styles.activeToggle : ''}`} 
+                      onClick={() => setViewMode('products')}
+                    >
+                      <List size={16} />
+                    </button>
+                  </div>
+                  <select 
+                    className={styles.sortSelect} 
+                    value={sortBy} 
+                    onChange={(e) => setSortBy(e.target.value)}
+                  >
+                    <option value="newest">الأحدث</option>
+                    <option value="priceAsc">السعر: من الأقل</option>
+                    <option value="priceDesc">السعر: من الأعلى</option>
+                  </select>
+                </div>
+              </div>
             </div>
 
-            <div className={styles.productGrid}>
+            <div className={`${styles.productGrid} ${viewMode === 'products' ? styles.listLayout : ''}`}>
               {visibleProducts.map((p: Product) => (
                 <motion.div
                   key={p.id}
@@ -367,6 +417,8 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
                     image={p.image}
                     category={p.category}
                     currency={p.currency}
+                    viewMode={viewMode === 'products' ? 'list' : 'grid'}
+                    onQuickView={(id) => setSelectedProductId(id)}
                   />
                 </motion.div>
               ))}
@@ -395,15 +447,20 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
               exit={{ scale: 0, y: 20 }}
               className={styles.floatingCart}
             >
-              <Link href={`/store/${resolvedParams.slug}/cart`} onClick={() => triggerHaptic('medium')}>
-                <div className={styles.floatingCartContent}>
-                  <div className={styles.cartIconWrapper}>
-                    <ShoppingBag size={24} />
-                    <span className={styles.cartBadgeCount}>{cartItems.length}</span>
-                  </div>
-                  <span className={styles.cartLabel}>{t('viewCart')}</span>
+              <button 
+                className={styles.floatingCartContent} 
+                style={{ border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
+                onClick={() => {
+                  triggerHaptic('medium');
+                  setIsCartOpen(true);
+                }}
+              >
+                <div className={styles.cartIconWrapper}>
+                  <ShoppingBag size={24} />
+                  <span className={styles.cartBadgeCount}>{cartItems.length}</span>
                 </div>
-              </Link>
+                <span className={styles.cartLabel}>{t('viewCart')}</span>
+              </button>
             </motion.div>
           )}
         </AnimatePresence>
@@ -488,6 +545,20 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
           )}
         </AnimatePresence>
       </div>
+
+      <CartDrawer 
+        isOpen={isCartOpen} 
+        onClose={() => setIsCartOpen(false)} 
+        storeSlug={resolvedParams.slug} 
+      />
+
+      <ProductQuickView 
+        isOpen={!!selectedProductId} 
+        onClose={() => setSelectedProductId(null)} 
+        product={products?.find((p: Product) => p.id === selectedProductId) || null} 
+        currency={products?.find((p: Product) => p.id === selectedProductId)?.currency || 'YER'}
+      />
+
     </PullToRefresh>
   );
 }

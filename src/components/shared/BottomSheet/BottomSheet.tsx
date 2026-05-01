@@ -43,6 +43,14 @@ const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onClose, title, child
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            drag="y"
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={0.2}
+            onDragEnd={(e, { offset, velocity }) => {
+              if (offset.y > 150 || velocity.y > 500) {
+                onClose();
+              }
+            }}
           >
             <div className={styles.header}>
               <div className={styles.handle} />

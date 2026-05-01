@@ -3,7 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Check } from 'lucide-react';
+import { Plus, Check, Eye } from 'lucide-react';
 import { useCartStore } from '@/lib/store';
 import { formatPrice, triggerHaptic } from '@/lib/utils';
 import styles from './ProductCard.module.css';
@@ -17,9 +17,11 @@ interface ProductCardProps {
   image: string;
   category: string;
   currency?: 'YER' | 'SAR' | 'USD';
+  viewMode?: 'grid' | 'list';
+  onQuickView?: (id: string) => void;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ id, slug, name, price, originalPrice, image, category, currency = 'YER' }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ id, slug, name, price, originalPrice, image, category, currency = 'YER', viewMode = 'grid', onQuickView }) => {
   const t = useTranslations('Product');
   const locale = useLocale();
   const displayCurrency = useCartStore(state => state.currency);
@@ -45,7 +47,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, slug, name, price, origin
 
   return (
     <motion.div 
-      className={styles.card}
+      className={`${styles.card} ${viewMode === 'list' ? styles.listView : ''}`}
       whileHover={{ y: -10 }}
       whileTap={{ scale: 0.98 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
@@ -65,6 +67,20 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, slug, name, price, origin
               <span className={styles.saleBadge}>SALE</span>
             )}
           </div>
+          {onQuickView && (
+            <button 
+              className={styles.quickViewBtn} 
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                triggerHaptic('light');
+                onQuickView(id);
+              }}
+              title="Quick View"
+            >
+              <Eye size={20} />
+            </button>
+          )}
         </div>
         
         <div className={styles.info}>

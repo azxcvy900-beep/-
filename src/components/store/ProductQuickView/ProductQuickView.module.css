@@ -1,0 +1,133 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding-bottom: 2rem;
+}
+
+.imageWrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #f8fafc;
+}
+
+:global(.dark) .imageWrapper {
+  background: #0f172a;
+}
+
+.image {
+  object-fit: contain;
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin: 0;
+  color: var(--foreground);
+}
+
+.priceContainer {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.price {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--primary);
+}
+
+.originalPrice {
+  font-size: 1rem;
+  color: #94a3b8;
+  text-decoration: line-through;
+}
+
+.description {
+  font-size: 0.95rem;
+  color: #64748b;
+  line-height: 1.6;
+  margin-top: 0.5rem;
+}
+
+.actionSection {
+  position: sticky;
+  bottom: 0;
+  background: var(--card-bg);
+  padding: 1rem 0;
+  border-top: 1px solid var(--card-border);
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.quantityControl {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(0,0,0,0.05);
+  padding: 0.5rem;
+  border-radius: 99px;
+}
+
+:global(.dark) .quantityControl {
+  background: rgba(255,255,255,0.1);
+}
+
+.qtyBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: white;
+  color: var(--foreground);
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+:global(.dark) .qtyBtn {
+  background: #1e293b;
+}
+
+.qty {
+  font-weight: 800;
+  font-size: 1.1rem;
+  min-width: 20px;
+  text-align: center;
+}
+
+.addToCartBtn {
+  flex: 1;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 99px;
+  padding: 1rem;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 10px 20px var(--primary-shadow);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.addToCartBtn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+}
