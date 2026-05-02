@@ -198,16 +198,16 @@ export default function DashboardContent() {
     
     orders.forEach(order => {
       order.items.forEach(item => {
-        if (!productCounts[item.productId]) {
-          productCounts[item.productId] = { 
+        if (!productCounts[item.id]) {
+          productCounts[item.id] = { 
             count: 0, 
             name: item.name, 
             image: item.image || '', 
             revenue: 0 
           };
         }
-        productCounts[item.productId].count += item.quantity;
-        productCounts[item.productId].revenue += item.price * item.quantity;
+        productCounts[item.id].count += item.quantity;
+        productCounts[item.id].revenue += item.price * item.quantity;
       });
     });
 
