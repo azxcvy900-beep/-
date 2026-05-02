@@ -301,7 +301,7 @@ export default function SettingsContent() {
                   <div className={styles.iframeScaleWrapper}>
                     <iframe 
                       key={`${storeData?.primaryColor}-${logoPreview}-${inlinePreviewDevice}`}
-                      src={`/${locale}/store/${storeSlug || 'demo'}?preview=true&primaryColor=${encodeURIComponent(storeData?.primaryColor || '')}&logo=${encodeURIComponent(logoPreview || '')}`} 
+                      src={`/${locale}/store/${storeSlug || 'demo'}?preview=true&primaryColor=${encodeURIComponent(storeData?.primaryColor || '')}&secondaryColor=${encodeURIComponent(storeData?.secondaryColor || '')}&logo=${encodeURIComponent(logoPreview || '')}`} 
                       title="Store Live Preview"
                     />
                   </div>

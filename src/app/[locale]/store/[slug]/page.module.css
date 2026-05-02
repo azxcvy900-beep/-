@@ -38,8 +38,8 @@
 
 .infoButton {
   background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  color: var(--foreground);
+  border: 1px solid rgba(var(--secondary-rgb), 0.3);
+  color: var(--secondary);
   width: 44px;
   height: 44px;
   border-radius: 14px;
@@ -52,7 +52,8 @@
 }
 
 .infoButton:hover {
-  background: var(--muted);
+  background: rgba(var(--secondary-rgb), 0.1);
+  border-color: var(--secondary);
   transform: translateY(-2px);
 }
 
@@ -597,8 +598,9 @@
   font-weight: 700;
   color: var(--secondary);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
   margin-bottom: 0.25rem;
+  opacity: 0.8;
 }
 
 .infoItem p {

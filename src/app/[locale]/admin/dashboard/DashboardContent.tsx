@@ -36,6 +36,7 @@ import {
 import { useStreamingFetch, useProgressiveLoad } from '@/lib/hooks';
 import { useAuthStore } from '@/lib/auth-store';
 import { useSessionStore } from '@/lib/session-store';
+import { triggerHaptic } from '@/lib/utils';
 import { StatSkeleton, ListSkeleton, TableSkeleton } from '@/components/shared/Skeletons/Skeletons';
 import UsageGuard from '@/components/shared/UsageGuard/UsageGuard';
 import { 
@@ -55,6 +56,7 @@ export default function DashboardContent() {
   const { storeSlug, isResolved } = useAuthStore();
   const { username } = useSessionStore();
   const [copied, setCopied] = React.useState(false);
+  const [chartPeriod, setChartPeriod] = React.useState<'day' | 'week' | 'month'>('month');
   
   const { data: orders, loading: ordersLoading } = useStreamingFetch(
     () => getStoreOrders(storeSlug || 'demo'), 
@@ -81,6 +83,7 @@ export default function DashboardContent() {
   const handleCopyLink = () => {
     navigator.clipboard.writeText(storeUrl);
     setCopied(true);
+    triggerHaptic('success');
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -155,11 +158,62 @@ export default function DashboardContent() {
 
   // Prepare chart data (Last 10 orders trend)
   const chartData = React.useMemo(() => {
-    if (!orders || orders.length === 0) return Array.from({length: 10}).map((_, i) => ({ name: `T${i}`, sales: 0 }));
-    return orders.slice(0, 10).reverse().map((o, i) => ({
-      name: `T${i + 1}`,
-      sales: o.total,
-    }));
+    if (!orders || orders.length === 0) return [];
+    
+    const now = new Date();
+    const days: Record<string, { date: string, sales: number, prevSales: number }> = {};
+    
+    // Last 7 days
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(now.getDate() - i);
+      const key = d.toLocaleDateString(locale, { day: 'numeric', month: 'short' });
+      days[key] = { date: key, sales: 0, prevSales: 0 };
+    }
+
+    orders.forEach(o => {
+      const oDate = new Date(o.date);
+      const key = oDate.toLocaleDateString(locale, { day: 'numeric', month: 'short' });
+      
+      const diffDays = Math.floor((now.getTime() - oDate.getTime()) / (1000 * 3600 * 24));
+      
+      if (days[key]) {
+        days[key].sales += o.total;
+      } else if (diffDays >= 7 && diffDays < 14) {
+        // Simple comparison: if it was in the same "day of week" last week
+        const prevKey = new Date(oDate.getTime() + 7 * 24 * 3600 * 1000).toLocaleDateString(locale, { day: 'numeric', month: 'short' });
+        if (days[prevKey]) {
+          days[prevKey].prevSales += o.total;
+        }
+      }
+    });
+
+    return Object.values(days);
+  }, [orders, locale]);
+
+  // Top Selling Products Calculation
+  const topProducts = React.useMemo(() => {
+    if (!orders) return [];
+    const productCounts: Record<string, { count: number, name: string, image: string, revenue: number }> = {};
+    
+    orders.forEach(order => {
+      order.items.forEach(item => {
+        if (!productCounts[item.productId]) {
+          productCounts[item.productId] = { 
+            count: 0, 
+            name: item.name, 
+            image: item.image || '', 
+            revenue: 0 
+          };
+        }
+        productCounts[item.productId].count += item.quantity;
+        productCounts[item.productId].revenue += item.price * item.quantity;
+      });
+    });
+
+    return Object.values(productCounts)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
   }, [orders]);
 
   const recentOrders = (orders || []).slice(0, 5);
@@ -202,10 +256,10 @@ export default function DashboardContent() {
             </div>
 
             <div className={styles.heroActions}>
-              <Link href="/admin/billing" className={styles.premiumBtn}>
+              <Link href="/admin/billing" className={styles.premiumBtn} onClick={() => triggerHaptic('medium')}>
                 <ShieldCheck size={18} /> ترقية الاحتراف
               </Link>
-              <Link href={`/store/${storeSlug}`} target="_blank" className={styles.secondaryBtn}>
+              <Link href={`/store/${storeSlug}`} target="_blank" className={styles.secondaryBtn} onClick={() => triggerHaptic('light')}>
                 <ExternalLink size={18} /> معاينة المتجر
               </Link>
             </div>
@@ -236,7 +290,20 @@ export default function DashboardContent() {
           {/* Charts Section */}
           <div className={styles.chartsSection}>
             <div className={styles.chartHeader}>
-               <h3 className={styles.chartTitle}>نمو المبيعات (أحدث 10 طلبات)</h3>
+               <div className={styles.chartTitleGroup}>
+                 <h3 className={styles.chartTitle}>نمو المبيعات</h3>
+                 <div className={styles.periodSwitcher}>
+                    {(['day', 'week', 'month'] as const).map(p => (
+                      <button 
+                        key={p} 
+                        className={`${styles.periodBtn} ${chartPeriod === p ? styles.activePeriod : ''}`}
+                        onClick={() => { setChartPeriod(p); triggerHaptic('light'); }}
+                      >
+                        {p === 'day' ? 'يوم' : p === 'week' ? 'أسبوع' : 'شهر'}
+                      </button>
+                    ))}
+                 </div>
+               </div>
                <TrendingUp size={20} color="#10b981" />
             </div>
             <div className={styles.chartWrapper}>
@@ -247,17 +314,40 @@ export default function DashboardContent() {
                       <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
                       <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
                     </linearGradient>
+                    <linearGradient id="colorPrev" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.1}/>
+                      <stop offset="95%" stopColor="#94a3b8" stopOpacity={0}/>
+                    </linearGradient>
                   </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis 
+                    dataKey="date" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fontSize: 12, fill: '#64748b' }}
+                    dy={10}
+                  />
+                  <YAxis 
+                    hide 
+                  />
                   <Tooltip 
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px rgba(0,0,0,0.1)' }}
                     labelStyle={{ fontWeight: 'bold' }}
-                    itemStyle={{ color: '#3b82f6' }}
                   />
-                  <XAxis dataKey="name" hide />
-                  <YAxis hide />
+                  <Area 
+                    type="monotone" 
+                    dataKey="prevSales" 
+                    name="الفترة السابقة"
+                    stroke="#94a3b8" 
+                    strokeWidth={2}
+                    strokeDasharray="5 5"
+                    fillOpacity={1} 
+                    fill="url(#colorPrev)" 
+                  />
                   <Area 
                     type="monotone" 
                     dataKey="sales" 
+                    name="المبيعات الحالية"
                     stroke="#3b82f6" 
                     strokeWidth={4}
                     fillOpacity={1} 
@@ -274,7 +364,7 @@ export default function DashboardContent() {
             <div className={styles.section}>
               <div className={styles.sectionHeader}>
                 <h3 className={styles.sectionTitle}>آخر الطلبيات</h3>
-                <Link href="/admin/orders" className={styles.viewAll}>
+                <Link href="/admin/orders" className={styles.viewAll} onClick={() => triggerHaptic('light')}>
                   كل الطلبات <ChevronLeft size={16} />
                 </Link>
               </div>
@@ -302,7 +392,7 @@ export default function DashboardContent() {
                         </td>
                         <td><strong>{order.total.toLocaleString()} ر.ي</strong></td>
                         <td>
-                          <Link href="/admin/orders" className={styles.actionBtn}>
+                          <Link href="/admin/orders" className={styles.actionBtn} onClick={() => triggerHaptic('medium')}>
                             إدارة
                           </Link>
                         </td>
@@ -332,11 +422,41 @@ export default function DashboardContent() {
                     <div className={styles.quickIcon} style={{ background: '#fdf2f8', color: '#ec4899' }}><ShoppingBag size={24} /></div>
                     <span className={styles.quickLabel}>الكوبونات</span>
                   </Link>
-                  <Link href="/admin/settings" className={styles.quickActionCard}>
+                  <Link href="/admin/settings" className={styles.quickActionCard} onClick={() => triggerHaptic('light')}>
                     <div className={styles.quickIcon} style={{ background: '#f8fafc', color: '#64748b' }}><Settings size={24} /></div>
                     <span className={styles.quickLabel}>الإعدادات</span>
                   </Link>
                </div>
+            </div>
+
+            {/* Top Products Section */}
+            <div className={styles.section} style={{ gridColumn: '1 / -1' }}>
+              <div className={styles.sectionHeader}>
+                <h3 className={styles.sectionTitle}>المنتجات الأكثر مبيعاً 🏆</h3>
+              </div>
+              <div className={styles.topProductsGrid}>
+                {topProducts.length > 0 ? topProducts.map((p, i) => (
+                  <motion.div 
+                    key={i}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                    className={styles.topProductCard}
+                  >
+                    <div className={styles.topProductRank}>{i + 1}</div>
+                    <img src={p.image} className={styles.topProductImage} alt={p.name} />
+                    <div className={styles.topProductInfo}>
+                      <h4>{p.name}</h4>
+                      <p>{p.count} قطعة مباعة</p>
+                    </div>
+                    <div className={styles.topProductRevenue}>
+                      {p.revenue.toLocaleString()} ر.ي
+                    </div>
+                  </motion.div>
+                )) : (
+                  <div className={styles.empty}>لا توجد بيانات كافية حالياً</div>
+                )}
+              </div>
             </div>
           </div>
 

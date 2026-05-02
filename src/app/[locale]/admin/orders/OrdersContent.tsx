@@ -45,6 +45,7 @@ export default function OrdersContent() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [waOrder, setWaOrder] = useState<Order | null>(null);
   const [waType, setWaType] = useState<WhatsAppMessageType>('confirm_payment');
+  const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
   
   const { data: initialOrders, loading: ordersLoading } = useStreamingFetch(
     () => getStoreOrders(storeSlug || 'demo'), 
@@ -92,6 +93,36 @@ export default function OrdersContent() {
     } finally {
       setUpdatingId(null);
     }
+  };
+
+  const handleBulkStatusUpdate = async (status: Order['status']) => {
+    if (confirm(`هل أنت متأكد من تحديث حالة ${selectedOrders.length} طلبات إلى "${getStatusLabel(status)}"؟`)) {
+      const idsToUpdate = [...selectedOrders];
+      setSelectedOrders([]);
+      setLocalOrders(prev => 
+        prev ? prev.map(o => idsToUpdate.includes(o.id) ? { ...o, status } : o) : null
+      );
+      
+      try {
+        await Promise.all(idsToUpdate.map(id => updateOrderStatus(id, status)));
+      } catch (error) {
+        console.error("Bulk update error:", error);
+      }
+    }
+  };
+
+  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      setSelectedOrders((localOrders || []).map(o => o.id));
+    } else {
+      setSelectedOrders([]);
+    }
+  };
+
+  const handleSelectOrder = (id: string) => {
+    setSelectedOrders(prev => 
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
   };
 
   const getStatusIcon = (status: Order['status']) => {
@@ -285,6 +316,15 @@ export default function OrdersContent() {
       <div className={styles.header}>
         <h1 className={styles.title}>{t('orders.title')}</h1>
         <div className={styles.headerActions}>
+          <label className={styles.selectAllWrapper}>
+            <input 
+              type="checkbox" 
+              className={styles.checkbox} 
+              checked={selectedOrders.length > 0 && selectedOrders.length === (localOrders?.length || 0)}
+              onChange={handleSelectAll}
+            />
+            <span>تحديد الكل</span>
+          </label>
           <button className={styles.exportBtn} onClick={handleExportCSV}>
             تصدير CSV
           </button>
@@ -306,8 +346,16 @@ export default function OrdersContent() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.2 }}
-                  className={styles.orderCard}
+                  className={`${styles.orderCard} ${selectedOrders.includes(order.id) ? styles.selectedCard : ''}`}
                 >
+                  <div className={styles.checkboxWrapper}>
+                    <input 
+                      type="checkbox" 
+                      className={styles.checkbox} 
+                      checked={selectedOrders.includes(order.id)}
+                      onChange={() => handleSelectOrder(order.id)}
+                    />
+                  </div>
                   <div className={styles.orderHeader}>
                     <div className={styles.orderInfo}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -458,6 +506,29 @@ export default function OrdersContent() {
               </div>
             </motion.div>
           </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {selectedOrders.length > 0 && (
+          <motion.div 
+            initial={{ y: 100, opacity: 0, x: '-50%' }}
+            animate={{ y: 0, opacity: 1, x: '-50%' }}
+            exit={{ y: 100, opacity: 0, x: '-50%' }}
+            className={styles.bulkActionsBar}
+          >
+            <div className={styles.bulkInfo}>
+              تم تحديد {selectedOrders.length} طلبات
+            </div>
+            <div className={styles.bulkButtons}>
+              <button className={styles.bulkStatusBtn} onClick={() => handleBulkStatusUpdate('delivered')}>
+                <CheckCircle2 size={16} /> تم التوصيل
+              </button>
+              <button className={styles.bulkStatusBtn} style={{ background: '#f59e0b' }} onClick={() => handleBulkStatusUpdate('shipped')}>
+                <Truck size={16} /> جاري الشحن
+              </button>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

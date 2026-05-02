@@ -27,6 +27,7 @@ import {
 import { useStreamingFetch, useProgressiveLoad } from '@/lib/hooks';
 import { useAuthStore } from '@/lib/auth-store';
 import { compressImage } from '@/lib/utils';
+import { triggerHaptic } from '@/lib/utils';
 import { TableSkeleton } from '@/components/shared/Skeletons/Skeletons';
 import styles from './products.module.css';
 
@@ -60,6 +61,8 @@ export default function ProductsContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+  const [optionInput, setOptionInput] = useState<{ [key: number]: string }>({});
 
   const [formData, setFormData] = useState({
     name: '',
@@ -70,7 +73,8 @@ export default function ProductsContent() {
     description: '',
     storeSlug: storeSlug || 'demo',
     stockCount: '0',
-    currency: 'YER' as 'YER' | 'SAR' | 'USD'
+    currency: 'YER' as 'YER' | 'SAR' | 'USD',
+    options: [] as any[]
   });
 
   const filteredProducts = React.useMemo(() => {
@@ -89,6 +93,7 @@ export default function ProductsContent() {
   }, [storeCategories, formData.category]);
 
   const handleOpenModal = (product: Product | null = null) => {
+    triggerHaptic('light');
     setSelectedFile(null);
     setImagePreview(product?.image || null);
 
@@ -103,7 +108,8 @@ export default function ProductsContent() {
         description: product.description || '',
         storeSlug: product.storeSlug,
         stockCount: product.stockCount.toString(),
-        currency: product.currency || 'YER'
+        currency: product.currency || 'YER',
+        options: product.options || []
       });
     } else {
       setEditingProduct(null);
@@ -116,7 +122,8 @@ export default function ProductsContent() {
         description: '',
         storeSlug: storeSlug || 'demo',
         stockCount: '0',
-        currency: 'YER'
+        currency: 'YER',
+        options: []
       });
     }
     setIsModalOpen(true);
@@ -141,8 +148,72 @@ export default function ProductsContent() {
     }
   };
 
+  const handleAddOption = () => {
+    triggerHaptic('light');
+    setFormData(prev => ({
+      ...prev,
+      options: [...prev.options, { name: '', values: [] }]
+    }));
+  };
+
+  const handleRemoveOption = (index: number) => {
+    triggerHaptic('medium');
+    setFormData(prev => ({
+      ...prev,
+      options: prev.options.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleAddValue = (index: number, value: string) => {
+    if (!value.trim()) return;
+    triggerHaptic('light');
+    const newOptions = [...formData.options];
+    if (!newOptions[index].values.includes(value.trim())) {
+      newOptions[index].values.push(value.trim());
+      setFormData({ ...formData, options: newOptions });
+      setOptionInput({ ...optionInput, [index]: '' });
+    }
+  };
+
+  const handleRemoveValue = (optIndex: number, valIndex: number) => {
+    triggerHaptic('light');
+    const newOptions = [...formData.options];
+    newOptions[optIndex].values = newOptions[optIndex].values.filter((_: any, i: number) => i !== valIndex);
+    setFormData({ ...formData, options: newOptions });
+  };
+
+  const handleBulkDelete = async () => {
+    if (confirm(`هل أنت متأكد من حذف ${selectedProducts.length} منتجات؟`)) {
+      triggerHaptic('heavy');
+      const idsToDelete = [...selectedProducts];
+      setSelectedProducts([]);
+      setLocalProducts(prev => prev ? prev.filter(p => !idsToDelete.includes(p.id)) : null);
+      
+      try {
+        await Promise.all(idsToDelete.map(id => deleteProduct(id)));
+      } catch (error) {
+        console.error("Bulk delete error:", error);
+      }
+    }
+  };
+
+  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      setSelectedProducts(filteredProducts.map(p => p.id));
+    } else {
+      setSelectedProducts([]);
+    }
+  };
+
+  const handleSelectProduct = (id: string) => {
+    setSelectedProducts(prev => 
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    triggerHaptic('medium');
     setIsSubmitting(true);
     try {
       let finalImageUrl = formData.image;
@@ -180,6 +251,7 @@ export default function ProductsContent() {
 
   const handleDelete = async (id: string) => {
     if (confirm("هل أنت متأكد من حذف هذا المنتج؟")) {
+      triggerHaptic('heavy');
       setLocalProducts(prev => prev ? prev.filter(p => p.id !== id) : null);
       try {
         await deleteProduct(id);
@@ -192,6 +264,7 @@ export default function ProductsContent() {
   };
 
   const handlePrintInventory = (categoryName: string | null = null) => {
+    triggerHaptic('light');
     const printProducts = categoryName 
       ? (localProducts || []).filter((p: Product) => p.category === categoryName)
       : (localProducts || []);
@@ -244,6 +317,7 @@ export default function ProductsContent() {
   };
 
   const handleExportCSV = () => {
+    triggerHaptic('light');
     const headers = ['ID', 'Name', 'Category', 'Price', 'Stock', 'In Stock'];
     const rows = (localProducts || []).map((p: Product) => [
       p.id, p.name, p.category, p.price, p.stockCount, p.inStock ? 'Yes' : 'No'
@@ -310,6 +384,14 @@ export default function ProductsContent() {
           <table className={styles.productTable}>
             <thead>
               <tr>
+                <th style={{ width: '40px' }}>
+                  <input 
+                    type="checkbox" 
+                    className={styles.checkbox} 
+                    checked={selectedProducts.length > 0 && selectedProducts.length === filteredProducts.length}
+                    onChange={handleSelectAll}
+                  />
+                </th>
                 <th>{t('products.name')}</th>
                 <th>{t('products.category')}</th>
                 <th>{t('products.price')}</th>
@@ -327,7 +409,16 @@ export default function ProductsContent() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.2 }}
+                    className={selectedProducts.includes(p.id) ? styles.selectedRow : ''}
                   >
+                    <td>
+                      <input 
+                        type="checkbox" 
+                        className={styles.checkbox} 
+                        checked={selectedProducts.includes(p.id)}
+                        onChange={() => handleSelectProduct(p.id)}
+                      />
+                    </td>
                     <td>
                       <div className={styles.productInfo}>
                         <div style={{ position: 'relative' }}>
@@ -535,6 +626,66 @@ export default function ProductsContent() {
                       onChange={(e) => setFormData({...formData, description: e.target.value})}
                     />
                   </div>
+
+                  <div className={styles.variantsSection}>
+                    <div className={styles.variantHeader}>
+                      <h4 className={styles.variantTitle}>خيارات المنتج (المقاس، اللون، إلخ)</h4>
+                      <button type="button" className={styles.addOptionBtn} onClick={handleAddOption}>
+                        <Plus size={16} /> إضافة خيار
+                      </button>
+                    </div>
+                    
+                    {formData.options.map((opt, optIndex) => (
+                      <div key={optIndex} className={styles.optionCard}>
+                        <button type="button" className={styles.removeOptionBtn} onClick={() => handleRemoveOption(optIndex)}>
+                          <Trash2 size={16} />
+                        </button>
+                        <div className={styles.inputGroup}>
+                          <label>اسم الخيار (مثلاً: المقاس)</label>
+                          <input 
+                            className={styles.input}
+                            placeholder="مثلاً: المقاس، اللون..."
+                            value={opt.name}
+                            onChange={(e) => {
+                              const newOpts = [...formData.options];
+                              newOpts[optIndex].name = e.target.value;
+                              setFormData({ ...formData, options: newOpts });
+                            }}
+                          />
+                        </div>
+                        <div className={styles.inputGroup}>
+                          <label>القيم (اضغط Enter للإضافة)</label>
+                          <div className={styles.valuesList}>
+                            {opt.values.map((val: string, valIndex: number) => (
+                              <span key={valIndex} className={styles.valueTag}>
+                                {val}
+                                <X 
+                                  size={14} 
+                                  className={styles.removeValue} 
+                                  onClick={() => handleRemoveValue(optIndex, valIndex)} 
+                                />
+                              </span>
+                            ))}
+                            <input 
+                              className={styles.valueInput}
+                              placeholder="أضف قيمة..."
+                              value={optionInput[optIndex] || ''}
+                              onChange={(e) => setOptionInput({ ...optionInput, [optIndex]: e.target.value })}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  handleAddValue(optIndex, optionInput[optIndex] || '');
+                                }
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    {formData.options.length === 0 && (
+                      <p style={{ textAlign: 'center', fontSize: '0.85rem', color: '#94a3b8' }}>لا توجد خيارات لهذا المنتج حالياً.</p>
+                    )}
+                  </div>
                 </div>
 
                 <div className={styles.modalActions}>
@@ -548,6 +699,26 @@ export default function ProductsContent() {
               </form>
             </motion.div>
           </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {selectedProducts.length > 0 && (
+          <motion.div 
+            initial={{ y: 100, opacity: 0, x: '-50%' }}
+            animate={{ y: 0, opacity: 1, x: '-50%' }}
+            exit={{ y: 100, opacity: 0, x: '-50%' }}
+            className={styles.bulkActionsBar}
+          >
+            <div className={styles.bulkInfo}>
+              تم تحديد {selectedProducts.length} منتجات
+            </div>
+            <div className={styles.bulkButtons}>
+              <button className={styles.bulkDeleteBtn} onClick={handleBulkDelete}>
+                حذف المحدد
+              </button>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

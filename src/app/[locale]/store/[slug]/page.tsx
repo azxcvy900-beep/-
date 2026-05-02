@@ -145,6 +145,10 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
             :root {
               --primary: ${previewPrimary} !important;
               --primary-rgb: ${previewPrimary.startsWith('#') ? hexToRgbPreview(previewPrimary) : '59, 130, 246'} !important;
+              ${searchParams.get('secondaryColor') ? `
+                --secondary: ${searchParams.get('secondaryColor')} !important;
+                --secondary-rgb: ${searchParams.get('secondaryColor')?.startsWith('#') ? hexToRgbPreview(searchParams.get('secondaryColor')!) : '100, 116, 139'} !important;
+              ` : ''}
             }
             /* Hide scrollbars in preview */
             body::-webkit-scrollbar { display: none; }
@@ -511,10 +515,18 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
                     <div>
                       <span className={styles.infoLabel}>{t('socialMedia')}</span>
                       <div className={styles.socialLinks}>
-                         {/* Placeholder for social links */}
-                         <span className={styles.socialTag}>Snapchat</span>
-                         <span className={styles.socialTag}>Instagram</span>
-                         <span className={styles.socialTag}>TikTok</span>
+                        {storeInfo?.social?.instagram && (
+                          <a href={`https://instagram.com/${storeInfo.social.instagram}`} target="_blank" className={styles.socialTag}>Instagram</a>
+                        )}
+                        {storeInfo?.social?.twitter && (
+                          <a href={`https://twitter.com/${storeInfo.social.twitter}`} target="_blank" className={styles.socialTag}>Twitter / X</a>
+                        )}
+                        {storeInfo?.social?.facebook && (
+                          <a href={storeInfo.social.facebook.startsWith('http') ? storeInfo.social.facebook : `https://facebook.com/${storeInfo.social.facebook}`} target="_blank" className={styles.socialTag}>Facebook</a>
+                        )}
+                        {!storeInfo?.social?.instagram && !storeInfo?.social?.twitter && !storeInfo?.social?.facebook && (
+                          <span className={styles.socialTag}>لا توجد روابط حالياً</span>
+                        )}
                       </div>
                     </div>
                   </div>
