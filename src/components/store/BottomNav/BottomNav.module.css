@@ -1,70 +1,59 @@
 .bottomNav {
   position: fixed;
-  bottom: 25px;
+  bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
-  width: 92%;
-  max-width: 440px;
-  height: 72px;
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  display: none; /* Mobile only via media query */
-  justify-content: space-around;
+  width: 90%;
+  max-width: 400px;
+  height: 68px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  display: none; /* Only show on mobile */
+  justify-content: space-between;
   align-items: center;
-  border-radius: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 99px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
   z-index: 1000;
-  padding: 0 0.75rem;
-  box-shadow: 
-    0 20px 40px rgba(0, 0, 0, 0.1),
-    0 0 0 1px rgba(0, 0, 0, 0.02);
-  animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 0 0.5rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
 }
 
-@keyframes slideUp {
-  from { transform: translate(-50%, 100%); opacity: 0; }
-  to { transform: translate(-50%, 0); opacity: 1; }
-}
-
-:global(.dark) .bottomNav {
-  background: rgba(15, 23, 42, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+:global([data-theme='dark']) .bottomNav {
+  background: rgba(30, 41, 59, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .navItem {
   position: relative;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  color: #94a3b8;
+  gap: 8px;
+  color: #64748b;
   text-decoration: none;
-  font-size: 0.7rem;
-  font-weight: 700;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  height: 56px;
-  min-width: 65px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  height: 52px;
+  padding: 0 16px;
+  border-radius: 99px;
+  flex: 0 1 auto;
   z-index: 2;
 }
 
 .active {
-  color: var(--primary);
-  transform: translateY(-4px);
+  color: #fff; /* White text for active pill */
+  flex: 1 0 auto;
 }
 
 .activeBackground {
   position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 40px;
-  height: 4px;
+  inset: 0;
   background: var(--primary);
-  border-radius: 0 0 4px 4px;
-  box-shadow: 0 2px 10px rgba(var(--primary-rgb), 0.5);
+  border-radius: 99px;
+  z-index: -1;
+  box-shadow: 0 4px 15px var(--primary-shadow);
 }
 
 .iconWrapper {
@@ -72,45 +61,40 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px;
-  border-radius: 12px;
-  transition: all 0.3s ease;
-}
-
-.active .iconWrapper {
-  background: rgba(var(--primary-rgb), 0.1);
-  color: var(--primary);
 }
 
 .navLabel {
-  transition: all 0.3s ease;
+  display: none;
+  white-space: nowrap;
 }
 
 .active .navLabel {
-  color: var(--primary);
-  font-weight: 800;
+  display: block;
+  animation: fadeIn 0.3s forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateX(-5px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 .badge {
   position: absolute;
-  top: 2px;
-  right: 2px;
-  background: #ff4757;
+  top: -5px;
+  right: -8px;
+  background: #ef4444;
   color: white;
   font-size: 0.65rem;
+  padding: 1px 5px;
+  border-radius: 99px;
   min-width: 18px;
   height: 18px;
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 900;
-  border: 2px solid white;
-  box-shadow: 0 4px 10px rgba(255, 71, 87, 0.4);
-}
-
-:global(.dark) .badge {
-  border-color: #1e293b;
+  border: 2px solid var(--background);
+  box-shadow: 0 2px 5px rgba(239, 68, 68, 0.3);
 }
 
 @media (max-width: 768px) {

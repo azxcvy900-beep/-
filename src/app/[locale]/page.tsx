@@ -158,51 +158,14 @@ export default function Home() {
                   style={{ width: '100%', height: '100%' }}
                 >
                   {heroMedia[activeMediaIndex]?.type === 'image' ? (
-                    <div className={styles.iphoneWrapper}>
-                      <div className={styles.iphone}>
-                        <div className={styles.iphoneNotch} />
-                        <div className={styles.iphoneContent}>
-                          <motion.div 
-                            animate={{ y: ["0%", "-75%", "0%"] }}
-                            transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-                            className={styles.scrollImageWrapper}
-                          >
-                            <Image 
-                              src="/long_store_scroll.png" 
-                              alt="Buyers Premium Store Preview" 
-                              width={400} 
-                              height={1800} 
-                              className={styles.scrollingImage}
-                              priority
-                            />
-                          </motion.div>
-                        </div>
-                        <div className={styles.iphoneHomeBar} />
-                      </div>
-                      
-                      {/* Floating Decorative Elements */}
-                      <motion.div 
-                        animate={{ y: [0, -15, 0], rotate: [0, 5, 0] }}
-                        transition={{ duration: 4, repeat: Infinity }}
-                        className={styles.floatElement1}
-                      >
-                        <Zap size={24} />
-                      </motion.div>
-                      <motion.div 
-                        animate={{ y: [0, 15, 0], rotate: [0, -5, 0] }}
-                        transition={{ duration: 5, repeat: Infinity }}
-                        className={styles.floatElement2}
-                      >
-                        <TrendingUp size={24} />
-                      </motion.div>
-                      <motion.div 
-                        animate={{ scale: [1, 1.1, 1] }}
-                        transition={{ duration: 3, repeat: Infinity }}
-                        className={styles.orderNotification}
-                      >
-                        <CheckCircle2 size={16} /> <span>طلب جديد! YER 12,500</span>
-                      </motion.div>
-                    </div>
+                    <Image 
+                      src={heroMedia[activeMediaIndex].url || '/premium_hero_dashboard_v1_1776535565323.png'} 
+                      alt="Buyers Premium Dashboard Illustration" 
+                      width={1200} 
+                      height={700} 
+                      className={styles.dashboardPreview}
+                      priority
+                    />
                   ) : (
                     <div className={styles.videoWrapper} style={{ position: 'relative', borderRadius: '24px', overflow: 'hidden', boxShadow: 'var(--shadow-lg)', width: '100%', height: '100%' }}>
                       <video 

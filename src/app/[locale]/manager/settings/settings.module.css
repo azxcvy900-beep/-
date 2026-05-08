@@ -327,3 +327,33 @@
   background: #0f172a;
   border-color: rgba(255, 255, 255, 0.1);
 }
+
+.uploadBox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.uploadLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  background: rgba(var(--primary-rgb), 0.08);
+  color: var(--primary);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid rgba(var(--primary-rgb), 0.1);
+}
+
+.uploadLabel:hover {
+  background: rgba(var(--primary-rgb), 0.12);
+  transform: translateY(-1px);
+}

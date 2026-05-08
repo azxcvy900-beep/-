@@ -19,12 +19,13 @@ import {
   XCircle
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { getPlatformSettings, updatePlatformSettings, PlatformSettings, HeroMedia } from '@/lib/api';
+import { getPlatformSettings, updatePlatformSettings, PlatformSettings, HeroMedia, uploadPlatformMedia } from '@/lib/api';
 import { toast } from 'sonner';
 import styles from './settings.module.css';
 
 export default function ManagerSettings() {
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState<number | null>(null); // Index of the item being uploaded
   const [fetching, setFetching] = useState(true);
   const [activeTab, setActiveTab] = useState('general');
 
@@ -67,6 +68,28 @@ export default function ManagerSettings() {
       toast.error('حدث خطأ أثناء حفظ الإعدادات.');
     } finally {
       setLoading(false);
+    }
+  };
+  
+  const handleMediaUpload = async (index: number, file: File) => {
+    setUploading(index);
+    try {
+      const url = await uploadPlatformMedia(file);
+      const newMedia: HeroMedia[] = [...(settings.heroMedia || [])];
+      newMedia[index].url = url;
+      // Automatically detect type from file
+      if (file.type.startsWith('video/')) {
+        newMedia[index].type = 'video';
+      } else {
+        newMedia[index].type = 'image';
+      }
+      setSettings({...settings, heroMedia: newMedia});
+      toast.success('تم رفع الملف بنجاح!');
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error('حدث خطأ أثناء رفع الملف.');
+    } finally {
+      setUploading(null);
     }
   };
 
@@ -397,11 +420,27 @@ export default function ManagerSettings() {
                       placeholder="رابط الوسائط (URL)" 
                       value={item.url} 
                       onChange={(e) => {
-                        const newMedia = [...(settings.heroMedia || [])];
+                        const newMedia: HeroMedia[] = [...(settings.heroMedia || [])];
                         newMedia[index].url = e.target.value;
                         setSettings({...settings, heroMedia: newMedia});
                       }}
                     />
+                    <div className={styles.uploadBox}>
+                      <input 
+                        type="file" 
+                        id={`upload-${index}`}
+                        className={styles.hiddenInput}
+                        accept="image/*,video/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleMediaUpload(index, file);
+                        }}
+                      />
+                      <label htmlFor={`upload-${index}`} className={styles.uploadLabel}>
+                        {uploading === index ? <RefreshCw className={styles.spin} size={14} /> : <ImageIcon size={14} />}
+                        {uploading === index ? 'جاري الرفع...' : 'رفع ملف مباشر'}
+                      </label>
+                    </div>
                   </div>
                 </div>
               ))}
