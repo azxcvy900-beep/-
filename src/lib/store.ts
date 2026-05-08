@@ -25,6 +25,7 @@ export interface Order {
   id: string;
   items: CartItem[];
   total: number;
+  currency: string;
   subtotal: number;
   discountAmount?: number;
   couponCode?: string;

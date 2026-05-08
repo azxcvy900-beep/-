@@ -145,7 +145,7 @@ export default function CustomerAccountPage() {
                     </div>
                     <div className={styles.detailItem}>
                       <CreditCard size={14} />
-                      <span>{order.total} {order.currency}</span>
+                      <span>{order.total} {order.currency || 'YER'}</span>
                     </div>
                   </div>
 

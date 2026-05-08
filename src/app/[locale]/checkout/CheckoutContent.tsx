@@ -267,6 +267,7 @@ export default function CheckoutContent() {
       id: `ORD-${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
       items: [...items],
       subtotal: subtotal,
+      currency: currency,
       discountAmount: discount,
       couponCode: appliedCoupon?.code,
       total: finalTotal,
