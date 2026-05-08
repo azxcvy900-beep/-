@@ -19,7 +19,7 @@ import {
   XCircle
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { getPlatformSettings, updatePlatformSettings, PlatformSettings } from '@/lib/api';
+import { getPlatformSettings, updatePlatformSettings, PlatformSettings, HeroMedia } from '@/lib/api';
 import { toast } from 'sonner';
 import styles from './settings.module.css';
 
@@ -410,7 +410,7 @@ export default function ManagerSettings() {
                 type="button" 
                 className={styles.addBtn}
                 onClick={() => {
-                  const newMedia = [...(settings.heroMedia || []), { type: 'image', url: '' }];
+                  const newMedia: HeroMedia[] = [...(settings.heroMedia || []), { type: 'image', url: '' }];
                   setSettings({...settings, heroMedia: newMedia});
                 }}
               >
