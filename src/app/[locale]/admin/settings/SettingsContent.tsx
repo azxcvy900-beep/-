@@ -31,11 +31,9 @@ import {
   updateStoreInfo, 
   uploadStoreLogo, 
   StoreInfo, 
-  getPlatformSettings, 
-  updatePlatformSettings, 
-  PlatformSettings,
-  HeroMedia,
-  uploadPlatformMedia
+  updateStoreInfo, 
+  uploadStoreLogo, 
+  StoreInfo
 } from '@/lib/api';
 import { useAuthStore } from '@/lib/auth-store';
 import { useSessionStore } from '@/lib/session-store';
@@ -49,15 +47,6 @@ export default function SettingsContent() {
   const { role } = useSessionStore();
   
   const [storeData, setStoreData] = useState<StoreInfo | null>(null);
-  const [platformSettings, setPlatformSettings] = useState<PlatformSettings>({
-    platformFee: 2.5,
-    maintenanceMode: false,
-    defaultCurrency: 'USD',
-    supportPhone: '967770000000',
-    currencyRates: { YER: 530, SAR: 140 },
-    notifications: { newMerchant: true, highComplaint: true, systemAlert: true }
-  });
-  const [initialPlatformData, setInitialPlatformData] = useState<PlatformSettings | null>(null);
   const [initialData, setInitialData] = useState<StoreInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -93,17 +82,6 @@ export default function SettingsContent() {
           };
           setStoreData(defaultData);
           setInitialData(defaultData);
-        }
-
-        if (role === 'admin') {
-          try {
-            const pData = await getPlatformSettings();
-            setPlatformSettings(pData);
-            setInitialPlatformData(pData);
-          } catch {
-            // Keep the default value already set
-            setInitialPlatformData(platformSettings);
-          }
         }
       } catch (error) {
         console.error("Error loading store settings:", error);
@@ -151,13 +129,7 @@ export default function SettingsContent() {
     setSuccess(false);
     setSaveStep('compressing');
     try {
-      // 1. Save Platform Settings if Admin
-      if (role === 'admin' && platformSettings) {
-        await updatePlatformSettings(platformSettings);
-        setInitialPlatformData(platformSettings);
-      }
-
-      // 2. Save Store Settings
+      // 1. Save Store Settings
       let finalLogoUrl = storeData.logo;
       if (selectedLogo) {
         setSaveStep('saving');
@@ -188,12 +160,10 @@ export default function SettingsContent() {
     }
   };
 
-  const hasChanges = (storeData && initialData && (
+  const hasChanges = storeData && initialData && (
     JSON.stringify(storeData) !== JSON.stringify(initialData) || 
     selectedLogo !== null
-  )) || (role === 'admin' && platformSettings && initialPlatformData && (
-    JSON.stringify(platformSettings) !== JSON.stringify(initialPlatformData)
-  ));
+  );
 
   if (loading) {
     return <div style={{ textAlign: 'center', padding: '10rem' }}><Loader2 className="animate-spin" size={48} color="#3b82f6" /></div>;
@@ -433,6 +403,22 @@ export default function SettingsContent() {
                     onChange={(e) => setStoreData(prev => prev ? {
                       ...prev, 
                       social: { ...prev.social, instagram: e.target.value }
+                    } : null)}
+                  />
+                </div>
+              </div>
+
+              <div className={styles.inputGroup}>
+                <label>رقم واتساب المتجر (WhatsApp)</label>
+                <div className={styles.socialGroup}>
+                  <div className={styles.socialIcon}><Phone size={20} /></div>
+                  <input 
+                    className={styles.input}
+                    placeholder="مثال: 967770000000"
+                    value={storeData?.social?.whatsapp || ''}
+                    onChange={(e) => setStoreData(prev => prev ? {
+                      ...prev, 
+                      social: { ...prev.social, whatsapp: e.target.value }
                     } : null)}
                   />
                 </div>
@@ -764,142 +750,7 @@ export default function SettingsContent() {
               </div>
             </div>
           </div>
-          {role === 'admin' && (
-            <div className={styles.section} style={{ borderTop: '2px solid var(--primary)', marginTop: '3rem', paddingTop: '2rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
-                <ShieldCheck size={24} color="var(--primary)" />
-                <h3 className={styles.sectionTitle} style={{ margin: 0 }}>إعدادات الإدارة العامة (المنصة)</h3>
-              </div>
-              <div className={styles.formGrid}>
-                <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
-                  <label>رقم هاتف الإدارة العامة للشكاوي (واتساب الدعم)</label>
-                  <div style={{ position: 'relative' }}>
-                    <div style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#6b7280' }}>
-                      <Phone size={18} />
-                    </div>
-                    <input 
-                      className={styles.input}
-                      style={{ paddingRight: '3rem' }}
-                      placeholder="967770000000"
-                      value={platformSettings.supportPhone || ''}
-                      onChange={(e) => setPlatformSettings(prev => ({...prev, supportPhone: e.target.value}))}
-                    />
-                  </div>
-                  <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '0.5rem' }}>
-                    هذا الرقم هو الذي سيظهر للعملاء والموظفين عند الضغط على زر "تواصل معنا" العائم في المتجر واللوحة.
-                  </p>
-                </div>
-
-                <div className={`${styles.inputGroup} ${styles.fullWidth}`} style={{ marginTop: '2rem' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                    <ImageIcon size={18} />
-                    وسائط الواجهة الرئيسية (صور وفيديوهات)
-                  </label>
-                  
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
-                    {platformSettings.heroMedia?.map((media, index) => (
-                      <div key={index} style={{ background: '#f9fafb', padding: '1rem', borderRadius: '12px', border: '1px solid #e5e7eb', position: 'relative' }}>
-                        <button 
-                          type="button"
-                          onClick={() => {
-                            const newMedia = [...(platformSettings.heroMedia || [])];
-                            newMedia.splice(index, 1);
-                            setPlatformSettings(prev => ({...prev, heroMedia: newMedia}));
-                          }}
-                          style={{ position: 'absolute', top: '-0.5rem', left: '-0.5rem', background: '#ef4444', color: 'white', padding: '0.4rem', borderRadius: '50%', cursor: 'pointer', border: 'none', boxShadow: '0 2px 5px rgba(0,0,0,0.2)', zIndex: 10 }}
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                        
-                        <div style={{ marginBottom: '0.75rem' }}>
-                          <select 
-                            className={styles.input}
-                            value={media.type}
-                            onChange={(e) => {
-                              const newMedia = [...(platformSettings.heroMedia || [])];
-                              newMedia[index] = { ...media, type: e.target.value as 'image' | 'video' };
-                              setPlatformSettings(prev => ({...prev, heroMedia: newMedia}));
-                            }}
-                          >
-                            <option value="image">صورة</option>
-                            <option value="video">فيديو (رابط مباشر)</option>
-                          </select>
-                        </div>
-                        
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                          <input 
-                            className={styles.input}
-                            placeholder={media.type === 'image' ? "رابط الصورة..." : "رابط الفيديو..."}
-                            value={media.url}
-                            onChange={(e) => {
-                              const newMedia = [...(platformSettings.heroMedia || [])];
-                              newMedia[index] = { ...media, url: e.target.value };
-                              setPlatformSettings(prev => ({...prev, heroMedia: newMedia}));
-                            }}
-                          />
-                          {media.type === 'image' && (
-                            <label className={styles.iconButton} style={{ cursor: 'pointer' }}>
-                              <Plus size={18} />
-                              <input 
-                                type="file" 
-                                hidden 
-                                accept="image/*"
-                                onChange={async (e) => {
-                                  const file = e.target.files?.[0];
-                                  if (file) {
-                                    try {
-                                      const url = await uploadPlatformMedia(file);
-                                      const newMedia = [...(platformSettings.heroMedia || [])];
-                                      newMedia[index] = { ...media, url };
-                                      setPlatformSettings(prev => ({...prev, heroMedia: newMedia}));
-                                    } catch (err) {
-                                      console.error("Upload failed", err);
-                                    }
-                                  }
-                                }}
-                              />
-                            </label>
-                          )}
-                        </div>
-
-                        {media.url && (
-                          <div style={{ marginTop: '1rem', height: '100px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #e5e7eb' }}>
-                            {media.type === 'image' ? (
-                              <img src={media.url} alt="Hero Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                            ) : (
-                              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000', color: 'white' }}>
-                                <Video size={24} />
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                    
-                    <button 
-                      type="button"
-                      onClick={() => {
-                        setPlatformSettings(prev => ({
-                          ...prev, 
-                          heroMedia: [...(prev.heroMedia || []), { type: 'image', url: '' }]
-                        }));
-                      }}
-                      className={styles.addBtn}
-                      style={{ height: '100%', minHeight: '150px', border: '2px dashed #e5e7eb', background: 'transparent', color: '#6b7280' }}
-                    >
-                      <Plus size={24} />
-                      إضافة وسيط جديد
-                    </button>
-                  </div>
-                  <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '1rem' }}>
-                    يمكنك إضافة عدة صور أو روابط فيديو لعرضها في واجهة المنصة الرئيسية. سيتم عرضها بترتيبها الحالي.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Save button removed from bottom as requested */}
+          </div>
         </form>
       </Suspense>
 

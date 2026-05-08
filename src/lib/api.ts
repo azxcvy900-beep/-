@@ -845,6 +845,7 @@ export async function submitOrder(order: Order, storeSlug: string): Promise<void
       transaction.set(orderRef, {
         ...order,
         storeSlug,
+        customerUid: order.customerUid || null
       });
 
       // 4. Update customer info (CRM)
@@ -929,9 +930,11 @@ export interface PlatformSettings {
   platformFee: number;
   maintenanceMode: boolean;
   defaultCurrency: string;
-  supportPhone: string; // Added for complaints department
+  supportPhone: string;
+  contactEmail?: string;
+  whatsappNumber?: string;
   commissionRate?: number;
-  heroMedia?: HeroMedia[]; // Added for landing page hero visuals
+  heroMedia?: HeroMedia[];
   currencyRates: {
     YER: number;
     SAR: number;
@@ -941,6 +944,24 @@ export interface PlatformSettings {
     newMerchant: boolean;
     highComplaint: boolean;
     systemAlert: boolean;
+  };
+  seo?: {
+    title: string;
+    description: string;
+    keywords: string;
+  };
+  socialMedia?: {
+    facebook: string;
+    twitter: string;
+    instagram: string;
+  };
+  features?: {
+    autoApproveStores: boolean;
+    allowGuestCheckout: boolean;
+  };
+  limits?: {
+    freePlanProducts: number;
+    proPlanProducts: number;
   };
 }
 
@@ -961,6 +982,26 @@ export async function getPlatformSettings(): Promise<PlatformSettings> {
       newMerchant: true,
       highComplaint: true,
       systemAlert: true
+    },
+    contactEmail: 'support@buyers.com',
+    whatsappNumber: '967770000000',
+    seo: {
+      title: 'منصة بايرز - دليلك للتجارة الإلكترونية',
+      description: 'أفضل منصة يمنية لإنشاء متجرك الإلكتروني بسهولة وسرعة.',
+      keywords: 'تجارة, إلكترونية, بايرز, متجر, يمن'
+    },
+    socialMedia: {
+      facebook: 'buyers_ye',
+      twitter: 'buyers_ye',
+      instagram: 'buyers_ye'
+    },
+    features: {
+      autoApproveStores: false,
+      allowGuestCheckout: true
+    },
+    limits: {
+      freePlanProducts: 50,
+      proPlanProducts: 500
     }
   };
 
@@ -1069,7 +1110,7 @@ export async function seedDatabase(): Promise<void> {
 
 // --- USER & PERMISSIONS ---
 
-export type UserRole = 'admin' | 'merchant' | 'employee' | null;
+export type UserRole = 'admin' | 'merchant' | 'employee' | 'customer' | null;
 
 export interface AppUser {
   uid: string;
@@ -1079,6 +1120,7 @@ export interface AppUser {
   storeSlug?: string;
   role: UserRole;
   permissions?: string[]; // e.g. ['orders.view', 'products.edit']
+  phone?: string;
   createdAt: string;
 }
 
@@ -1146,28 +1188,18 @@ export function isEmailVerified(): boolean {
   return auth.currentUser?.emailVerified || false;
 }
 
-/**
- * Validate user credentials using Firebase Auth.
- */
 export async function loginMerchant(usernameOrEmail: string, password: string): Promise<AppUser | null> {
   try {
     let email = usernameOrEmail;
 
-    // 1. Sign in via Firebase Auth
-    // If usernameOrEmail contains '@', use it directly, otherwise we'd need a lookup
-    // But since we want to support duplicate names, Email is the only unique login
-    // If it's a username, we'll try to find the email via a query (for backward compatibility or handle support)
     if (!usernameOrEmail.includes('@')) {
       const merchantsCol = collection(db, 'merchants');
       const cleanUsername = usernameOrEmail.trim();
       
-      // Try multiple matching strategies for maximum robustness
-      // 1. Exact match (as provided)
       let q = query(merchantsCol, where('username', '==', cleanUsername));
       let querySnapshot = await getDocs(q);
       
       if (querySnapshot.empty) {
-        // 2. Case-insensitive match (fallback)
         q = query(merchantsCol, where('username', '==', cleanUsername.toLowerCase()));
         querySnapshot = await getDocs(q);
       }
@@ -1187,7 +1219,6 @@ export async function loginMerchant(usernameOrEmail: string, password: string): 
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const uid = userCredential.user.uid;
 
-    // 2. Fetch profile from Firestore by UID (Direct & Fast)
     const userSnap = await getDoc(doc(db, 'merchants', uid));
 
     if (userSnap.exists()) {
@@ -1198,6 +1229,64 @@ export async function loginMerchant(usernameOrEmail: string, password: string): 
   } catch (error) {
     console.error("Login error:", error);
     throw error;
+  }
+}
+
+/**
+ * Register a new customer.
+ */
+export async function registerCustomer(customer: Omit<AppUser, 'uid' | 'createdAt' | 'role' | 'permissions'>): Promise<string> {
+  if (!customer.email) throw new Error('email_required');
+  
+  const userCredential = await createUserWithEmailAndPassword(auth, customer.email, customer.password!);
+  const uid = userCredential.user.uid;
+
+  const newUser: AppUser = {
+    ...customer,
+    password: '[PROTECTED]',
+    uid,
+    role: 'customer',
+    createdAt: new Date().toISOString()
+  };
+
+  await setDoc(doc(db, 'customers', uid), newUser);
+  return uid;
+}
+
+/**
+ * Login a customer.
+ */
+export async function loginCustomer(email: string, password: string): Promise<AppUser | null> {
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const uid = userCredential.user.uid;
+
+    const userSnap = await getDoc(doc(db, 'customers', uid));
+    if (userSnap.exists()) {
+      return userSnap.data() as AppUser;
+    }
+    return null;
+  } catch (error) {
+    console.error("Customer login error:", error);
+    throw error;
+  }
+}
+
+/**
+ * Get orders for a specific customer across all stores.
+ */
+export async function getCustomerOrders(customerEmail: string, customerUid?: string): Promise<Order[]> {
+  if (!customerUid) return []; 
+  
+  try {
+    const ordersCol = collection(db, 'orders');
+    const q = query(ordersCol, where('customerUid', '==', customerUid), orderBy('date', 'desc'));
+    
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
+  } catch (error) {
+    console.error("Error fetching customer orders:", error);
+    return [];
   }
 }
 

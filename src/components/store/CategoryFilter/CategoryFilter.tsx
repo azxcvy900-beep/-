@@ -59,6 +59,23 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
   onSelectCategory,
   allLabel 
 }) => {
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { 
+      opacity: 1, 
+      y: 0,
+      transition: { type: 'spring', stiffness: 300, damping: 20 }
+    }
+  };
+
   const renderItem = (id: string, label: string) => {
     const data = categoryMap[id] || categoryMap['fallback'];
     const isActive = activeCategory === id;
@@ -66,9 +83,10 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
     return (
       <motion.div
         key={id}
+        variants={itemVariants}
         className={`${styles.categoryItem} ${isActive ? styles.active : ''}`}
         onClick={() => onSelectCategory(id)}
-        whileHover={{ y: -5 }}
+        whileHover={{ y: -8, scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
       >
         <div className={styles.circleWrapper} style={{ '--accent-color': data.color } as any}>
@@ -95,10 +113,15 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
   };
 
   return (
-    <div className={styles.filterContainer}>
+    <motion.div 
+      className={styles.filterContainer}
+      variants={containerVariants}
+      initial="hidden"
+      animate="show"
+    >
       {renderItem('all', allLabel)}
       {categories.map((cat) => renderItem(cat, cat))}
-    </div>
+    </motion.div>
   );
 };
 

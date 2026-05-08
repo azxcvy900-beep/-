@@ -1,0 +1,265 @@
+.accountPage {
+  min-height: 100vh;
+  background: #f8fafc;
+  padding: 2rem 1rem;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.loadingContainer {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+  color: var(--primary);
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.profileCard {
+  background: white;
+  padding: 2rem;
+  border-radius: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.profileInfo {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+  background: rgba(var(--primary-rgb), 0.1);
+  color: var(--primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profileInfo h2 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 0.25rem;
+}
+
+.profileInfo p {
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.logoutBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: #fef2f2;
+  color: #ef4444;
+  border: 1px solid #fee2e2;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.logoutBtn:hover {
+  background: #ef4444;
+  color: white;
+}
+
+.ordersSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #1e293b;
+}
+
+.sectionHeader h3 {
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.ordersList {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.orderCard {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.orderCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+}
+
+.orderHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.orderId {
+  font-weight: 800;
+  color: #1e293b;
+  font-family: monospace;
+  font-size: 1rem;
+}
+
+.statusBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 99px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.statusBadge[data-status="delivered"] { background: #ecfdf5; color: #059669; }
+.statusBadge[data-status="pending"] { background: #fffbeb; color: #d97706; }
+.statusBadge[data-status="cancelled"] { background: #fef2f2; color: #dc2626; }
+
+.orderDetails {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.detailItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.orderItems {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.itemThumb {
+  width: 45px;
+  height: 45px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+}
+
+.itemThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.moreItems {
+  width: 45px;
+  height: 45px;
+  background: #f1f5f9;
+  color: #64748b;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.trackBtn {
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background: #f8fafc;
+  color: var(--primary);
+  text-decoration: none;
+  border-radius: 12px;
+  font-weight: 700;
+  transition: background 0.2s;
+}
+
+.trackBtn:hover {
+  background: rgba(var(--primary-rgb), 0.05);
+}
+
+.emptyOrders {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: white;
+  border-radius: 24px;
+  color: #94a3b8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.shopBtn {
+  margin-top: 1rem;
+  padding: 0.75rem 2rem;
+  background: var(--primary);
+  color: white;
+  text-decoration: none;
+  border-radius: 99px;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.2);
+}
+
+@media (max-width: 640px) {
+  .profileCard {
+    flex-direction: column;
+    text-align: center;
+    gap: 1.5rem;
+  }
+  
+  .profileInfo {
+    flex-direction: column;
+  }
+  
+  .logoutBtn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .orderDetails {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}

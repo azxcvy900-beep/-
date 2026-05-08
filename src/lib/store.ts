@@ -35,6 +35,7 @@ export interface Order {
   isPriceLocked?: boolean;
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   date: string;
+  customerUid?: string;
 }
 
 interface CartStore {

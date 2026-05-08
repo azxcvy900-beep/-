@@ -10,6 +10,7 @@ import { formatPrice } from '@/lib/utils';
 import BackButton from '@/components/shared/BackButton/BackButton';
 import { validateCoupon, Coupon, getStoreInfo } from '@/lib/api';
 import { toast } from 'sonner';
+import { useCustomerSessionStore } from '@/lib/customer-session-store';
 import styles from './checkout.module.css';
 
 type PaymentMethod = 'cod' | 'transfer';
@@ -73,6 +74,8 @@ export default function CheckoutContent() {
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
   const [couponError, setCouponError] = useState<string | null>(null);
   const [isCheckingCoupon, setIsCheckingCoupon] = useState(false);
+  
+  const { isLoggedIn: isCustomerLoggedIn, email: customerEmail, username: customerName, uid: customerUid, phone: customerPhone } = useCustomerSessionStore();
 
   const bankAccounts = [
     { bank: 'بنك الكريمي', account: '123456789', name: 'مؤسسة بايرز للتجارة', logo: '🏦' },
@@ -100,7 +103,16 @@ export default function CheckoutContent() {
       }
     }
     loadStore();
-  }, []);
+    
+    // Pre-fill customer data if logged in and no addresses
+    if (isCustomerLoggedIn && addresses.length === 0) {
+      setFormData(prev => ({
+        ...prev,
+        fullName: customerName || '',
+        phone: customerPhone || '',
+      }));
+    }
+  }, [isCustomerLoggedIn, customerName, customerPhone, addresses.length]);
 
   useEffect(() => {
     if (mounted && items.length === 0) {
@@ -263,7 +275,8 @@ export default function CheckoutContent() {
       address: addresses.find(a => a.id === selectedAddressId) || (formData as any),
       paymentMethod: paymentMethod,
       lockedExRate: lockedRate || (receipt ? getCurrentSARRate() : undefined),
-      isPriceLocked: !!receipt
+      isPriceLocked: !!receipt,
+      customerUid: isCustomerLoggedIn ? customerUid : undefined
     };
     try {
       const { submitOrder } = await import('@/lib/api');

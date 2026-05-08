@@ -5,12 +5,13 @@ import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Moon, Sun, Globe, ShoppingCart, ClipboardList, ShoppingBag, LayoutDashboard, Package } from 'lucide-react';
+import { Moon, Sun, Globe, ShoppingCart, ClipboardList, ShoppingBag, LayoutDashboard, Package, User } from 'lucide-react';
 import { useTheme } from '@/components/providers/ThemeProvider';
 import { useCartStore } from '@/lib/store';
 import Image from 'next/image';
 import CurrencySwitcher from '@/components/shared/CurrencySwitcher/CurrencySwitcher';
 import { triggerHaptic } from '@/lib/utils';
+import { useCustomerSessionStore } from '@/lib/customer-session-store';
 import styles from './Header.module.css';
 
 interface HeaderProps {
@@ -33,6 +34,8 @@ const Header: React.FC<HeaderProps> = ({ storeName, storeLogo, isLanding }) => {
   // Hydration safety
   const [mounted, setMounted] = useState(false);
   const totalItems = useCartStore((state) => state.getTotalItems());
+
+  const { isLoggedIn: isCustomerLoggedIn } = useCustomerSessionStore();
 
   useEffect(() => {
     setMounted(true);
@@ -85,9 +88,9 @@ const Header: React.FC<HeaderProps> = ({ storeName, storeLogo, isLanding }) => {
                 <ShoppingBag size={18} />
                 <span className={styles.hideOnMobile}>{t('myOrders')}</span>
               </Link>
-              <Link href={`/${locale}/track`} className={styles.navLink} onClick={() => triggerHaptic('light')}>
-                <Package size={18} />
-                <span className={styles.hideOnMobile}>{t('trackOrder')}</span>
+              <Link href={`/${locale}/store/${storeSlug}/account`} className={styles.accountLink} onClick={() => triggerHaptic('light')}>
+                <User size={18} />
+                <span className={styles.hideOnMobile}>{isCustomerLoggedIn ? 'حسابي' : 'تسجيل دخول'}</span>
               </Link>
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Link href={`/${locale}/cart`} className={styles.cartLink} onClick={() => triggerHaptic('medium')}>

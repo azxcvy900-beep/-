@@ -28,6 +28,10 @@ service cloud.firestore {
     match /merchants/{merchantId} {
       allow read, write: if true; // Manual auth app: allow all (not recommended for production)
     }
+    
+    match /customers/{customerId} {
+      allow read, write: if true;
+    }
 
     // 3. PLATFORM ADMIN DATA (KYC Queue)
     // KYC requests contain sensitive URLs and bank info
