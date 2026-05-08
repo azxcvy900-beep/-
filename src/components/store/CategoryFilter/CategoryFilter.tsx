@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
 import styles from './CategoryFilter.module.css';
 
 interface CategoryFilterProps {
@@ -59,7 +59,7 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
   onSelectCategory,
   allLabel 
 }) => {
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
@@ -67,7 +67,7 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
     }
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: 20 },
     show: { 
       opacity: 1, 
