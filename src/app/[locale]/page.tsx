@@ -27,6 +27,7 @@ import TiltCard from "@/components/landing/TiltCard/TiltCard";
 import CheckoutVisualizer from "@/components/landing/CheckoutVisualizer/CheckoutVisualizer";
 import styles from "./page.module.css";
 import Image from "next/image";
+import { triggerHaptic } from "@/lib/utils";
 import { useRef, useEffect, useState } from "react";
 import { getPlatformSettings, PlatformSettings } from "@/lib/api";
 
