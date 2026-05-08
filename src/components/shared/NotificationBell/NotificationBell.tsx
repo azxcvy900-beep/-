@@ -10,8 +10,7 @@ import Link from 'next/link';
 import styles from './NotificationBell.module.css';
 
 export default function NotificationBell() {
-  const { isLoggedIn } = useSessionStore();
-  const { merchantId } = useAuthStore();
+  const { isLoggedIn, uid: merchantId } = useSessionStore();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
