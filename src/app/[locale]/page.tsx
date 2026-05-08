@@ -93,54 +93,52 @@ export default function Home() {
           <div className={styles.bgGrid} />
           
           <div className={styles.heroContent}>
-            <div className={styles.heroText}>
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
-                className={styles.badge}
-              >
-                <Zap size={14} />
-                <span>{t("badge")}</span>
-              </motion.div>
-              
-              <motion.h1 
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-                className={styles.title}
-              >
-                {t("title_main")} <br/>
-                <span>{t("title_sub")}</span>
-              </motion.h1>
-              
-              <motion.p 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.2 }}
-                className={styles.subtitle}
-              >
-                {t("description")}
-              </motion.p>
-              
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.3 }}
-                className={styles.ctas}
-              >
-                <MagneticButton>
-                  <Link href={`/${locale}/admin/login`} className={styles.primaryBtn}>
-                    {t("cta_start")} <ArrowRight size={20} />
-                  </Link>
-                </MagneticButton>
-                <MagneticButton>
-                  <Link href={`/${locale}/store/demo`} className={styles.secondaryBtn}>
-                    <Globe size={18} /> {t("cta_demo")}
-                  </Link>
-                </MagneticButton>
-              </motion.div>
-            </div>
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              className={styles.badge}
+            >
+              <Zap size={14} />
+              <span>{t("badge")}</span>
+            </motion.div>
+            
+            <motion.h1 
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+              className={styles.title}
+            >
+              {t("title_main")} <br/>
+              <span>{t("title_sub")}</span>
+            </motion.h1>
+            
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className={styles.subtitle}
+            >
+              {t("description")}
+            </motion.p>
+            
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+              className={styles.ctas}
+            >
+              <MagneticButton>
+                <Link href={`/${locale}/admin/login`} className={styles.primaryBtn}>
+                  {t("cta_start")} <ArrowRight size={20} />
+                </Link>
+              </MagneticButton>
+              <MagneticButton>
+                <Link href={`/${locale}/store/demo`} className={styles.secondaryBtn}>
+                  <Globe size={18} /> {t("cta_demo")}
+                </Link>
+              </MagneticButton>
+            </motion.div>
 
             {/* Premium Hero Visual */}
             <motion.div 
