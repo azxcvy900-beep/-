@@ -944,22 +944,9 @@ export async function submitOrder(order: Order, storeSlug: string): Promise<void
   }
 }
 
-export async function submitPaymentProof(proof: Omit<PaymentProof, 'id' | 'date' | 'status'>): Promise<string> {
-  const id = `pay_${Date.now()}`;
-  const newProof: PaymentProof = {
-    ...proof,
-    id,
-    date: new Date().toISOString(),
-    status: 'pending'
-  };
-  
-  await setDoc(doc(db, 'platform', 'payments', 'proofs', id), newProof);
-  
-  // Also update store status to pending
-  await updateStoreInfo(proof.storeSlug, { subscriptionStatus: 'pending_verification' });
-  
-  return id;
-}
+/**
+ * Get analytics for a store.
+ */
 
 export async function getStoreAnalytics(slug: string) {
   try {
