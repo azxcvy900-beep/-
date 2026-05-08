@@ -26,6 +26,7 @@ export const useCustomerSessionStore = create<CustomerSessionState>()(
       uid: null,
       email: null,
       username: null,
+      phone: null,
       loginTime: null,
       _hasHydrated: false,
       setHasHydrated: (state) => set({ _hasHydrated: state }),
