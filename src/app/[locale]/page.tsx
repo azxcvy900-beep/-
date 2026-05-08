@@ -160,8 +160,8 @@ export default function Home() {
                   {heroMedia[activeMediaIndex]?.type === 'image' ? (
                     <div className={styles.scrollContainer}>
                       <motion.div 
-                        animate={{ y: ["0%", "-60%", "0%"] }}
-                        transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+                        animate={{ y: ["0%", "-78%", "0%"] }}
+                        transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
                         className={styles.scrollImageWrapper}
                       >
                         <Image 
