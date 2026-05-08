@@ -227,7 +227,12 @@ export default function DashboardContent() {
       animate={{ opacity: 1, y: 0 }}
       className={styles.dashboard}
     >
-      <UsageGuard isLocked={isLocked} orderCount={orderCount} plan={plan}>
+      <UsageGuard 
+        isLocked={isLocked} 
+        orderCount={orderCount} 
+        plan={plan} 
+        expiryDate={storeInfo?.expiryDate}
+      >
         <Suspense fallback={<div className={styles.loading}><Loader2 className="animate-spin" size={48} /></div>}>
           
           {/* Hero Banner Section */}

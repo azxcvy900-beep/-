@@ -30,6 +30,7 @@ import { useSessionStore } from '@/lib/session-store';
 import { useAuthStore } from '@/lib/auth-store';
 import { getStoreInfo } from '@/lib/api';
 import OrderNotification from '@/components/shared/OrderNotification/OrderNotification';
+import NotificationBell from '@/components/shared/NotificationBell/NotificationBell';
 import styles from './admin-layout.module.css';
 
 export default function AdminLayoutContent({ children }: { children: React.ReactNode }) {
@@ -177,6 +178,12 @@ export default function AdminLayoutContent({ children }: { children: React.React
       icon: Settings,
       show: hasAll || permissions?.includes('settings.manage') || role === 'admin' || role === 'merchant'
     },
+    { 
+      name: 'الدعم الفني', 
+      href: `/admin/support`, 
+      icon: MessageSquare,
+      show: role === 'merchant'
+    },
   ];
 
   const visibleNavItems = navItems.filter(item => item.show);
@@ -267,20 +274,23 @@ export default function AdminLayoutContent({ children }: { children: React.React
             </h2>
           </div>
           
-          <div className={styles.userProfile}>
-            <div className={styles.userInfo}>
-              <p className={styles.userName}>{username || 'التاجر'}</p>
-            </div>
-            <div className={styles.avatar}>
-              {storeLogo ? (
-                <img 
-                  src={storeLogo} 
-                  alt={storeName || ''} 
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                />
-              ) : (
-                <User size={20} />
-              )}
+          <div className={styles.topBarRight}>
+            <NotificationBell />
+            <div className={styles.userProfile}>
+              <div className={styles.userInfo}>
+                <p className={styles.userName}>{username || 'التاجر'}</p>
+              </div>
+              <div className={styles.avatar}>
+                {storeLogo ? (
+                  <img 
+                    src={storeLogo} 
+                    alt={storeName || ''} 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                ) : (
+                  <User size={20} />
+                )}
+              </div>
             </div>
           </div>
         </header>

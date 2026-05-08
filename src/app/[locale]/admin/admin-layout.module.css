@@ -170,6 +170,12 @@
   font-weight: 700;
 }
 
+.topBarRight {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
 .userProfile {
   display: flex;
   align-items: center;

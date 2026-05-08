@@ -12,15 +12,16 @@ interface UsageGuardProps {
   isLocked: boolean;
   orderCount: number;
   plan: string;
+  expiryDate?: string;
 }
 
-export default function UsageGuard({ children, isLocked, orderCount, plan }: UsageGuardProps) {
+export default function UsageGuard({ children, isLocked, orderCount, plan, expiryDate }: UsageGuardProps) {
   const locale = useLocale();
+  const isExpired = expiryDate && plan !== 'free' && new Date(expiryDate) < new Date();
 
-  if (isLocked && plan === 'free') {
+  if ((isLocked && plan === 'free') || isExpired) {
     return (
       <div className={styles.lockContainer}>
-        {/* Blurry version of potential children behind */}
         <div className={styles.blurredContent}>
            {children}
         </div>
@@ -34,11 +35,16 @@ export default function UsageGuard({ children, isLocked, orderCount, plan }: Usa
             <div className={styles.iconBox}>
               <Lock size={32} />
             </div>
-            <h2>تجاوزت الحد المسموح ⚠️</h2>
-            <p>لقد وصلت إلى <strong>{orderCount} طلب</strong> في الباقة المجانية. يرجى الترقية لمشاهدة إيصالات الدفع ومعالجة الطلبات.</p>
+            <h2>{isExpired ? 'انتهت صلاحية الاشتراك ⌛' : 'تجاوزت الحد المسموح ⚠️'}</h2>
+            <p>
+              {isExpired 
+                ? 'لقد انتهت فترة اشتراكك في الباقة المدفوعة. يرجى التجديد لمواصلة استخدام ميزات المتجر.' 
+                : `لقد وصلت إلى ${orderCount} طلب في الباقة المجانية. يرجى الترقية لمشاهدة إيصالات الدفع ومعالجة الطلبات.`
+              }
+            </p>
             
             <Link href="/admin/billing" className={styles.upgradeBtn}>
-              <Crown size={20} /> ترقية الحساب الآن
+              <Crown size={20} /> {isExpired ? 'تجديد الاشتراك الآن' : 'ترقية الحساب الآن'}
             </Link>
           </div>
         </motion.div>

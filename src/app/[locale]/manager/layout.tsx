@@ -71,6 +71,7 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
     { name: 'إدارة المتاجر', href: `/${locale}/manager/merchants`, icon: Store },
     { name: 'مراقبة الطلبات', href: `/${locale}/manager/orders`, icon: ShoppingBag },
     { name: 'مركز البلاغات', href: `/${locale}/manager/complaints`, icon: Bell },
+    { name: 'دعم التجار', href: `/${locale}/manager/support`, icon: MessageSquare },
     { name: 'الإعدادات العالمية', href: `/${locale}/manager/settings`, icon: Settings },
   ];
 

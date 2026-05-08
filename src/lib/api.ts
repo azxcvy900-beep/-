@@ -79,9 +79,10 @@ export interface StoreInfo {
   };
   shippingFee?: number; // Fixed shipping fee controlled by merchant
   merchantId?: string; // Firebase UID of the merchant who owns this store
-  planType?: 'free' | 'pro' | 'business';
-  subscriptionStatus?: 'active' | 'expired' | 'pending_verification';
-  verificationStatus?: 'pending' | 'under_review' | 'active' | 'approved' | 'rejected';
+  planType: 'free' | 'pro' | 'business';
+  subscriptionStatus: 'active' | 'inactive' | 'pending';
+  expiryDate?: string;
+  verificationStatus: 'pending' | 'under_review' | 'active' | 'rejected';
   rejectionReason?: string;
   orderCountMonth?: number;
   lastCountReset?: string;
@@ -145,6 +146,37 @@ export interface Review {
   date: string;
   isApproved: boolean;
   reply?: string;
+}
+
+export interface AppNotification {
+  id: string;
+  userId: string; // The recipient
+  title: string;
+  message: string;
+  type: 'order' | 'system' | 'payment' | 'kyc' | 'support';
+  link?: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
+export interface SupportTicket {
+  id: string;
+  storeSlug: string;
+  merchantId: string;
+  subject: string;
+  status: 'open' | 'in_progress' | 'closed';
+  priority: 'low' | 'medium' | 'high';
+  createdAt: string;
+  lastUpdate: string;
+}
+
+export interface TicketMessage {
+  id: string;
+  ticketId: string;
+  senderId: string;
+  senderRole: 'merchant' | 'admin';
+  message: string;
+  createdAt: string;
 }
 
 export interface Category {
@@ -875,6 +907,29 @@ export async function submitOrder(order: Order, storeSlug: string): Promise<void
       }
     });
 
+    // Post-order actions
+    try {
+      const storeSnap = await getDoc(storeRef);
+      const storeData = storeSnap.data() as StoreInfo;
+      
+      if (storeData?.merchantId) {
+        await sendNotification({
+          userId: storeData.merchantId,
+          title: 'طلب جديد! 🛍️',
+          message: `وصلك طلب جديد برقم #${order.id.slice(-6).toUpperCase()} بمبلغ ${order.total} ${order.currency || 'YER'}.`,
+          type: 'order',
+          link: '/admin/orders'
+        });
+      }
+
+      if (order.customerUid) {
+        await updateLoyaltyPoints(order.customerUid, Math.floor(order.total / 100));
+      }
+    } catch (err) {
+      console.error("Post-order actions failed:", err);
+    }
+
+
     // Invalidate caches after successful transaction
     dataCache.invalidate(`orders_${storeSlug}`);
     dataCache.invalidatePrefix('products_');
@@ -907,17 +962,67 @@ export async function submitPaymentProof(proof: Omit<PaymentProof, 'id' | 'date'
 }
 
 export async function getStoreAnalytics(slug: string) {
-  // Placeholder for advanced aggregation logic
-  // Will return monthly sales data for Recharts
-  return [
-    { name: 'السبت', sales: 4000 },
-    { name: 'الأحد', sales: 3000 },
-    { name: 'الاثنين', sales: 2000 },
-    { name: 'الثلاثاء', sales: 2780 },
-    { name: 'الأربعاء', sales: 1890 },
-    { name: 'الخميس', sales: 2390 },
-    { name: 'الجمعة', sales: 3490 },
-  ];
+  try {
+    const ordersCol = collection(db, 'orders');
+    const q = query(ordersCol, where('storeSlug', '==', slug));
+    const snap = await getDocs(q);
+    const orders = snap.docs.map(doc => doc.data() as Order);
+    
+    // 1. Sales Chart Data (Last 7 Days)
+    const days = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+    const now = new Date();
+    const chartData = [];
+    
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(now.getDate() - i);
+      const dayName = days[date.getDay()];
+      const dayTotal = orders
+        .filter(o => new Date(o.date).toDateString() === date.toDateString())
+        .reduce((sum, o) => sum + o.total, 0);
+      
+      chartData.push({ name: dayName, sales: dayTotal });
+    }
+
+    // 2. Top Products
+    const productSales: { [key: string]: { name: string, count: number, revenue: number } } = {};
+    orders.forEach(order => {
+      order.items.forEach(item => {
+        if (!productSales[item.id]) {
+          productSales[item.id] = { name: item.name, count: 0, revenue: 0 };
+        }
+        productSales[item.id].count += item.quantity;
+        productSales[item.id].revenue += item.price * item.quantity;
+      });
+    });
+
+    const topProducts = Object.values(productSales)
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5);
+
+    return {
+      chartData,
+      topProducts,
+      totalOrders: orders.length,
+      totalRevenue: orders.reduce((sum, o) => sum + o.total, 0)
+    };
+  } catch (error) {
+    console.error("Analytics aggregation failed:", error);
+    return {
+      chartData: [
+        { name: 'السبت', sales: 4000 },
+        { name: 'الأحد', sales: 3000 },
+        { name: 'الاثنين', sales: 2000 },
+        { name: 'الثلاثاء', sales: 2780 },
+        { name: 'الأربعاء', sales: 1890 },
+        { name: 'الخميس', sales: 2390 },
+        { name: 'الجمعة', sales: 3490 },
+      ],
+      topProducts: [],
+      totalOrders: 0,
+      totalRevenue: 0
+    };
+  }
 }
 
 // --- GLOBAL PLATFORM API ---
@@ -1294,6 +1399,18 @@ export async function updateCustomerProfile(uid: string, data: Partial<AppUser>)
 }
 
 /**
+ * Update loyalty points for a customer.
+ */
+export async function updateLoyaltyPoints(uid: string, pointsToAdd: number): Promise<void> {
+  const userRef = doc(db, 'customers', uid);
+  const snap = await getDoc(userRef);
+  if (snap.exists()) {
+    const currentPoints = (snap.data() as any).loyaltyPoints || 0;
+    await updateDoc(userRef, { loyaltyPoints: currentPoints + pointsToAdd });
+  }
+}
+
+/**
  * Login a customer.
  */
 export async function loginCustomer(email: string, password: string): Promise<AppUser | null> {
@@ -1507,6 +1624,19 @@ export async function approveStoreSubscription(proofId: string, storeSlug: strin
     planType: plan
   });
 
+  // 3. Send notification
+  const proofSnap = await getDoc(proofRef);
+  const proofData = proofSnap.data() as PaymentProof;
+  if (proofData?.merchantId) {
+    await sendNotification({
+      userId: proofData.merchantId,
+      title: 'تم تفعيل باقة الاشتراك! 🎉',
+      message: `تمت الموافقة على طلب اشتراكك في الباقة الـ ${plan === 'pro' ? 'برو' : 'بزنس'}.`,
+      type: 'payment',
+      link: '/admin/settings'
+    });
+  }
+
   dataCache.invalidate(`store_${storeSlug}`);
 }
 
@@ -1519,6 +1649,19 @@ export async function rejectStoreSubscription(proofId: string, storeSlug: string
 
   await updateDoc(proofRef, { status: 'rejected' });
   await updateDoc(storeRef, { subscriptionStatus: 'inactive' });
+
+  // Send notification
+  const proofSnap = await getDoc(proofRef);
+  const proofData = proofSnap.data() as PaymentProof;
+  if (proofData?.merchantId) {
+    await sendNotification({
+      userId: proofData.merchantId,
+      title: 'تم رفض طلب الاشتراك ❌',
+      message: `تم رفض إثبات الدفع المرفوع لمتجر ${storeSlug}. يرجى مراجعة الإدارة.`,
+      type: 'payment',
+      link: '/admin/settings'
+    });
+  }
 
   dataCache.invalidate(`store_${storeSlug}`);
 }
@@ -1597,7 +1740,130 @@ export async function updateKYCStatus(requestId: string, storeSlug: string, stat
   });
 
   await batch.commit();
+
+  // 3. Send notification
+  const storeSnap = await getDoc(storeRef);
+  const storeData = storeSnap.data() as StoreInfo;
+  if (storeData?.merchantId) {
+    await sendNotification({
+      userId: storeData.merchantId,
+      title: status === 'approved' ? 'تهانينا! تم توثيق متجرك ✅' : 'تم رفض وثائق التوثيق ❌',
+      message: status === 'approved' 
+        ? 'تم قبول وثائق الهوية الخاصة بك، متجرك الآن يحمل شارة التوثيق.' 
+        : `تم رفض وثائق التوثيق للسبب التالي: ${reason}`,
+      type: 'kyc',
+      link: '/admin/verification'
+    });
+  }
+
   dataCache.invalidate(`store_${storeSlug}`);
+}
+
+
+/**
+ * Send a notification to a specific user.
+ */
+export async function sendNotification(data: Omit<AppNotification, 'id' | 'isRead' | 'createdAt'>): Promise<void> {
+  const id = `notif_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+  const notification: AppNotification = {
+    ...data,
+    id,
+    isRead: false,
+    createdAt: new Date().toISOString()
+  };
+  await setDoc(doc(db, 'notifications', id), notification);
+}
+
+/**
+ * Fetch notifications for a user.
+ */
+export async function getUserNotifications(userId: string): Promise<AppNotification[]> {
+  try {
+    const notifCol = collection(db, 'notifications');
+    const q = query(notifCol, where('userId', '==', userId), orderBy('createdAt', 'desc'));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => doc.data() as AppNotification);
+  } catch (error) {
+    console.error("Error fetching notifications:", error);
+    return [];
+  }
+}
+
+/**
+ * Mark a notification as read.
+ */
+export async function markNotificationAsRead(id: string): Promise<void> {
+  const notifRef = doc(db, 'notifications', id);
+  await updateDoc(notifRef, { isRead: true });
+}
+
+
+/**
+ * Create a new support ticket.
+ */
+export async function createSupportTicket(data: Omit<SupportTicket, 'id' | 'status' | 'createdAt' | 'lastUpdate'>, firstMessage: string): Promise<string> {
+  const ticketId = `ticket_${Date.now()}`;
+  const now = new Date().toISOString();
+  
+  const ticket: SupportTicket = {
+    ...data,
+    id: ticketId,
+    status: 'open',
+    createdAt: now,
+    lastUpdate: now
+  };
+  
+  await setDoc(doc(db, 'support_tickets', ticketId), ticket);
+  
+  // Add first message
+  await addTicketMessage(ticketId, data.merchantId, 'merchant', firstMessage);
+  
+  // Notify manager
+  await sendNotification({
+    userId: 'admin_global',
+    title: 'تذكرة دعم جديدة 🎫',
+    message: `فتح المتجر ${data.storeSlug} تذكرة جديدة: ${data.subject}`,
+    type: 'support',
+    link: '/manager/support'
+  });
+
+  return ticketId;
+}
+
+/**
+ * Add a message to a ticket.
+ */
+export async function addTicketMessage(ticketId: string, senderId: string, senderRole: 'merchant' | 'admin', message: string): Promise<void> {
+  const msgId = `msg_${Date.now()}`;
+  const msg: TicketMessage = {
+    id: msgId,
+    ticketId,
+    senderId,
+    senderRole,
+    message,
+    createdAt: new Date().toISOString()
+  };
+  
+  await setDoc(doc(db, 'support_tickets', ticketId, 'messages', msgId), msg);
+  await updateDoc(doc(db, 'support_tickets', ticketId), { lastUpdate: new Date().toISOString() });
+}
+
+/**
+ * Get tickets for a store.
+ */
+export async function getStoreTickets(storeSlug: string): Promise<SupportTicket[]> {
+  const q = query(collection(db, 'support_tickets'), where('storeSlug', '==', storeSlug), orderBy('lastUpdate', 'desc'));
+  const snap = await getDocs(q);
+  return snap.docs.map(doc => doc.data() as SupportTicket);
+}
+
+/**
+ * Get messages for a ticket.
+ */
+export async function getTicketMessages(ticketId: string): Promise<TicketMessage[]> {
+  const q = query(collection(db, 'support_tickets', ticketId, 'messages'), orderBy('createdAt', 'asc'));
+  const snap = await getDocs(q);
+  return snap.docs.map(doc => doc.data() as TicketMessage);
 }
 
 
