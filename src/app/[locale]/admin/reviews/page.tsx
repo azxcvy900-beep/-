@@ -16,6 +16,7 @@ import {
   getStoreReviews, 
   updateReviewStatus, 
   deleteReview,
+  replyToReview,
   Review 
 } from '@/lib/api';
 import { useStreamingFetch, useProgressiveLoad } from '@/lib/hooks';
@@ -28,6 +29,8 @@ export default function MerchantReviews() {
   const { storeSlug } = useAuthStore();
   
   const [localReviews, setLocalReviews] = useState<Review[] | null>(null);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState('');
   
   const { data: initialReviews, loading: reviewsLoading } = useStreamingFetch(
     () => getStoreReviews(storeSlug || 'demo'), 
@@ -66,6 +69,28 @@ export default function MerchantReviews() {
       await deleteReview(storeSlug || 'demo', id);
     } catch (error) {
       alert("حدث خطأ أثناء حذف التقييم.");
+      const fresh = await getStoreReviews(storeSlug || 'demo');
+      setLocalReviews(fresh);
+    }
+  };
+
+  const handleReplySubmit = async (id: string) => {
+    if (!replyText.trim()) return;
+    
+    const submittedReply = replyText;
+    
+    // Optimistic Update
+    setLocalReviews(prev => 
+      prev ? prev.map(r => r.id === id ? { ...r, reply: submittedReply } : r) : null
+    );
+    
+    setReplyingTo(null);
+    setReplyText('');
+    
+    try {
+      await replyToReview(storeSlug || 'demo', id, submittedReply);
+    } catch (error) {
+      alert("حدث خطأ أثناء إضافة الرد.");
       const fresh = await getStoreReviews(storeSlug || 'demo');
       setLocalReviews(fresh);
     }
@@ -122,6 +147,26 @@ export default function MerchantReviews() {
                 {review.comment}
               </div>
 
+              {review.reply ? (
+                <div className={styles.merchantReply}>
+                  <strong>رد المتجر:</strong>
+                  <p>{review.reply}</p>
+                </div>
+              ) : replyingTo === review.id ? (
+                <div className={styles.replyForm}>
+                  <textarea 
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                    placeholder="اكتب ردك للعميل هنا..."
+                    className={styles.replyTextarea}
+                  />
+                  <div className={styles.replyActions}>
+                    <button onClick={() => setReplyingTo(null)} className={styles.cancelReplyBtn}>إلغاء</button>
+                    <button onClick={() => handleReplySubmit(review.id)} className={styles.submitReplyBtn}>إرسال الرد</button>
+                  </div>
+                </div>
+              ) : null}
+
               <div className={styles.actions}>
                 {!review.isApproved && (
                   <button 
@@ -129,6 +174,14 @@ export default function MerchantReviews() {
                     onClick={() => handleApprove(review.id)}
                   >
                     <CheckCircle size={16} /> الموافقة والنشر
+                  </button>
+                )}
+                {!review.reply && replyingTo !== review.id && (
+                  <button 
+                    className={`${styles.actionBtn} ${styles.replyBtn}`}
+                    onClick={() => { setReplyingTo(review.id); setReplyText(''); }}
+                  >
+                    <MessageSquare size={16} /> إضافة رد
                   </button>
                 )}
                 <button 

@@ -323,8 +323,24 @@
 .empActions {
   display: flex;
   justify-content: flex-end;
+  gap: 0.5rem;
   border-top: 1px solid #f1f5f9;
   padding-top: 1rem;
+}
+
+.editBtn {
+  background: #f0f9ff;
+  color: #0284c7;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.editBtn:hover {
+  background: #e0f2fe;
+  transform: scale(1.1);
 }
 
 .deleteBtn {

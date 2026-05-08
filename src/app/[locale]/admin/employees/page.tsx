@@ -10,6 +10,7 @@ import {
   Trash2, 
   AlertCircle,
   Plus,
+  Edit,
   CheckCircle2,
   Lock,
   Mail,
@@ -18,7 +19,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSessionStore } from '@/lib/session-store';
-import { addEmployee, getStoreEmployees, deleteEmployee, AppUser } from '@/lib/api';
+import { addEmployee, getStoreEmployees, deleteEmployee, updateEmployeePermissions, AppUser } from '@/lib/api';
 import styles from './employees.module.css';
 
 const AVAILABLE_PERMISSIONS = [
@@ -44,6 +45,9 @@ export default function EmployeesPage() {
     password: '',
     permissions: [] as string[]
   });
+  
+  const [isEditing, setIsEditing] = useState(false);
+  const [editEmp, setEditEmp] = useState<{ uid: string, permissions: string[] } | null>(null);
   
   const [formLoading, setFormLoading] = useState(false);
   const [error, setError] = useState('');
@@ -87,6 +91,41 @@ export default function EmployeesPage() {
       setTimeout(() => setSuccess(''), 3000);
     } catch (err: any) {
       setError(err.message === 'username_taken' ? 'اسم المستخدم محجوز مسبقاً' : 'حدث خطأ في الإضافة');
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  const handleEditClick = (emp: AppUser) => {
+    setEditEmp({ uid: emp.uid, permissions: emp.permissions || [] });
+    setIsEditing(true);
+  };
+
+  const handleToggleEditPermission = (pid: string) => {
+    if (!editEmp) return;
+    setEditEmp(prev => ({
+      ...prev!,
+      permissions: prev!.permissions.includes(pid) 
+        ? prev!.permissions.filter(id => id !== pid) 
+        : [...prev!.permissions, pid]
+    }));
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editEmp) return;
+    setFormLoading(true);
+    setError('');
+    
+    try {
+      await updateEmployeePermissions(editEmp.uid, editEmp.permissions);
+      setSuccess('تم تحديث الصلاحيات بنجاح!');
+      setIsEditing(false);
+      setEditEmp(null);
+      fetchEmployees();
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err: any) {
+      setError('حدث خطأ أثناء التحديث');
     } finally {
       setFormLoading(false);
     }
@@ -210,6 +249,56 @@ export default function EmployeesPage() {
         )}
       </AnimatePresence>
 
+      <AnimatePresence>
+        {isEditing && editEmp && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className={styles.modalOverlay}
+          >
+            <div className={styles.modal}>
+              <div className={styles.modalHeader}>
+                <h2>تعديل صلاحيات الموظف</h2>
+                <button onClick={() => setIsEditing(false)} className={styles.closeBtn}>×</button>
+              </div>
+              
+              <form onSubmit={handleEditSubmit} className={styles.form}>
+                <div className={styles.permissionsArea}>
+                   <h3>{t('employees.permissions')}</h3>
+                   <div className={styles.permissionsGrid}>
+                      {AVAILABLE_PERMISSIONS.map(p => (
+                        <div 
+                          key={p.id} 
+                          className={`${styles.permCard} ${editEmp.permissions.includes(p.id) ? styles.permActive : ''}`}
+                          onClick={() => handleToggleEditPermission(p.id)}
+                        >
+                          <div className={styles.permCheck}>
+                             {editEmp.permissions.includes(p.id) ? <ShieldCheck size={20} /> : <Shield size={20} />}
+                          </div>
+                          <div>
+                             <h4>{p.name}</h4>
+                             <p>{p.desc}</p>
+                          </div>
+                        </div>
+                      ))}
+                   </div>
+                </div>
+
+                {error && <div className={styles.error}>{error}</div>}
+
+                <div className={styles.actions}>
+                  <button type="button" onClick={() => setIsEditing(false)} className={styles.cancelBtn}>{t('employees.cancel')}</button>
+                  <button type="submit" disabled={formLoading} className={styles.saveBtn}>
+                    {formLoading ? '...' : 'تحديث الصلاحيات'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className={styles.list}>
         {loading ? (
           <div className={styles.loading}>...</div>
@@ -237,6 +326,7 @@ export default function EmployeesPage() {
                      ))}
                   </div>
                   <div className={styles.empActions}>
+                     <button className={styles.editBtn} onClick={() => handleEditClick(emp)}><Edit size={16} /></button>
                      <button className={styles.deleteBtn} onClick={() => handleDelete(emp.uid)}><Trash2 size={16} /></button>
                   </div>
                </div>

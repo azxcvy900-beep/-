@@ -143,6 +143,7 @@ export interface Review {
   comment: string;
   date: string;
   isApproved: boolean;
+  reply?: string;
 }
 
 export interface Category {
@@ -649,6 +650,11 @@ export async function updateReviewStatus(storeSlug: string, id: string, isApprov
 export async function deleteReview(storeSlug: string, id: string): Promise<void> {
   const reviewRef = doc(db, 'stores', storeSlug, 'reviews', id);
   await deleteDoc(reviewRef);
+}
+
+export async function replyToReview(storeSlug: string, id: string, reply: string): Promise<void> {
+  const reviewRef = doc(db, 'stores', storeSlug, 'reviews', id);
+  await updateDoc(reviewRef, { reply });
 }
 
 export async function addCategory(category: Omit<Category, 'id'>): Promise<string> {
@@ -1289,6 +1295,14 @@ export async function deleteEmployee(uid: string): Promise<void> {
     // Fallback for direct ID match just in case
     await deleteDoc(doc(db, 'merchants', uid));
   }
+}
+
+/**
+ * Update an employee's permissions.
+ */
+export async function updateEmployeePermissions(uid: string, permissions: string[]): Promise<void> {
+  const userRef = doc(db, 'merchants', uid);
+  await updateDoc(userRef, { permissions });
 }
 
 /**

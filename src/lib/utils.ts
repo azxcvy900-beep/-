@@ -41,8 +41,9 @@ export const formatPrice = (
 /**
  * Compresses an image file on the client side using Canvas API.
  * Reducing dimensions and quality to make uploads lightning fast.
+ * USES WEBP FORMAT FOR OPTIMAL PERFORMANCE.
  */
-export const compressImage = async (file: File, maxWidth: number = 800, quality: number = 0.7): Promise<File> => {
+export const compressImage = async (file: File, maxWidth: number = 800, quality: number = 0.8): Promise<File> => {
   if (!file.type.startsWith('image/')) return file;
   
   return new Promise((resolve, reject) => {
@@ -72,8 +73,8 @@ export const compressImage = async (file: File, maxWidth: number = 800, quality:
         canvas.toBlob(
           (blob) => {
             if (blob) {
-              const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
-                type: 'image/jpeg',
+              const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".webp", {
+                type: 'image/webp',
                 lastModified: Date.now(),
               });
               resolve(compressedFile);
@@ -81,7 +82,7 @@ export const compressImage = async (file: File, maxWidth: number = 800, quality:
               reject(new Error('Canvas blob construction failed'));
             }
           },
-          'image/jpeg',
+          'image/webp',
           quality
         );
       };
