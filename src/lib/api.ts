@@ -370,6 +370,8 @@ export const DUMMY_STORES: StoreInfo[] = [
     address: 'المملكة العربية السعودية - الرياض',
     description: 'استكشف قوة منصة بايرز بنظام تسعير الريال السعودي (رس).',
     verificationStatus: 'active',
+    planType: 'business',
+    subscriptionStatus: 'active',
     currencySettings: {
       default: 'SAR',
       rates: { 'YER': 530, 'USD': 3.75 }
