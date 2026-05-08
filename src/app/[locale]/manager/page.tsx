@@ -359,15 +359,15 @@ export default function AdministrationDashboard() {
                     {proofs.map(proof => (
                         <div key={proof.id} className={styles.proofCard}>
                             <div className={styles.proofImageWrapper}>
-                                <img src={proof.imageUrl} alt="Receipt" className={styles.clickableDoc} onClick={() => setSelectedImage(proof.imageUrl)} />
-                                <div className={styles.imageOverlay} onClick={() => setSelectedImage(proof.imageUrl)}>
+                                <img src={proof.receiptUrl} alt="Receipt" className={styles.clickableDoc} onClick={() => setSelectedImage(proof.receiptUrl)} />
+                                <div className={styles.imageOverlay} onClick={() => setSelectedImage(proof.receiptUrl)}>
                                     <ExternalLink size={20} color="white" />
                                 </div>
                             </div>
                             <div className={styles.proofDetails}>
                                 <h3>{proof.storeSlug}</h3>
                                 <div className={styles.planBadge}>{proof.plan.toUpperCase()}</div>
-                                <p>{t('Tracking.date')}: {new Date(proof.date).toLocaleString('ar-YE')}</p>
+                                <p>{t('Tracking.date')}: {new Date(proof.submittedAt).toLocaleString('ar-YE')}</p>
                                 
                                 <div className={styles.vActions}>
                                     <button 
