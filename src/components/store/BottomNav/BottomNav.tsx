@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 import { Home, Search, ShoppingCart, User, ClipboardList } from 'lucide-react';
 import { useCartStore } from '@/lib/store';
 import { motion, AnimatePresence } from 'framer-motion';
+import { triggerHaptic } from '@/lib/utils';
 import styles from './BottomNav.module.css';
 
 const BottomNav = ({ storeSlug }: { storeSlug: string }) => {
@@ -31,7 +32,12 @@ const BottomNav = ({ storeSlug }: { storeSlug: string }) => {
       {navItems.map((item) => {
         const isActive = pathname === item.href;
         return (
-          <Link key={item.href} href={item.href} className={`${styles.navItem} ${isActive ? styles.active : ''}`}>
+          <Link 
+            key={item.href} 
+            href={item.href} 
+            className={`${styles.navItem} ${isActive ? styles.active : ''}`}
+            onClick={() => triggerHaptic('light')}
+          >
             {isActive && (
               <motion.div
                 layoutId="bottomNavActive"
