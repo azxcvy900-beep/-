@@ -37,6 +37,7 @@ export interface Order {
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   date: string;
   customerUid?: string;
+  storeSlug: string;
 }
 
 interface CartStore {

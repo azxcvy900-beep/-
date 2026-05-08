@@ -85,7 +85,7 @@ export default function PlatformOrders() {
                     <td><span className={styles.orderId}>#{order.id}</span></td>
                     <td>
                       <div className={styles.storeTag}>
-                        {order.items[0]?.storeSlug || 'N/A'}
+                        {order.storeSlug || 'N/A'}
                       </div>
                     </td>
                     <td>
