@@ -15,7 +15,8 @@ import {
   CheckCircle,
   Clock,
   XCircle,
-  Loader2
+  Loader2,
+  Settings
 } from 'lucide-react';
 import { useCustomerSessionStore } from '@/lib/customer-session-store';
 import { getCustomerOrders, Order } from '@/lib/api';
@@ -100,10 +101,16 @@ export default function CustomerAccountPage() {
               <p>{email}</p>
             </div>
           </div>
-          <button onClick={handleLogout} className={styles.logoutBtn}>
-            <LogOut size={18} />
-            <span>تسجيل الخروج</span>
-          </button>
+          <div className={styles.profileActions}>
+            <Link href={`/${locale}/store/${slug}/account/profile`} className={styles.editBtn}>
+              <Settings size={18} />
+              <span>تعديل الملف</span>
+            </Link>
+            <button onClick={handleLogout} className={styles.logoutBtn}>
+              <LogOut size={18} />
+              <span>تسجيل الخروج</span>
+            </button>
+          </div>
         </section>
 
         {/* Orders Section */}

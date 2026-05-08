@@ -1,107 +1,67 @@
 .merchantsPage {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 60vh;
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--mgr-primary);
+  padding: 2rem;
+  min-height: 100vh;
+  background: #f8fafc;
 }
 
 .pageHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 2.5rem;
 }
 
 .pageHeader h1 {
-  font-size: 28px;
+  font-size: 1.8rem;
   font-weight: 800;
-  margin: 0;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
 }
 
 .pageHeader p {
-  margin: 4px 0 0;
-  color: var(--mgr-text-muted);
-}
-
-.addBtn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--mgr-primary);
-  color: white;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.addBtn:hover {
-  filter: brightness(1.1);
-  transform: translateY(-2px);
+  color: #64748b;
+  font-size: 1rem;
 }
 
 .controls {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  background: var(--mgr-card-bg);
-  padding: 16px;
-  border-radius: 16px;
-  border: 1px solid var(--mgr-border);
+  margin-bottom: 2rem;
 }
 
 .searchBox {
-  flex: 1;
+  position: relative;
   max-width: 400px;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
-  gap: 12px;
-  background: var(--mgr-bg);
-  padding: 10px 16px;
-  border-radius: 12px;
-  border: 1px solid var(--mgr-border);
+  padding: 0 1rem;
+  transition: all 0.2s;
+}
+
+.searchBox:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
 }
 
 .searchBox input {
-  background: transparent;
   border: none;
-  color: var(--mgr-text);
+  padding: 0.8rem;
   width: 100%;
-  font-size: 14px;
-}
-
-.searchBox input:focus {
   outline: none;
+  font-size: 0.95rem;
 }
 
-.filterBtn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--mgr-bg);
-  color: var(--mgr-text);
-  border: 1px solid var(--mgr-border);
-  padding: 10px 16px;
-  border-radius: 12px;
-  font-weight: 600;
-  cursor: pointer;
+.searchBox svg {
+  color: #94a3b8;
 }
 
 .tableWrapper {
-  background: var(--mgr-card-bg);
-  border-radius: 20px;
-  border: 1px solid var(--mgr-border);
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
   overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
 .table {
@@ -111,98 +71,163 @@
 }
 
 .table th {
-  padding: 16px;
-  background: var(--mgr-bg);
-  font-size: 13px;
+  background: #f1f5f9;
+  padding: 1.2rem 1.5rem;
+  font-size: 0.85rem;
   font-weight: 700;
-  color: var(--mgr-text-muted);
-  border-bottom: 1px solid var(--mgr-border);
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
 }
 
 .table td {
-  padding: 16px;
-  border-bottom: 1px solid var(--mgr-border);
-  font-size: 14px;
+  padding: 1.2rem 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+  color: #1e293b;
+  font-size: 0.95rem;
+  vertical-align: middle;
 }
 
 .storeCol {
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-weight: 700;
+  gap: 1rem;
 }
 
 .storeCol img {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   object-fit: cover;
-  background: white;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.storeMainInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.storeName {
+  font-weight: 600;
+  color: #0f172a;
 }
 
 .slugCode {
-  padding: 4px 8px;
-  background: var(--mgr-bg);
-  border-radius: 6px;
-  font-size: 12px;
-  color: var(--mgr-primary);
   font-family: monospace;
+  font-size: 0.8rem;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
 }
 
-.phoneCol, .dateCol {
+.phoneCol {
   display: flex;
   align-items: center;
-  gap: 8px;
-  color: var(--mgr-text-muted);
+  gap: 0.5rem;
+  color: #64748b;
 }
 
 .statusBadge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 700;
+  gap: 0.4rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 99px;
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
 .statusBadge.active {
-  background: #dcfce7;
-  color: #15803d;
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.statusBadge.frozen {
+  background: #eff6ff;
+  color: #1e40af;
+}
+
+.statusBadge.banned {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.planSelect {
+  padding: 0.5rem;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+}
+
+.planSelect.pro {
+  border-color: #3b82f6;
+  color: #1d4ed8;
+  background: #eff6ff;
+}
+
+.planSelect.business {
+  border-color: #8b5cf6;
+  color: #6d28d9;
+  background: #f5f3ff;
 }
 
 .actions {
   display: flex;
-  gap: 8px;
+  gap: 0.5rem;
 }
 
 .actionIcon {
   width: 36px;
   height: 36px;
-  border-radius: 10px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--mgr-bg);
-  border: 1px solid var(--mgr-border);
-  color: var(--mgr-text-muted);
-  cursor: pointer;
+  color: #64748b;
   transition: all 0.2s;
+  background: white;
+  cursor: pointer;
 }
 
 .actionIcon:hover {
-  background: var(--mgr-active-link);
-  color: var(--mgr-primary);
-  border-color: var(--mgr-primary);
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #cbd5e1;
 }
 
-.actionIcon.freeze:hover {
-  background: #fee2e2;
-  color: #dc2626;
-  border-color: #fca5a5;
+.activate:hover {
+  background: #f0fdf4;
+  color: #166534;
+  border-color: #bbf7d0;
 }
 
-@media (max-width: 1024px) {
-  .tableWrapper { overflow-x: auto; }
-  .table { min-width: 800px; }
+.freeze:hover {
+  background: #eff6ff;
+  color: #1e40af;
+  border-color: #bfdbfe;
+}
+
+.ban:hover {
+  background: #fef2f2;
+  color: #991b1b;
+  border-color: #fecaca;
+}
+
+.rowUpdating {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  color: #64748b;
 }

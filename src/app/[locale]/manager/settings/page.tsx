@@ -151,6 +151,74 @@ export default function ManagerSettings() {
                 <input type="number" value={settings.currencyRates.SAR} onChange={(e) => setSettings({...settings, currencyRates: {...settings.currencyRates, SAR: parseInt(e.target.value)}})} />
               </div>
             </div>
+
+            <h3 style={{ marginTop: '2rem' }}>الحسابات البنكية للمنصة (لاستقبال اشتراكات التجار)</h3>
+            <div className={styles.bankList}>
+              {settings.bankAccounts?.map((bank, index) => (
+                <div key={index} className={styles.bankItem}>
+                  <div className={styles.grid}>
+                    <div className={styles.formGroup}>
+                      <label>اسم البنك / المحفظة</label>
+                      <input 
+                        type="text" 
+                        value={bank.bankName} 
+                        onChange={(e) => {
+                          const newBanks = [...(settings.bankAccounts || [])];
+                          newBanks[index].bankName = e.target.value;
+                          setSettings({...settings, bankAccounts: newBanks});
+                        }} 
+                      />
+                    </div>
+                    <div className={styles.formGroup}>
+                      <label>رقم الحساب</label>
+                      <input 
+                        type="text" 
+                        value={bank.accountNumber} 
+                        onChange={(e) => {
+                          const newBanks = [...(settings.bankAccounts || [])];
+                          newBanks[index].accountNumber = e.target.value;
+                          setSettings({...settings, bankAccounts: newBanks});
+                        }} 
+                      />
+                    </div>
+                    <div className={styles.formGroup}>
+                      <label>اسم صاحب الحساب</label>
+                      <input 
+                        type="text" 
+                        value={bank.accountName} 
+                        onChange={(e) => {
+                          const newBanks = [...(settings.bankAccounts || [])];
+                          newBanks[index].accountName = e.target.value;
+                          setSettings({...settings, bankAccounts: newBanks});
+                        }} 
+                      />
+                    </div>
+                    <div className={styles.formGroup} style={{ display: 'flex', alignItems: 'flex-end' }}>
+                      <button 
+                        type="button"
+                        className={styles.deleteBtn}
+                        onClick={() => {
+                          const newBanks = settings.bankAccounts?.filter((_, i) => i !== index);
+                          setSettings({...settings, bankAccounts: newBanks});
+                        }}
+                      >
+                        حذف
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <button 
+                type="button"
+                className={styles.addBtn}
+                onClick={() => {
+                  const newBanks = [...(settings.bankAccounts || []), { bankName: '', accountNumber: '', accountName: '' }];
+                  setSettings({...settings, bankAccounts: newBanks});
+                }}
+              >
+                + إضافة حساب جديد
+              </button>
+            </div>
           </motion.div>
         )}
 

@@ -19,7 +19,8 @@ import {
   Moon,
   Sun,
   Store,
-  Bell
+  Bell,
+  ShoppingBag
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/components/providers/ThemeProvider';
@@ -68,6 +69,7 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
   const navItems = [
     { name: 'الإدارة', href: `/${locale}/manager`, icon: ShieldAlert },
     { name: 'إدارة المتاجر', href: `/${locale}/manager/merchants`, icon: Store },
+    { name: 'مراقبة الطلبات', href: `/${locale}/manager/orders`, icon: ShoppingBag },
     { name: 'مركز البلاغات', href: `/${locale}/manager/complaints`, icon: Bell },
     { name: 'الإعدادات العالمية', href: `/${locale}/manager/settings`, icon: Settings },
   ];

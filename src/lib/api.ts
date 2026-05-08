@@ -95,6 +95,7 @@ export interface StoreInfo {
       accountName: string;
     };
   };
+  status?: 'active' | 'banned' | 'frozen';
 }
 
 export interface KYCRequest {
@@ -926,6 +927,12 @@ export interface HeroMedia {
   url: string;
 }
 
+export interface PlatformBankAccount {
+  bankName: string;
+  accountNumber: string;
+  accountName: string;
+}
+
 export interface PlatformSettings {
   platformFee: number;
   maintenanceMode: boolean;
@@ -963,6 +970,7 @@ export interface PlatformSettings {
     freePlanProducts: number;
     proPlanProducts: number;
   };
+  bankAccounts?: PlatformBankAccount[];
 }
 
 export async function getPlatformSettings(): Promise<PlatformSettings> {
@@ -1002,7 +1010,11 @@ export async function getPlatformSettings(): Promise<PlatformSettings> {
     limits: {
       freePlanProducts: 50,
       proPlanProducts: 500
-    }
+    },
+    bankAccounts: [
+      { bankName: 'بنك الكريمي', accountNumber: '12345678', accountName: 'شركة بايرز' },
+      { bankName: 'بنك اليمن الدولي', accountNumber: '87654321', accountName: 'شركة بايرز' }
+    ]
   };
 
   try {
@@ -1058,6 +1070,26 @@ export async function getAllPlatformOrders(): Promise<Order[]> {
   } catch (error) {
     return [];
   }
+}
+
+/**
+ * Update a store's status (active, banned, frozen).
+ */
+export async function updateStoreStatus(storeSlug: string, status: 'active' | 'banned' | 'frozen'): Promise<void> {
+  const storeRef = doc(db, 'stores', storeSlug);
+  await updateDoc(storeRef, { status });
+  dataCache.invalidate(`store_${storeSlug}`);
+  dataCache.invalidate('all_stores');
+}
+
+/**
+ * Update a store's plan type manually.
+ */
+export async function updateStorePlan(storeSlug: string, plan: 'free' | 'pro' | 'business'): Promise<void> {
+  const storeRef = doc(db, 'stores', storeSlug);
+  await updateDoc(storeRef, { planType: plan });
+  dataCache.invalidate(`store_${storeSlug}`);
+  dataCache.invalidate('all_stores');
 }
 
 export async function getAllPlatformReviews(): Promise<Review[]> {
@@ -1251,6 +1283,14 @@ export async function registerCustomer(customer: Omit<AppUser, 'uid' | 'createdA
 
   await setDoc(doc(db, 'customers', uid), newUser);
   return uid;
+}
+
+/**
+ * Update customer profile in Firestore.
+ */
+export async function updateCustomerProfile(uid: string, data: Partial<AppUser>): Promise<void> {
+  const userRef = doc(db, 'customers', uid);
+  await updateDoc(userRef, data);
 }
 
 /**
