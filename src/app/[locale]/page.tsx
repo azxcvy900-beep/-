@@ -158,14 +158,23 @@ export default function Home() {
                   style={{ width: '100%', height: '100%' }}
                 >
                   {heroMedia[activeMediaIndex]?.type === 'image' ? (
-                    <Image 
-                      src={heroMedia[activeMediaIndex].url || '/premium_hero_dashboard_v1_1776535565323.png'} 
-                      alt="Buyers Premium Dashboard Illustration" 
-                      width={1200} 
-                      height={700} 
-                      className={styles.dashboardPreview}
-                      priority
-                    />
+                    <div className={styles.scrollContainer}>
+                      <motion.div 
+                        animate={{ y: ["0%", "-60%", "0%"] }}
+                        transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+                        className={styles.scrollImageWrapper}
+                      >
+                        <Image 
+                          src="/long_store_scroll.png" 
+                          alt="Buyers Premium Store Scrolling Preview" 
+                          width={1200} 
+                          height={2400} 
+                          className={styles.scrollingImage}
+                          priority
+                        />
+                      </motion.div>
+                      <div className={styles.cursor} />
+                    </div>
                   ) : (
                     <div className={styles.videoWrapper} style={{ position: 'relative', borderRadius: '24px', overflow: 'hidden', boxShadow: 'var(--shadow-lg)', width: '100%', height: '100%' }}>
                       <video 

@@ -273,6 +273,52 @@
   transform: scale(1.1);
 }
 
+.scrollContainer {
+  width: 100%;
+  height: 600px;
+  background: white;
+  border-radius: 28px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 
+    0 40px 100px -20px rgba(2, 6, 23, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+  transform: rotateX(8deg) rotateY(-4deg) rotateZ(0.5deg);
+  animation: float 8s ease-in-out infinite;
+}
+
+.scrollImageWrapper {
+  width: 100%;
+}
+
+.scrollingImage {
+  width: 100%;
+  height: auto;
+}
+
+.cursor {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 24px;
+  height: 24px;
+  background: rgba(251, 191, 36, 0.4);
+  border: 2px solid #fbbf24;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 10;
+  animation: moveCursor 6s infinite ease-in-out;
+}
+
+@keyframes moveCursor {
+  0% { transform: translate(0, 0); opacity: 0; }
+  10% { opacity: 1; }
+  30% { transform: translate(100px, 150px); }
+  60% { transform: translate(-80px, 300px); }
+  90% { transform: translate(50px, -50px); }
+  100% { transform: translate(0, 0); opacity: 0; }
+}
+
 .visualGlow {
   position: absolute;
   top: 50%;
