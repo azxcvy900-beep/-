@@ -15,7 +15,9 @@ import {
   CheckCircle2,
   XCircle,
   TrendingUp,
-  ChevronRight
+  ChevronRight,
+  Volume2,
+  VolumeX
 } from "lucide-react";
 import Header from "@/components/shared/Header/Header";
 import AnimatedStats from "@/components/landing/AnimatedStats/AnimatedStats";
@@ -34,6 +36,7 @@ export default function Home() {
   const scrollRef = useRef(null);
   const [platformSettings, setPlatformSettings] = useState<PlatformSettings | null>(null);
   const [activeMediaIndex, setActiveMediaIndex] = useState(0);
+  const [isMuted, setIsMuted] = useState(true);
   
   useEffect(() => {
     getPlatformSettings().then(setPlatformSettings);
@@ -65,7 +68,7 @@ export default function Home() {
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
 
   const heroMedia = platformSettings?.heroMedia || [
-    { type: 'image', url: '/premium_hero_dashboard_v1_1776535565323.png' }
+    { type: 'image', url: '/premium_merchant_store_preview_1778260710555.png' }
   ];
 
   return (
@@ -163,16 +166,22 @@ export default function Home() {
                       priority
                     />
                   ) : (
-                    <div className={styles.videoWrapper} style={{ borderRadius: '24px', overflow: 'hidden', boxShadow: 'var(--shadow-lg)', width: '100%', height: '100%' }}>
+                    <div className={styles.videoWrapper} style={{ position: 'relative', borderRadius: '24px', overflow: 'hidden', boxShadow: 'var(--shadow-lg)', width: '100%', height: '100%' }}>
                       <video 
                         src={heroMedia[activeMediaIndex].url} 
                         autoPlay 
                         loop 
-                        muted 
+                        muted={isMuted}
                         playsInline 
                         className={styles.dashboardPreview}
                         style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                       />
+                      <button 
+                        className={styles.muteBtn}
+                        onClick={() => { setIsMuted(!isMuted); triggerHaptic('light'); }}
+                      >
+                        {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+                      </button>
                     </div>
                   )}
                 </motion.div>

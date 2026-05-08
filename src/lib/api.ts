@@ -1076,7 +1076,7 @@ export async function getPlatformSettings(): Promise<PlatformSettings> {
     defaultCurrency: 'USD',
     supportPhone: '967770000000',
     heroMedia: [
-      { type: 'image', url: '/premium_hero_dashboard_v1_1776535565323.png' }
+      { type: 'image', url: '/premium_merchant_store_preview_1778260710555.png' }
     ],
     currencyRates: {
       YER: 530,

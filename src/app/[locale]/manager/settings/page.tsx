@@ -15,7 +15,8 @@ import {
   Search,
   MessageCircle,
   FileText,
-  Image as ImageIcon
+  Image as ImageIcon,
+  XCircle
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { getPlatformSettings, updatePlatformSettings, PlatformSettings } from '@/lib/api';
@@ -106,6 +107,9 @@ export default function ManagerSettings() {
         </button>
         <button className={`${styles.tab} ${activeTab === 'system' ? styles.activeTab : ''}`} onClick={() => setActiveTab('system')}>
           <Server size={18} /> النظام والإشعارات
+        </button>
+        <button className={`${styles.tab} ${activeTab === 'hero' ? styles.activeTab : ''}`} onClick={() => setActiveTab('hero')}>
+          <ImageIcon size={18} /> واجهة المنصة (Hero)
         </button>
       </div>
 
@@ -346,6 +350,71 @@ export default function ManagerSettings() {
               </div>
               <button className={`${styles.toggle} ${settings.maintenanceMode ? styles.toggleOn : ''}`} onClick={() => setSettings({...settings, maintenanceMode: !settings.maintenanceMode})}>
                 <div className={styles.toggleDot} />
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* --- HERO MEDIA TAB --- */}
+        {activeTab === 'hero' && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={styles.card}>
+            <h3>إدارة المحتوى المرئي في الصفحة الرئيسية</h3>
+            <p className={styles.subtitle}>يمكنك رفع صور أو فيديوهات لتظهر في الواجهة الرئيسية للمنصة.</p>
+            
+            <div className={styles.mediaList}>
+              {settings.heroMedia?.map((item, index) => (
+                <div key={index} className={styles.mediaItem}>
+                  <div className={styles.mediaPreview}>
+                    {item.type === 'image' ? (
+                      <img src={item.url} alt="Hero Preview" />
+                    ) : (
+                      <video src={item.url} muted />
+                    )}
+                    <button 
+                      className={styles.removeMediaBtn}
+                      onClick={() => {
+                        const newMedia = settings.heroMedia?.filter((_, i) => i !== index);
+                        setSettings({...settings, heroMedia: newMedia});
+                      }}
+                    >
+                      <XCircle size={16} />
+                    </button>
+                  </div>
+                  <div className={styles.mediaInfo}>
+                    <select 
+                      value={item.type} 
+                      onChange={(e) => {
+                        const newMedia = [...(settings.heroMedia || [])];
+                        newMedia[index].type = e.target.value as 'image' | 'video';
+                        setSettings({...settings, heroMedia: newMedia});
+                      }}
+                    >
+                      <option value="image">صورة</option>
+                      <option value="video">فيديو</option>
+                    </select>
+                    <input 
+                      type="text" 
+                      placeholder="رابط الوسائط (URL)" 
+                      value={item.url} 
+                      onChange={(e) => {
+                        const newMedia = [...(settings.heroMedia || [])];
+                        newMedia[index].url = e.target.value;
+                        setSettings({...settings, heroMedia: newMedia});
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+              
+              <button 
+                type="button" 
+                className={styles.addBtn}
+                onClick={() => {
+                  const newMedia = [...(settings.heroMedia || []), { type: 'image', url: '' }];
+                  setSettings({...settings, heroMedia: newMedia});
+                }}
+              >
+                + إضافة عنصر جديد
               </button>
             </div>
           </motion.div>
