@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useTranslations, useLocale } from 'next-intl';
 import { useAuthStore } from '@/lib/auth-store';
+import { useSessionStore } from '@/lib/session-store';
 import { useStreamingFetch } from '@/lib/hooks';
 import { getStoreInfo, submitPaymentProof, getPlatformSettings } from '@/lib/api';
 import { toast } from 'sonner';
@@ -55,7 +56,8 @@ const PLANS = [
 export default function BillingPage() {
   const t = useTranslations('Admin');
   const locale = useLocale();
-  const { storeSlug, merchantId } = useAuthStore();
+  const { storeSlug } = useAuthStore();
+  const { uid: merchantId } = useSessionStore();
   const { data: storeInfo } = useStreamingFetch(() => getStoreInfo(storeSlug || ''), [storeSlug], `store_${storeSlug}`);
   const { data: platformSettings } = useStreamingFetch(() => getPlatformSettings(), [], 'platform_settings');
 
