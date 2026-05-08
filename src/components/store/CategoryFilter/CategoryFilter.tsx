@@ -113,15 +113,26 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
   };
 
   return (
-    <motion.div 
-      className={styles.filterContainer}
-      variants={containerVariants}
-      initial="hidden"
-      animate="show"
-    >
-      {renderItem('all', allLabel)}
-      {categories.map((cat) => renderItem(cat, cat))}
-    </motion.div>
+    <div className={styles.scrollWrapper}>
+      <motion.div 
+        className={styles.filterContainer}
+        variants={containerVariants}
+        initial="hidden"
+        animate="show"
+        whileInView={{
+          x: [0, -20, 0, 20, 0],
+          transition: {
+            duration: 10,
+            repeat: Infinity,
+            repeatType: "reverse",
+            ease: "easeInOut"
+          }
+        }}
+      >
+        {renderItem('all', allLabel)}
+        {categories.map((cat) => renderItem(cat, cat))}
+      </motion.div>
+    </div>
   );
 };
 

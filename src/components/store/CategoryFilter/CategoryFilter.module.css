@@ -1,13 +1,20 @@
+.scrollWrapper {
+  width: 100%;
+  overflow: hidden;
+  padding: 1rem 0;
+}
+
 .filterContainer {
   display: flex;
   gap: 2.5rem;
-  overflow-x: auto;
   padding: 1.5rem 1rem 2.5rem;
   margin-bottom: 2rem;
   scrollbar-width: none;
   -ms-overflow-style: none;
   -webkit-overflow-scrolling: touch;
   justify-content: center;
+  width: max-content;
+  margin: 0 auto;
 }
 
 .filterContainer::-webkit-scrollbar {
