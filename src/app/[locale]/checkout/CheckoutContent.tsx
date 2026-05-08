@@ -276,7 +276,7 @@ export default function CheckoutContent() {
       paymentMethod: paymentMethod,
       lockedExRate: lockedRate || (receipt ? getCurrentSARRate() : undefined),
       isPriceLocked: !!receipt,
-      customerUid: isCustomerLoggedIn ? customerUid : undefined
+      customerUid: isCustomerLoggedIn ? (customerUid || undefined) : undefined
     };
     try {
       const { submitOrder } = await import('@/lib/api');
