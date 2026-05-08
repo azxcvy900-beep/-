@@ -116,11 +116,13 @@ export interface PaymentProof {
   id: string;
   storeSlug: string;
   merchantId: string;
-  amount: number;
   plan: 'pro' | 'business';
-  imageUrl: string;
-  date: string;
+  amount: number;
+  currency: string;
+  receiptUrl: string;
+  notes?: string;
   status: 'pending' | 'approved' | 'rejected';
+  submittedAt: string;
 }
 
 export interface Coupon {

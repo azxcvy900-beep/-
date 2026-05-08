@@ -76,7 +76,7 @@ export default function BillingPage() {
       await submitPaymentProof({
         storeSlug,
         merchantId,
-        planType: selectedPlan.id,
+        plan: selectedPlan.id,
         amount: parseFloat(selectedPlan.price),
         currency: 'USD',
         receiptUrl: 'https://placehold.co/600x400?text=Payment+Receipt', // Placeholder
