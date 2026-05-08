@@ -30,9 +30,6 @@ import {
   getStoreInfo, 
   updateStoreInfo, 
   uploadStoreLogo, 
-  StoreInfo, 
-  updateStoreInfo, 
-  uploadStoreLogo, 
   StoreInfo
 } from '@/lib/api';
 import { useAuthStore } from '@/lib/auth-store';
