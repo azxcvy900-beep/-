@@ -21,11 +21,13 @@ import {
   TicketMessage
 } from '@/lib/api';
 import { useAuthStore } from '@/lib/auth-store';
+import { useSessionStore } from '@/lib/session-store';
 import { toast } from 'sonner';
 import styles from './support.module.css';
 
 export default function MerchantSupport() {
-  const { storeSlug, merchantId } = useAuthStore();
+  const { storeSlug } = useAuthStore();
+  const { uid: merchantId } = useSessionStore();
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
   const [messages, setMessages] = useState<TicketMessage[]>([]);
