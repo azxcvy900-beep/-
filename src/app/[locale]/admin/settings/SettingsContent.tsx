@@ -75,7 +75,10 @@ export default function SettingsContent() {
             description: '',
             primaryColor: '#3b82f6',
             logo: '',
-            social: { instagram: '', twitter: '', facebook: '' }
+            social: { instagram: '', twitter: '', facebook: '' },
+            planType: 'free',
+            subscriptionStatus: 'active',
+            verificationStatus: 'pending'
           };
           setStoreData(defaultData);
           setInitialData(defaultData);
