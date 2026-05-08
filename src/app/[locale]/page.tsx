@@ -69,7 +69,7 @@ export default function Home() {
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
 
   const heroMedia = platformSettings?.heroMedia || [
-    { type: 'image', url: '/premium_merchant_store_preview_1778260710555.png' }
+    { type: 'image', url: '/premium_store_preview.png' }
   ];
 
   return (
