@@ -750,7 +750,6 @@ export default function SettingsContent() {
               </div>
             </div>
           </div>
-          </div>
         </form>
       </Suspense>
 
