@@ -1608,6 +1608,20 @@ export async function getPendingPayments(): Promise<PaymentProof[]> {
 }
 
 /**
+ * Submit a payment proof for subscription upgrade.
+ */
+export async function submitPaymentProof(data: Omit<PaymentProof, 'id' | 'status' | 'submittedAt'>): Promise<void> {
+  const id = `proof_${Date.now()}`;
+  const proof: PaymentProof = {
+    ...data,
+    id,
+    status: 'pending',
+    submittedAt: new Date().toISOString()
+  };
+  await setDoc(doc(db, 'platform', 'payments', 'proofs', id), proof);
+}
+
+/**
  * Approve a merchant's subscription.
  */
 export async function approveStoreSubscription(proofId: string, storeSlug: string, plan: 'pro' | 'business'): Promise<void> {

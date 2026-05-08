@@ -17,7 +17,8 @@ import {
 import { useTranslations, useLocale } from 'next-intl';
 import { useAuthStore } from '@/lib/auth-store';
 import { useStreamingFetch } from '@/lib/hooks';
-import { getStoreInfo, submitPaymentProof } from '@/lib/api';
+import { getStoreInfo, submitPaymentProof, getPlatformSettings } from '@/lib/api';
+import { toast } from 'sonner';
 import styles from './billing.module.css';
 
 const PLANS = [
@@ -54,8 +55,9 @@ const PLANS = [
 export default function BillingPage() {
   const t = useTranslations('Admin');
   const locale = useLocale();
-  const { storeSlug } = useAuthStore();
+  const { storeSlug, merchantId } = useAuthStore();
   const { data: storeInfo } = useStreamingFetch(() => getStoreInfo(storeSlug || ''), [storeSlug], `store_${storeSlug}`);
+  const { data: platformSettings } = useStreamingFetch(() => getPlatformSettings(), [], 'platform_settings');
 
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -63,14 +65,31 @@ export default function BillingPage() {
 
   const handleManualPayment = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsUploading(true);
+    if (!storeSlug || !merchantId || !selectedPlan) return;
     
-    // Simulate API call for now (since we lack real storage upload here)
-    setTimeout(() => {
-      setIsUploading(false);
+    setIsUploading(true);
+    try {
+      // In a real scenario, we would upload the file to Firebase Storage first.
+      // For this demo, we'll use a placeholder URL.
+      await submitPaymentProof({
+        storeSlug,
+        merchantId,
+        planType: selectedPlan.id,
+        amount: parseFloat(selectedPlan.price),
+        currency: 'USD',
+        receiptUrl: 'https://placehold.co/600x400?text=Payment+Receipt', // Placeholder
+        notes: `طلب ترقية إلى باقة ${selectedPlan.name}`
+      });
+      
       setUploadSuccess(true);
+      setSelectedPlan(null);
+      toast.success('تم إرسال إثبات الدفع بنجاح. سيتم التفعيل قريباً!');
       setTimeout(() => setUploadSuccess(false), 5000);
-    }, 2000);
+    } catch (error) {
+      toast.error('فشل إرسال الإثبات. يرجى المحاولة لاحقاً.');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -89,7 +108,7 @@ export default function BillingPage() {
           </div>
           <div className={styles.planBadge} data-plan={storeInfo?.planType || 'free'}>
             {storeInfo?.subscriptionStatus === 'active' ? <ShieldCheck size={16} /> : <Clock size={16} />}
-            {storeInfo?.subscriptionStatus === 'pending_verification' ? 'قيد التحقق' : 'نشط'}
+            {storeInfo?.subscriptionStatus === 'pending' ? 'قيد التحقق' : storeInfo?.subscriptionStatus === 'active' ? 'نشط' : 'غير نشط'}
           </div>
         </div>
         
@@ -174,7 +193,21 @@ export default function BillingPage() {
               <div className={styles.paymentInfo}>
                 <div className={styles.bankDetails}>
                   <Info size={20} />
-                  <p>يرجى تحويل مبلغ <strong>${selectedPlan.price}</strong> إلى حسابنا البنكي، ثم ارفع صورة التحويل ليقوم فريقنا بتفعيل حسابك فوراً.</p>
+                  <div>
+                    <p>يرجى تحويل مبلغ <strong>${selectedPlan.price}</strong> إلى أحد الحسابات التالية:</p>
+                    <div className={styles.accountsList}>
+                      {platformSettings?.bankAccounts && platformSettings.bankAccounts.length > 0 ? (
+                        platformSettings.bankAccounts.map((bank, i) => (
+                          <div key={i} className={styles.accountItem}>
+                            <strong>{bank.bankName}:</strong> {bank.accountNumber}
+                            <span>({bank.accountName})</span>
+                          </div>
+                        ))
+                      ) : (
+                        <p>تواصل مع الإدارة للحصول على بيانات التحويل.</p>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 <form className={styles.uploadForm} onSubmit={handleManualPayment}>
