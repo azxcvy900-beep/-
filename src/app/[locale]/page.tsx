@@ -69,7 +69,7 @@ export default function Home() {
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
 
   const heroMedia = platformSettings?.heroMedia || [
-    { type: 'image', url: '/premium_store_preview.png' }
+    { type: 'image', url: '/long_store_preview.png' }
   ];
 
   return (
@@ -158,14 +158,16 @@ export default function Home() {
                   style={{ width: '100%', height: '100%' }}
                 >
                   {heroMedia[activeMediaIndex]?.type === 'image' ? (
-                    <Image 
-                      src={heroMedia[activeMediaIndex].url || '/premium_hero_dashboard_v1_1776535565323.png'} 
-                      alt="Buyers Premium Dashboard Illustration" 
-                      width={1200} 
-                      height={700} 
-                      className={styles.dashboardPreview}
-                      priority
-                    />
+                    <div className={styles.browsingWrapper}>
+                      <Image 
+                        src={heroMedia[activeMediaIndex].url || '/long_store_preview.png'} 
+                        alt="Buyers Premium Store Browsing" 
+                        width={1200} 
+                        height={2400} 
+                        className={styles.browsingImage}
+                        priority
+                      />
+                    </div>
                   ) : (
                     <div className={styles.videoWrapper} style={{ position: 'relative', borderRadius: '24px', overflow: 'hidden', boxShadow: 'var(--shadow-lg)', width: '100%', height: '100%' }}>
                       <video 
