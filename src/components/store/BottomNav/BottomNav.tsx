@@ -4,25 +4,25 @@ import React from 'react';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { usePathname } from 'next/navigation';
-import { Home, Search, ShoppingCart, User, ClipboardList } from 'lucide-react';
+import { Home, Search, ShoppingBag, User, Heart } from 'lucide-react';
 import { useCartStore } from '@/lib/store';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from './BottomNav.module.css';
 
 const BottomNav = ({ storeSlug }: { storeSlug: string }) => {
   const locale = useLocale();
-  const t = useTranslations('Header');
   const pathname = usePathname();
   const totalItems = useCartStore((state) => state.getTotalItems());
 
   const navItems = [
     { icon: Home, label: 'الرئيسية', href: `/${locale}/store/${storeSlug}` },
-    { icon: ClipboardList, label: 'طلباتي', href: `/${locale}/orders` },
-    { icon: ShoppingCart, label: 'السلة', href: `/${locale}/cart`, badge: totalItems },
-    { icon: User, label: 'تتبع', href: `/${locale}/track` },
+    { icon: Heart, label: 'المفضلة', href: `/${locale}/store/${storeSlug}/favorites` },
+    { icon: Search, label: 'البحث', href: `/${locale}/store/${storeSlug}/search` },
+    { icon: ShoppingBag, label: 'السلة', href: `/${locale}/cart`, badge: totalItems },
+    { icon: User, label: 'الحساب', href: `/${locale}/store/${storeSlug}/account` },
   ];
 
-  // Hide BottomNav on product details page to avoid overlap with floating buy bar
+  // Hide BottomNav on product details page
   const isProductPage = pathname.includes('/product/');
   if (isProductPage) return null;
 
@@ -32,15 +32,8 @@ const BottomNav = ({ storeSlug }: { storeSlug: string }) => {
         const isActive = pathname === item.href;
         return (
           <Link key={item.href} href={item.href} className={`${styles.navItem} ${isActive ? styles.active : ''}`}>
-            {isActive && (
-              <motion.div
-                layoutId="bottomNavActive"
-                className={styles.activeBackground}
-                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-              />
-            )}
             <div className={styles.iconWrapper}>
-              <item.icon size={22} strokeWidth={isActive ? 2.5 : 2} />
+              <item.icon size={24} strokeWidth={isActive ? 2.5 : 2} color={isActive ? "#fbbf24" : "#64748b"} />
               <AnimatePresence>
                 {item.badge !== undefined && item.badge > 0 && (
                   <motion.span 

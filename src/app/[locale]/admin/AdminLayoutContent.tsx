@@ -22,7 +22,8 @@ import {
   UsersRound,
   ShieldAlert,
   ShieldCheck,
-  AlertTriangle
+  AlertTriangle,
+  Bell
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/components/providers/ThemeProvider';
@@ -38,23 +39,18 @@ export default function AdminLayoutContent({ children }: { children: React.React
   const locale = useLocale();
   const pathname = usePathname();
   const router = useRouter();
-  const { theme, toggleTheme } = useTheme();
   
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [checkingStore, setCheckingStore] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Collapsed by default as in image
   const [mounted, setMounted] = useState(false);
   const { isLoggedIn, role, username, storeSlug: sessionSlug, permissions, logout, _hasHydrated } = useSessionStore();
   const { storeSlug, storeLogo, storeName, setStoreInfo, verificationStatus } = useAuthStore();
   
-  // Handle hydration
   useEffect(() => {
     setMounted(true);
   }, []);
   
-  const isSetupPage = pathname.includes('/admin/setup');
   const isLoginPage = pathname.includes('/admin/login');
 
-  // Sync session storeSlug with authStore
   useEffect(() => {
     if (sessionSlug && isLoggedIn) {
       getStoreInfo(sessionSlug).then(info => {
@@ -63,235 +59,90 @@ export default function AdminLayoutContent({ children }: { children: React.React
     }
   }, [sessionSlug, isLoggedIn, setStoreInfo]);
 
-  // Verify access
-  useEffect(() => {
-    if (isLoggedIn && (role === 'merchant' || role === 'employee' || role === 'admin') && !isLoginPage) {
-      setCheckingStore(false);
-    } else {
-      setCheckingStore(false);
-    }
-  }, [isLoggedIn, role, isLoginPage]);
+  if (!mounted || !_hasHydrated) return null;
 
-  // 1. Guard against pre-hydration renders (SSR or immediate hydration lag)
-  // We wait for BOTH the component mounting AND the session store rehydrating from localStorage
-  if (!mounted || !_hasHydrated) {
-    if (mounted) console.log('[AdminLayout] Waiting for hydration...');
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: 'var(--background)' }}>
-        <div className="loader">جاري التحميل...</div>
-      </div>
-    );
-  }
-
-  // Debug log for authentication state
-  if (!isLoginPage) {
-    console.log('[AdminLayout] Guard Check:', { isLoggedIn, role, storeSlug, checkingStore, isSetupPage });
-  }
-
-  // 2. Immediate route-based exclusions
-  if (isLoginPage) {
-    return <>{children}</>;
-  }
-
-  // 3. Authentication Checks (Post-hydration)
-  // We use a small stability check here
-  if (!isLoggedIn || (role !== 'merchant' && role !== 'admin' && role !== 'employee')) {
-    // If we just landed on a protected page, maybe wait a frame before redirecting
-    return <RedirectToLogin locale={locale} />;
-  }
-
-  if (role === 'merchant' && !sessionSlug && !isSetupPage && !checkingStore) {
-    // Only redirect to setup if we are 100% sure we are not already there
-    return <RedirectToSetup locale={locale} />;
-  }
-
-  if (isSetupPage) {
-    return <div className={styles.minimalLayout}>{children}</div>;
-  }
+  if (isLoginPage) return <>{children}</>;
 
   const handleLogout = () => {
     logout();
     router.push(`/${locale}/admin/login`);
   };
 
-  const hasAll = permissions?.includes('all');
-
   const navItems = [
-    { 
-      name: 'تفعيل المتجر', 
-      href: `/admin/verification`, 
-      icon: ShieldCheck,
-      show: (role === 'merchant' || role === 'admin') && verificationStatus !== 'active',
-      badge: verificationStatus === 'pending' ? 'مطلوب' : verificationStatus === 'under_review' ? 'جاري' : 'مرفوض'
-    },
-    { 
-      name: t('sidebar.dashboard'), 
-      href: `/admin/dashboard`, 
-      icon: LayoutDashboard,
-      show: true 
-    },
-    { 
-      name: t('sidebar.categories'), 
-      href: `/admin/categories`, 
-      icon: LayoutGrid,
-      show: hasAll || permissions?.includes('products.view') || role === 'admin' || role === 'merchant'
-    },
-    { 
-      name: t('sidebar.products'), 
-      href: `/admin/products`, 
-      icon: Package,
-      show: hasAll || permissions?.includes('products.view') || role === 'admin' || role === 'merchant'
-    },
-    { 
-      name: t('sidebar.coupons'), 
-      href: `/admin/coupons`, 
-      icon: Ticket,
-      show: hasAll || permissions?.includes('marketing.view') || role === 'admin' || role === 'merchant'
-    },
-    { 
-      name: t('sidebar.reviews'), 
-      href: `/admin/reviews`, 
-      icon: MessageSquare,
-      show: hasAll || permissions?.includes('reviews.view') || role === 'admin' || role === 'merchant'
-    },
-    { 
-      name: t('sidebar.orders'), 
-      href: `/admin/orders`, 
-      icon: ShoppingBag,
-      show: hasAll || permissions?.includes('orders.view') || role === 'admin' || role === 'merchant'
-    },
-    { 
-      name: t('sidebar.customers'), 
-      href: `/admin/customers`, 
-      icon: UsersRound,
-      show: hasAll || permissions?.includes('customers.view') || role === 'admin' || role === 'merchant'
-    },
-    { 
-      name: t('sidebar.employees'), 
-      href: `/admin/employees`, 
-      icon: Users,
-      show: role === 'merchant' || role === 'admin'
-    },
-    { 
-      name: t('sidebar.settings'), 
-      href: `/admin/settings`, 
-      icon: Settings,
-      show: hasAll || permissions?.includes('settings.manage') || role === 'admin' || role === 'merchant'
-    },
-    { 
-      name: 'الدعم الفني', 
-      href: `/admin/support`, 
-      icon: MessageSquare,
-      show: role === 'merchant'
-    },
+    { name: 'الرئيسية', href: `/admin/dashboard`, icon: LayoutDashboard },
+    { name: 'المنتجات', href: `/admin/products`, icon: Package },
+    { name: 'الأقسام', href: `/admin/categories`, icon: LayoutGrid },
+    { name: 'الطلبات', href: `/admin/orders`, icon: ShoppingBag },
+    { name: 'العملاء', href: `/admin/customers`, icon: UsersRound },
+    { name: 'الإعدادات', href: `/admin/settings`, icon: Settings },
   ];
-
-  const visibleNavItems = navItems.filter(item => item.show);
-
-  const isPathActive = (href: string) => {
-    const cleanPath = pathname.replace(/\/$/, '') || '/';
-    const cleanHref = href.replace(/\/$/, '') || '/';
-    return cleanPath === cleanHref || cleanPath.startsWith(cleanHref + '/');
-  };
-
-  const currentItem = navItems.find(item => isPathActive(item.href));
-
-
-  const showVerificationBanner = verificationStatus !== 'active' && verificationStatus !== 'approved' && !pathname.includes('/admin/verification') && storeSlug !== 'demo' && role === 'merchant' && !!storeSlug;
 
   return (
     <div className={styles.adminLayout}>
       <OrderNotification storeSlug={sessionSlug || 'demo'} />
-      <aside className={`${styles.sidebar} ${!isSidebarOpen ? styles.sidebarClosed : ''}`}>
-        <Link href="/" className={styles.sidebarLogo}>
-          <Store size={28} />
-          <span>بايرز <span>آدمن</span></span>
-        </Link>
-        
-        <nav className={styles.sidebarNav}>
-          {visibleNavItems.map((item) => {
-            const isActive = isPathActive(item.href);
-            return (
-              <Link 
-                key={item.href} 
-                href={item.href}
-                className={`${styles.navItem} ${isActive ? styles.activeNavItem : ''}`}
-              >
-                <item.icon size={20} />
-                <span>{item.name}</span>
-                {item.badge && <span className={styles.activationBadge}>{item.badge}</span>}
-              </Link>
-            );
-          })}
+      
+      {/* Premium Compact Sidebar (Icons Only like the image) */}
+      <aside className={styles.miniSidebar}>
+        <div className={styles.miniLogo}>
+           <Store size={24} color="#fbbf24" />
+        </div>
+        <nav className={styles.miniNav}>
+          {navItems.map((item) => (
+            <Link 
+              key={item.href} 
+              href={item.href}
+              className={`${styles.miniNavItem} ${pathname.includes(item.href) ? styles.miniActive : ''}`}
+              title={item.name}
+            >
+              <item.icon size={22} />
+            </Link>
+          ))}
         </nav>
-
-
-        <div className={styles.sidebarFooter}>
-          <button onClick={toggleTheme} className={styles.themeToggle}>
-            {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
-            <span>{theme === 'light' ? 'الوضع الليلي' : 'الوضع النهاري'}</span>
-          </button>
-          <button onClick={handleLogout} className={styles.logoutBtn}>
-            <LogOut size={20} />
-            <span>{t('sidebar.logout')}</span>
-          </button>
+        <div className={styles.miniFooter}>
+           <button onClick={handleLogout} className={styles.miniLogout} title="تسجيل الخروج">
+             <LogOut size={22} />
+           </button>
         </div>
       </aside>
 
       <div className={styles.mainContent}>
-        {showVerificationBanner && (
-          <div className={styles.verificationBanner}>
-            <div className={styles.verificationContent}>
-              {verificationStatus === 'rejected' ? (
-                <ShieldAlert size={20} />
-              ) : (
-                <AlertTriangle size={20} />
-              )}
-              <span>
-                {verificationStatus === 'pending' && 'متجرك غير مفعل للجمهور حالياً. يرجى إكمال بيانات التحقق.'}
-                {verificationStatus === 'under_review' && 'طلب التفعيل قيد المراجعة حالياً. سيتم الرد خلال 48 ساعة.'}
-                {verificationStatus === 'rejected' && 'تم رفض طلب التفعيل. يرجى مراجعة السبب وتعديل البيانات.'}
-              </span>
+        {/* Restructured Top Bar (User on Left, Logo on Right as in image) */}
+        <header className={styles.premiumTopBar}>
+          <div className={styles.userSection}>
+            <div className={styles.avatarWrapper}>
+              <img 
+                src={storeLogo || 'https://ui-avatars.com/api/?name=Admin&background=fbbf24&color=000'} 
+                alt="Profile" 
+                className={styles.userAvatar}
+              />
+              <div className={styles.onlineStatus} />
             </div>
-            {verificationStatus !== 'under_review' && (
-              <Link href="/admin/verification" className={styles.activationLink}>
-                تفعيل المتجر الآن
-              </Link>
-            )}
+            <div className={styles.userNameInfo}>
+              <p className={styles.welcomeText}>مرحباً بك،</p>
+              <p className={styles.userDisplayName}>{username || 'أحمد محمد'}</p>
+            </div>
+            <div className={styles.topActions}>
+               <NotificationBell />
+            </div>
           </div>
-        )}
-        <header className={styles.topBar}>
 
-          <div className={styles.leftBar}>
-            <button 
-              className={styles.menuToggle}
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            >
-              <Menu size={24} />
-            </button>
-            <h2 className={styles.pageTitle}>
-              {currentItem?.name || t('sidebar.dashboard')}
-            </h2>
-          </div>
-          
-          <div className={styles.topBarRight}>
-            <NotificationBell />
-            <div className={styles.userProfile}>
-              <div className={styles.userInfo}>
-                <p className={styles.userName}>{username || 'التاجر'}</p>
-              </div>
-              <div className={styles.avatar}>
-                {storeLogo ? (
-                  <img 
-                    src={storeLogo} 
-                    alt={storeName || ''} 
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
-                ) : (
-                  <User size={20} />
-                )}
-              </div>
-            </div>
+          <nav className={styles.topNavTabs}>
+            {navItems.slice(0, 4).map(item => (
+               <Link 
+                key={item.href} 
+                href={item.href} 
+                className={`${styles.topNavLink} ${pathname.includes(item.href) ? styles.topNavActive : ''}`}
+               >
+                 {item.name}
+               </Link>
+            ))}
+          </nav>
+
+          <div className={styles.logoSection}>
+            <Link href="/" className={styles.brandLogo}>
+              <span>بايرز</span>
+              <Store size={24} color="#fbbf24" />
+            </Link>
           </div>
         </header>
 
@@ -309,30 +160,6 @@ export default function AdminLayoutContent({ children }: { children: React.React
           </AnimatePresence>
         </main>
       </div>
-    </div>
-  );
-}
-
-function RedirectToLogin({ locale }: { locale: string }) {
-  const router = useRouter();
-  useEffect(() => {
-    router.replace('/admin/login');
-  }, [router]);
-  return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', color: '#64748b' }}>
-      جاري التحويل لصفحة الدخول...
-    </div>
-  );
-}
-
-function RedirectToSetup({ locale }: { locale: string }) {
-  const router = useRouter();
-  useEffect(() => {
-    router.replace('/admin/setup');
-  }, [router]);
-  return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', color: '#3b82f6' }}>
-      جاري تحويلك لمساعد التأسيس...
     </div>
   );
 }

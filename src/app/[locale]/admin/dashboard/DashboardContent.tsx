@@ -1,24 +1,20 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { 
   TrendingUp, 
   ShoppingBag, 
-  Users, 
   Activity, 
-  Package, 
-  ExternalLink,
   ChevronLeft,
   Store,
   Plus,
-  CreditCard,
-  MessageSquare,
+  Loader2,
   ArrowUpRight,
-  ShieldCheck,
-  Loader2
+  Package,
+  Users
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
 import { Order, StoreInfo, getStoreOrders, getStoreInfo } from '@/lib/api';
 import { triggerHaptic } from '@/lib/utils';
@@ -27,183 +23,154 @@ import { useSessionStore } from '@/lib/session-store';
 import styles from './dashboard.module.css';
 
 export default function DashboardContent() {
-  const t = useTranslations('Admin');
-  const [period, setPeriod] = useState<'day' | 'week' | 'month'>('month');
-  
-  // Get storeSlug from session store
   const { storeSlug: sessionSlug, _hasHydrated } = useSessionStore();
   const slug = sessionSlug || 'demo';
 
-  // Fetch data using the slug
   const { data: rawOrders, loading: ordersLoading } = useStreamingFetch(() => getStoreOrders(slug), [slug], 'store_orders');
   const { data: rawInfo, loading: infoLoading } = useStreamingFetch(() => getStoreInfo(slug), [slug], 'store_info');
 
   const orders = (rawOrders as Order[]) || [];
-  const storeInfo = (rawInfo as StoreInfo) || null;
-
   const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
-  const displaySlug = storeInfo?.slug || slug;
-  const username = storeInfo?.name || 'التاجر';
 
-  // Wait for hydration to avoid mismatch
   if (!_hasHydrated || (ordersLoading && infoLoading)) {
     return (
       <div className={styles.loading}>
-        <Loader2 size={40} className="animate-spin mb-4" />
-        <p>جاري تحضير لوحة التحكم...</p>
+        <Loader2 size={40} className="animate-spin" />
       </div>
     );
   }
 
   return (
     <div className={styles.dashboard}>
-        {/* Hero Section */}
-        <div className={styles.heroBanner}>
-          <div className={styles.heroContent}>
-            <h1 className={styles.heroTitle}>
-              مرحباً بك، <span>{username}</span> 👋
-            </h1>
-            <p className={styles.heroSubtitle}>نظرة عامة على أداء متجرك اليوم.</p>
+        {/* Main Stat & Chart Row */}
+        <div className={styles.topSection}>
+          <div className={styles.mainStatCard}>
+            <div className={styles.statHeader}>
+              <div>
+                <p className={styles.statLabel}>إجمالي المبيعات</p>
+                <h2 className={styles.mainValue}>{totalRevenue.toLocaleString()} <small>ر.ي.</small></h2>
+              </div>
+              <div className={styles.statBadge}>
+                ذهب +8% <ArrowUpRight size={14} />
+              </div>
+            </div>
             
-            <div className={styles.shareBox}>
-               <Store size={20} className="text-amber-500" />
-               <span className={styles.storeUrl}>buyers.app/{displaySlug}</span>
-               <button className="text-slate-400 hover:text-white transition-colors" onClick={() => {
-                 navigator.clipboard.writeText(`https://buyers.app/${displaySlug}`);
-                 triggerHaptic('success');
-               }}>
-                  <ExternalLink size={16} />
-               </button>
+            {/* Wavy Chart Implementation (SVG) */}
+            <div className={styles.chartWrapper}>
+              <svg viewBox="0 0 400 150" className={styles.wavyChart}>
+                <defs>
+                  <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.2" />
+                    <stop offset="100%" stopColor="#fbbf24" stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+                <path 
+                  d="M0,100 C50,80 80,120 120,90 C160,60 200,110 240,80 C280,50 320,90 360,70 L400,80 L400,150 L0,150 Z" 
+                  fill="url(#gradient)" 
+                />
+                <motion.path 
+                  d="M0,100 C50,80 80,120 120,90 C160,60 200,110 240,80 C280,50 320,90 360,70 L400,80" 
+                  fill="none" 
+                  stroke="#fbbf24" 
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: 1 }}
+                  transition={{ duration: 2, ease: "easeInOut" }}
+                />
+                {/* Dots on peak */}
+                <circle cx="120" cy="90" r="5" fill="#fbbf24" />
+                <circle cx="280" cy="50" r="5" fill="#fbbf24" />
+              </svg>
+            </div>
+
+            <div className={styles.chartLabels}>
+               <span>يناير</span><span>فبراير</span><span>مارس</span><span>ابريل</span><span>مايو</span>
             </div>
           </div>
-          
-          <div className={styles.heroActions}>
-            <Link href="/admin/products" className={styles.premiumBtn} onClick={() => triggerHaptic('medium')}>
-              <ShoppingBag size={20} />
-              إدارة المنتجات
-            </Link>
+
+          <div className={styles.secondaryStats}>
+             <div className={styles.miniStat}>
+                <div className={styles.miniIcon} style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
+                  <ShoppingBag size={24} />
+                </div>
+                <div>
+                   <p>الطلبات</p>
+                   <h3>{orders.length}</h3>
+                </div>
+             </div>
+             <div className={styles.miniStat}>
+                <div className={styles.miniIcon} style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
+                  <Users size={24} />
+                </div>
+                <div>
+                   <p>العملاء</p>
+                   <h3>{(orders.length * 0.8).toFixed(0)}</h3>
+                </div>
+             </div>
           </div>
         </div>
 
-        {/* Stats Grid */}
-        <div className={styles.statGrid}>
-          <div className={styles.statCard}>
-            <div className={styles.statInfo}>
-              <p className={styles.statLabel}>إجمالي المبيعات</p>
-              <h3 className={styles.statValue}>{totalRevenue.toLocaleString()} <small className="text-xs">SAR</small></h3>
-              <p className={styles.statSub}>+12.5% من الشهر الماضي</p>
-            </div>
-            <div className={styles.statIcon} style={{ background: 'rgba(251, 191, 36, 0.1)', color: '#fbbf24' }}>
-              <TrendingUp size={28} />
-            </div>
-          </div>
+        {/* Content Grid */}
+        <div className={styles.contentGrid}>
+           <div className={styles.tableCard}>
+              <div className={styles.cardHeader}>
+                 <h3>أحدث الطلبات</h3>
+                 <Link href="/admin/orders" className={styles.viewLink}>عرض الكل</Link>
+              </div>
+              <div className={styles.tableScroll}>
+                <table className={styles.table}>
+                   <thead>
+                      <tr>
+                         <th>رقم الطلب</th>
+                         <th>العميل</th>
+                         <th>الحالة</th>
+                         <th>المبلغ</th>
+                      </tr>
+                   </thead>
+                   <tbody>
+                      {orders.slice(0, 5).map(o => (
+                        <tr key={o.id}>
+                           <td>#{o.id.slice(-6).toUpperCase()}</td>
+                           <td>{o.address.fullName}</td>
+                           <td>
+                              <span className={`${styles.statusDot} ${styles[o.status]}`} />
+                              {o.status === 'pending' ? 'انتظار' : 'مكتمل'}
+                           </td>
+                           <td>{o.total} ر.ي</td>
+                        </tr>
+                      ))}
+                   </tbody>
+                </table>
+              </div>
+           </div>
 
-          <div className={styles.statCard}>
-            <div className={styles.statInfo}>
-              <p className={styles.statLabel}>الطلبات الجديدة</p>
-              <h3 className={styles.statValue}>{orders.length}</h3>
-              <p className={styles.statSub}>+5 اليوم</p>
-            </div>
-            <div className={styles.statIcon} style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
-              <ShoppingBag size={28} />
-            </div>
-          </div>
-
-          <div className={styles.statCard}>
-            <div className={styles.statInfo}>
-              <p className={styles.statLabel}>متوسط قيمة الطلب</p>
-              <h3 className={styles.statValue}>{orders.length > 0 ? (totalRevenue / orders.length).toFixed(1) : 0}</h3>
-              <p className={styles.statSub}>ريال سعودي لكل طلب</p>
-            </div>
-            <div className={styles.statIcon} style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
-              <Activity size={28} />
-            </div>
-          </div>
-        </div>
-
-        {/* Main Grid */}
-        <div className={styles.mainGrid}>
-            {/* Recent Orders */}
-            <div className={styles.section}>
-                <div className={styles.sectionHeader}>
-                    <h2 className={styles.sectionTitle}>أحدث الطلبات</h2>
-                    <Link href="/admin/orders" className={styles.viewAll}>عرض الكل <ChevronLeft size={16} /></Link>
-                </div>
-                
-                <div className={styles.tableWrapper}>
-                    <table className={styles.table}>
-                        <thead>
-                            <tr>
-                                <th>رقم الطلب</th>
-                                <th>العميل</th>
-                                <th>المبلغ</th>
-                                <th>الحالة</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {orders.slice(0, 5).map(order => (
-                                <tr key={order.id}>
-                                    <td><span className={styles.orderId}>#{order.id.slice(-6).toUpperCase()}</span></td>
-                                    <td>{order.address.fullName}</td>
-                                    <td>{order.total} {order.currency}</td>
-                                    <td>
-                                        <span className={`${styles.statusBadge} ${styles[order.status]}`}>
-                                            {order.status === 'pending' ? 'انتظار' : order.status === 'processing' ? 'تجهيز' : 'مكتمل'}
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))}
-                            {orders.length === 0 && (
-                                <tr>
-                                    <td colSpan={4} className="text-center py-10 text-slate-500">لا توجد طلبات بعد</td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            {/* Quick Actions */}
-            <div className={styles.section}>
-                <div className={styles.sectionHeader}>
-                    <h2 className={styles.sectionTitle}>إجراءات سريعة</h2>
-                </div>
-                <div className="flex flex-col gap-4">
-                    <Link href="/admin/products/new" className={styles.topProductCard}>
-                        <div className="bg-amber-500/10 p-3 rounded-xl">
-                            <Plus className="text-amber-500" size={24} />
-                        </div>
-                        <div>
-                            <p className="font-bold">إضافة منتج جديد</p>
-                            <p className="text-xs text-slate-500">أضف منتجاتك وابدأ البيع</p>
-                        </div>
-                    </Link>
-                    
-                    <Link href="/admin/settings" className={styles.topProductCard}>
-                        <div className="bg-blue-500/10 p-3 rounded-xl">
-                            <Store className="text-blue-500" size={24} />
-                        </div>
-                        <div>
-                            <p className="font-bold">إعدادات المتجر</p>
-                            <p className="text-xs text-slate-500">تخصيص الهوية والألوان</p>
-                        </div>
-                    </Link>
-
-                    <div className="p-6 bg-amber-500/5 border border-amber-500/10 rounded-3xl mt-4">
-                        <div className="flex items-center gap-3 mb-4">
-                            <ShieldCheck className="text-amber-500" size={24} />
-                            <h4 className="font-black">باقة بزنس 👑</h4>
-                        </div>
-                        <p className="text-xs text-slate-400 leading-relaxed mb-4">
-                            متجرك الآن في وضع الوصول الكامل. استمتع بكافة الميزات الاحترافية دون حدود.
-                        </p>
-                        <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
-                            <div className="h-full bg-amber-500 w-full" />
-                        </div>
-                    </div>
-                </div>
-            </div>
+           <div className={styles.bestSellers}>
+              <div className={styles.cardHeader}>
+                 <h3>الأكثر مبيعاً</h3>
+              </div>
+              <div className={styles.productList}>
+                 {orders.slice(0, 3).map((o, i) => (
+                   <div key={i} className={styles.productItem}>
+                      <img src={o.items[0]?.image || 'https://via.placeholder.com/50'} alt="p" />
+                      <div className={styles.pInfo}>
+                         <p className={styles.pName}>ثوب يمني مطرز</p>
+                         <div className={styles.pRating}>
+                            <Star size={10} fill="#fbbf24" color="#fbbf24" />
+                            <Star size={10} fill="#fbbf24" color="#fbbf24" />
+                            <Star size={10} fill="#fbbf24" color="#fbbf24" />
+                         </div>
+                      </div>
+                      <span className={styles.pPrice}>{o.total} ر.ي</span>
+                   </div>
+                 ))}
+              </div>
+           </div>
         </div>
     </div>
   );
+}
+
+function Star({ size, fill, color }: any) {
+  return <Activity size={size} color={color} style={{ fill }} />;
 }

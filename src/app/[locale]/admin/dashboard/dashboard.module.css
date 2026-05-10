@@ -1,177 +1,212 @@
 .dashboard {
-  padding: 40px;
-  background: #030712;
-  min-height: 100vh;
-  color: #f8fafc;
-  font-family: 'Outfit', 'Inter', sans-serif;
   display: flex;
   flex-direction: column;
   gap: 32px;
 }
 
-.loading {
-  padding: 100px;
-  text-align: center;
-  color: #fbbf24;
-  font-weight: 800;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.topSection {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 32px;
 }
 
-/* Hero Section - Gold & Dark */
-.heroBanner {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+.mainStatCard {
+  background: rgba(15, 23, 42, 0.4);
   border-radius: 32px;
-  padding: 48px;
-  color: white;
+  padding: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
   position: relative;
-  overflow: hidden;
+}
+
+.statHeader {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 40px;
+}
+
+.statLabel {
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.mainValue {
+  font-size: 42px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.mainValue small {
+  font-size: 16px;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.statBadge {
+  background: rgba(251, 191, 36, 0.1);
+  color: #fbbf24;
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 800;
+  display: flex;
   align-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  gap: 8px;
 }
 
-.heroBanner::after {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -10%;
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, rgba(251, 191, 36, 0.1) 0%, transparent 70%);
-  z-index: 0;
+.chartWrapper {
+  height: 200px;
+  width: 100%;
 }
 
-.heroContent { position: relative; z-index: 1; }
-.heroTitle { font-size: 32px; font-weight: 900; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
-.heroTitle span { color: #fbbf24; }
-.heroSubtitle { color: #94a3b8; font-size: 18px; margin-bottom: 24px; }
+.wavyChart {
+  width: 100%;
+  height: 100%;
+}
 
-.shareBox {
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(10px);
-  padding: 12px 24px;
-  border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+.chartLabels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.secondaryStats {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.miniStat {
+  background: rgba(15, 23, 42, 0.4);
+  border-radius: 24px;
+  padding: 24px;
   display: flex;
   align-items: center;
   gap: 20px;
-}
-
-.storeUrl {
-  color: #fbbf24;
-  font-family: monospace;
-  font-size: 14px;
-  font-weight: 800;
-}
-
-.premiumBtn {
-  background: #fbbf24;
-  color: #000;
-  padding: 14px 28px;
-  border-radius: 16px;
-  font-weight: 900;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  text-decoration: none;
-  box-shadow: 0 10px 25px -5px rgba(251, 191, 36, 0.4);
-  transition: all 0.3s;
-}
-
-.premiumBtn:hover { transform: translateY(-3px); box-shadow: 0 15px 30px -5px rgba(251, 191, 36, 0.5); }
-
-/* Stat Cards */
-.statGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 24px;
-}
-
-.statCard {
-  background: rgba(30, 41, 59, 0.4);
-  backdrop-filter: blur(10px);
-  padding: 32px;
-  border-radius: 28px;
   border: 1px solid rgba(255, 255, 255, 0.05);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.statCard:hover { transform: translateY(-8px); border-color: rgba(251, 191, 36, 0.2); }
-
-.statLabel { color: #94a3b8; font-size: 14px; font-weight: 700; margin-bottom: 8px; }
-.statValue { font-size: 28px; font-weight: 900; color: #fff; }
-
-.statIcon {
-  width: 64px;
-  height: 64px;
-  border-radius: 20px;
+.miniIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.miniStat h3 {
   font-size: 24px;
+  font-weight: 900;
+  color: #fff;
 }
 
-/* Charts Section */
-.chartsSection {
-  background: rgba(15, 23, 42, 0.4);
-  padding: 32px;
-  border-radius: 32px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+.miniStat p {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 700;
 }
 
-.chartTitle { font-size: 20px; font-weight: 900; color: #fff; margin-bottom: 24px; }
-.chartWrapper { height: 350px; width: 100%; }
-
-/* Main Grid */
-.mainGrid {
+.contentGrid {
   display: grid;
-  grid-template-columns: 1.8fr 1fr;
-  gap: 24px;
+  grid-template-columns: 2fr 1fr;
+  gap: 32px;
 }
 
-.section {
+.tableCard, .bestSellers {
   background: rgba(15, 23, 42, 0.4);
-  padding: 32px;
   border-radius: 32px;
+  padding: 32px;
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.sectionTitle { font-size: 18px; font-weight: 900; color: #fff; margin-bottom: 24px; }
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
 
-/* Table Styles */
-.table { width: 100%; border-collapse: collapse; }
-.table th { text-align: right; padding: 16px; color: #64748b; font-size: 12px; font-weight: 800; text-transform: uppercase; }
-.table td { padding: 20px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.03); color: #f8fafc; font-size: 14px; }
+.cardHeader h3 {
+  font-size: 18px;
+  font-weight: 900;
+}
 
-.orderId { font-family: monospace; font-weight: 900; color: #fbbf24; background: rgba(251, 191, 36, 0.1); padding: 4px 10px; border-radius: 8px; }
+.viewLink {
+  color: #fbbf24;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+}
 
-.statusBadge { padding: 6px 12px; border-radius: 99px; font-size: 11px; font-weight: 900; }
-.pending { background: rgba(251, 191, 36, 0.1); color: #fbbf24; }
-.processing { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
-.delivered { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
 
-.topProductCard {
+.table th {
+  text-align: right;
+  color: #64748b;
+  font-size: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.table td {
+  padding: 16px 0;
+  font-size: 14px;
+  font-weight: 700;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.statusDot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-left: 8px;
+}
+
+.pending { background: #fbbf24; box-shadow: 0 0 10px rgba(251, 191, 36, 0.4); }
+.processing { background: #3b82f6; }
+.shipped { background: #10b981; }
+
+.productItem {
   display: flex;
   align-items: center;
   gap: 16px;
   padding: 16px;
   background: rgba(30, 41, 59, 0.3);
-  border-radius: 20px;
+  border-radius: 16px;
   margin-bottom: 12px;
-  border: 1px solid transparent;
-  transition: all 0.3s;
 }
 
-.topProductCard:hover { background: rgba(30, 41, 59, 0.5); border-color: rgba(251, 191, 36, 0.2); }
-.topProductImage { width: 56px; height: 56px; border-radius: 14px; object-fit: cover; }
-.topProductRevenue { font-weight: 900; color: #fbbf24; font-size: 16px; }
+.productItem img {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  object-fit: cover;
+}
 
-@media (max-width: 1100px) { .mainGrid { grid-template-columns: 1fr; } }
-@media (max-width: 768px) { .heroBanner { padding: 32px; } .heroTitle { font-size: 24px; } }
+.pName { font-weight: 800; font-size: 14px; }
+.pRating { display: flex; gap: 2px; margin-top: 4px; }
+.pPrice { margin-right: auto; font-weight: 900; color: #fbbf24; }
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300px;
+  color: #fbbf24;
+}
+
+@media (max-width: 1024px) {
+  .topSection, .contentGrid {
+    grid-template-columns: 1fr;
+  }
+}
