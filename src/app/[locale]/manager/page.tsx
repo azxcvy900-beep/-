@@ -8,8 +8,6 @@ import {
   ShoppingBag, 
   AlertTriangle, 
   ChevronRight,
-  ArrowUpRight,
-  ArrowDownRight,
   Globe,
   Star,
   MessageSquareWarning,
@@ -17,14 +15,12 @@ import {
   Loader2,
   CheckCircle2,
   XCircle,
-  Image as ImageIcon,
   ExternalLink,
   ShieldCheck,
   Phone,
   Landmark,
   X,
-  Megaphone,
-  Wallet
+  Megaphone
 } from 'lucide-react';
 import BroadcastModal from '@/components/manager/BroadcastModal';
 
@@ -48,8 +44,8 @@ import styles from './manager.module.css';
 
 function SectionLoader({ label }: { label: string }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '1.5rem', color: '#64748b', fontSize: '0.9rem' }}>
-      <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
+    <div className={styles.loading}>
+      <Loader2 size={32} className="animate-spin mb-4" />
       {label}
     </div>
   );
@@ -62,7 +58,6 @@ export default function AdministrationDashboard() {
   const [proofs, setProofs] = useState<PaymentProof[]>([]);
   const [kycRequests, setKycRequests] = useState<KYCRequest[]>([]);
   const [verifyingId, setVerifyingId] = useState<string | null>(null);
-  const [rejectionReason, setRejectionReason] = useState('');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isBroadcastOpen, setIsBroadcastOpen] = useState(false);
 
@@ -86,23 +81,6 @@ export default function AdministrationDashboard() {
     setKycRequests(data);
   };
 
-  const handleVerify = async (proof: PaymentProof, approve: boolean) => {
-    if (!confirm(approve ? 'تأكيد تفعيل المتجر واشتراكه؟' : 'هل أنت متأكد من رفض هذا الطلب؟')) return;
-    setVerifyingId(proof.id);
-    try {
-      if (approve) {
-        await approveStoreSubscription(proof.id, proof.storeSlug, proof.plan as any);
-      } else {
-        await rejectStoreSubscription(proof.id, proof.storeSlug);
-      }
-      fetchProofs();
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setVerifyingId(null);
-    }
-  };
-
   const handleKYCVerify = async (request: KYCRequest, approve: boolean) => {
     let reason = '';
     if (!approve) {
@@ -124,7 +102,6 @@ export default function AdministrationDashboard() {
     }
   };
 
-  // Progressive rendering for merchants list
   const merchantRanking = React.useMemo(() => {
     if (!stores || !orders || !reviews) return [];
     return (stores as StoreInfo[]).map((store: StoreInfo) => {
@@ -139,248 +116,220 @@ export default function AdministrationDashboard() {
     }).sort((a: any, b: any) => b.stats.revenue - a.stats.revenue);
   }, [stores, orders, reviews]);
 
-  const { visibleItems: visibleMerchants } = useProgressiveLoad(merchantRanking, 3, 200);
+  const { visibleItems: visibleMerchants } = useProgressiveLoad(merchantRanking, 5, 100);
   
-  const complaintsToShow = React.useMemo(() => {
-    return (reviews || []).filter((r: Review) => r.rating <= 3).slice(0, 5);
-  }, [reviews]);
-  const { visibleItems: visibleComplaints } = useProgressiveLoad(complaintsToShow, 2, 250);
-
-  // Analytics
   const totalRevenue = (orders || []).reduce((sum: number, o: Order) => sum + o.total, 0);
   const activeMerchants = (stores || []).length;
   const criticalComplaints = (reviews || []).filter((r: Review) => r.rating <= 2).length;
 
-  const stats = [
-    { label: t('Admin.dashboard.totalSales'), value: ordersLoading ? '...' : `${totalRevenue.toLocaleString()} ر.ي`, icon: TrendingUp, delta: '+12%', color: '#3b82f6', ready: !ordersLoading },
-    { label: 'التجار النشطون', value: storesLoading ? '...' : activeMerchants, icon: Users, delta: '+2', color: '#8b5cf6', ready: !storesLoading },
-    { label: t('Admin.dashboard.totalOrders'), value: ordersLoading ? '...' : (orders || []).length, icon: ShoppingBag, delta: '+54', color: '#10b981', ready: !ordersLoading },
-    { label: 'تحذيرات الرضا', value: reviewsLoading ? '...' : criticalComplaints, icon: AlertTriangle, delta: 'مستقر', color: '#ef4444', ready: !reviewsLoading },
-  ];
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  } as const;
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: { type: 'spring', stiffness: 100 }
-    }
-  } as const;
-
   return (
     <div className={styles.opsRoom}>
-      <div className={styles.pulseHeader}>
+      <header className={styles.pulseHeader}>
         <div className={styles.titleInfo}>
-            <h1>{t('Manager.title')} <Activity size={24} className={styles.pulseIcon} /></h1>
-            <p>{t('Manager.subtitle')}</p>
+          <h1><ShieldCheck className={styles.pulseIcon} size={36} /> غرفة العمليات المركزية</h1>
+          <p>مراقبة حية لنبض المنصة، أداء التجار، والتدفقات المالية.</p>
         </div>
         <div className={styles.tabs}>
             <button 
-              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-blue-700 transition-all ml-4"
+              className="flex items-center gap-2 bg-amber-500 text-black px-6 py-3 rounded-2xl text-sm font-black hover:bg-amber-400 transition-all ml-6 shadow-lg shadow-amber-500/20"
               onClick={() => setIsBroadcastOpen(true)}
             >
               <Megaphone size={18} />
               إرسال تعميم
             </button>
             <button className={activeTab === 'radar' ? styles.tabActive : ''} onClick={() => setActiveTab('radar')}>
-                {t('Manager.tabs.radar')}
+                <Activity size={18} /> الرادار الذكي
             </button>
             <button className={activeTab === 'approvals' ? styles.tabActive : ''} onClick={() => setActiveTab('approvals')}>
-                طلبات الموافقة (KYC)
+                <ShieldCheck size={18} /> طلبات KYC
                 {kycRequests.length > 0 && <span className={styles.tabBadge}>{kycRequests.length}</span>}
             </button>
         </div>
+      </header>
 
-        <BroadcastModal 
-          isOpen={isBroadcastOpen} 
-          onClose={() => setIsBroadcastOpen(false)} 
-        />
+      <BroadcastModal 
+        isOpen={isBroadcastOpen} 
+        onClose={() => setIsBroadcastOpen(false)} 
+      />
+
+      <div className={styles.statGrid}>
+        <div className={styles.statCard}>
+          <div className={styles.statIcon} style={{ background: 'rgba(251, 191, 36, 0.1)', color: '#fbbf24' }}>
+            <TrendingUp size={32} />
+          </div>
+          <div className={styles.statContent}>
+            <p>إجمالي المبيعات (SAR)</p>
+            <h3>{ordersLoading ? '...' : totalRevenue.toLocaleString()}</h3>
+            <span className={styles.good}>+12.5% 📈</span>
+          </div>
+        </div>
+
+        <div className={styles.statCard}>
+          <div className={styles.statIcon} style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
+            <Users size={32} />
+          </div>
+          <div className={styles.statContent}>
+            <p>التجار النشطون</p>
+            <h3>{storesLoading ? '...' : activeMerchants}</h3>
+            <span className={styles.good}>+5.2% 👥</span>
+          </div>
+        </div>
+
+        <div className={styles.statCard}>
+          <div className={styles.statIcon} style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
+            <ShoppingBag size={32} />
+          </div>
+          <div className={styles.statContent}>
+            <p>إجمالي الطلبات</p>
+            <h3>{ordersLoading ? '...' : (orders || []).length}</h3>
+            <span className={styles.good}>SAR</span>
+          </div>
+        </div>
+
+        <div className={styles.statCard}>
+          <div className={styles.statIcon} style={{ background: 'rgba(244, 63, 94, 0.1)', color: '#f43f5e' }}>
+            <AlertTriangle size={32} />
+          </div>
+          <div className={styles.statContent}>
+            <p>بلاغات معلقة</p>
+            <h3>{reviewsLoading ? '...' : criticalComplaints}</h3>
+            <span className={styles.negative}>عاجل ⚠️</span>
+          </div>
+        </div>
       </div>
-
-      <motion.div 
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className={styles.statGrid}
-      >
-        {stats.map((stat, i) => (
-          <motion.div 
-            key={i} 
-            variants={itemVariants}
-            className={styles.statCard}
-          >
-            <div className={styles.statIcon} style={{ background: `${stat.color}15`, color: stat.color }}>
-              <stat.icon size={28} />
-            </div>
-            <div className={styles.statContent}>
-              <p>{stat.label}</p>
-              <h3 style={{ opacity: stat.ready ? 1 : 0.4, transition: 'opacity 0.3s' }}>{stat.value}</h3>
-              <span className={typeof stat.delta === 'string' && stat.delta.startsWith('+') ? styles.positive : ''}>{stat.delta}</span>
-            </div>
-          </motion.div>
-        ))}
-      </motion.div>
 
       <AnimatePresence mode="wait">
         {activeTab === 'radar' ? (
           <motion.div 
             key="radar"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
             className={styles.mainGrid}
           >
-            <div className={styles.header}>
-              <div className={styles.titleInfo}>
-                <h2 className={styles.title}>ريدار المتاجر الذكي</h2>
-                <p className={styles.subtitle}>الرقابة الشاملة والتحليل المتقدم حسب المبيعات</p>
-              </div>
-              <div className={styles.radarList}>
+            <div className={styles.radarList}>
+                <div className="flex justify-between items-center mb-8">
+                    <h2 className="text-xl font-black">رادار المتاجر الذكي</h2>
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Live Monitoring</span>
+                </div>
+                
                 {(storesLoading || ordersLoading) && visibleMerchants.length === 0 && (
-                  <SectionLoader label="جاري تحميل بيانات المتاجر..." />
+                  <SectionLoader label="جاري مسح المتاجر..." />
                 )}
-                {visibleMerchants.map((merchant: any, i: number) => (
-                  <motion.div 
-                    key={merchant.slug} 
-                    variants={itemVariants}
-                    className={styles.radarItem}
-                  >
+                
+                {visibleMerchants.map((merchant: any) => (
+                  <div key={merchant.slug} className={styles.radarItem}>
                     <div className={styles.merchantInfo}>
-                       <img src={merchant.logo} alt={merchant.name} />
+                       <img src={merchant.logo || '/favicon.ico'} alt={merchant.name} />
                        <div>
                          <h4>{merchant.name}</h4>
-                         <span>{merchant.slug}</span>
+                         <span>/{merchant.slug}</span>
                        </div>
                     </div>
                     <div className={styles.merchantStats}>
                        <div className={styles.mStat}>
                           <small>المبيعات</small>
-                          <p>{merchant.stats.revenue.toLocaleString()} ر.ي</p>
+                          <p>{merchant.stats.revenue.toLocaleString()} ر.س</p>
                        </div>
                        <div className={styles.mStat}>
                           <small>الرضا</small>
                           <p className={merchant.stats.avgRating < 3 ? styles.bad : styles.good}>
-                            <Star size={12} fill="currentColor" /> {merchant.stats.avgRating.toFixed(1)}
+                            <Star size={12} fill="currentColor" className="inline ml-1" /> 
+                            {merchant.stats.avgRating.toFixed(1)}
                           </p>
                        </div>
-                       <div className={styles.mStat}>
-                          <small>الشكاوى</small>
-                          <p className={merchant.stats.complaints > 0 ? styles.alert : ''}>{merchant.stats.complaints}</p>
-                       </div>
                     </div>
-                  </motion.div>
+                  </div>
                 ))}
-              </div>
             </div>
 
             <div className={styles.mapSection}>
-              <div className={styles.sectionHeader}>
-                <h3>{t('Admin.dashboard.recentOrders')}</h3>
-              </div>
               <div className={styles.mapWidget}>
-                 <Globe size={160} className={styles.globeBg} />
-                 <div className={styles.mapOverlay}>
-                    <div className={styles.activeSpot} style={{ top: '60%', left: '70%' }} data-label="صنعاء: 45 طلب" />
-                    <div className={styles.activeSpot} style={{ top: '75%', left: '80%' }} data-label="عدن: 22 طلب" />
+                 <Globe size={180} className={styles.globeBg} />
+                 <div className="absolute inset-0 flex items-center justify-center">
+                    <div className={styles.activeSpot} style={{ top: '40%', left: '60%' }} data-label="صنعاء: نشط" />
+                    <div className={styles.activeSpot} style={{ top: '65%', left: '45%' }} data-label="عدن: نشط" />
                  </div>
               </div>
-              <div className={styles.complaintsBox}>
-                <h4>أحدث تقارير رصد الشكاوى</h4>
-                <div className={styles.complaintList}>
-                  {visibleComplaints.map((r: Review) => (
-                    <div key={r.id} className={styles.complaintItem}>
-                       <MessageSquareWarning size={16} color="#ef4444" />
-                       <div className={styles.compDetail}>
-                          <p><strong>{r.customerName}</strong>: {r.comment}</p>
-                          <small>متجر: {r.storeSlug}</small>
-                       </div>
+              
+              <div className={styles.verificationPortal} style={{ padding: '24px' }}>
+                <h4 className="font-black mb-4">أحدث البلاغات</h4>
+                {(reviews || []).filter((r: any) => r.rating <= 2).slice(0, 3).map((r: any) => (
+                    <div key={r.id} className="flex gap-4 p-4 bg-rose-500/5 border border-rose-500/10 rounded-2xl mb-3">
+                        <AlertTriangle size={18} className="text-rose-500 shrink-0" />
+                        <div>
+                            <p className="text-sm font-bold text-white mb-1">{r.customerName}</p>
+                            <p className="text-xs text-slate-400">{r.comment}</p>
+                        </div>
                     </div>
-                  ))}
-                  {visibleComplaints.length === 0 && <p className={styles.noData}>لا توجد شكاوى حالياً ✅</p>}
-                </div>
+                ))}
+                {(reviews || []).filter((r: any) => r.rating <= 2).length === 0 && (
+                    <p className="text-center text-slate-500 py-4 text-sm">لا توجد بلاغات حرجة حالياً ✅</p>
+                )}
               </div>
             </div>
           </motion.div>
         ) : (
           <motion.div 
             key="approvals"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
             className={styles.verificationPortal}
           >
-            {/* vSwitcher hidden as payments are disabled for now */}
+            <div className={styles.vSwitcher}>
+              <button className={styles.subActive}>التحقق من الهوية (KYC)</button>
+            </div>
 
-            {subTab === 'kyc' ? (
-              <div className={styles.kycQueue}>
+            <div className={styles.kycGrid}>
                 {kycRequests.length === 0 ? (
-                  <div className={styles.emptyResults}>لا توجد طلبات هوية حالياً</div>
+                  <div className="py-20 text-center text-slate-500 font-bold">لا توجد طلبات معلقة حالياً</div>
                 ) : (
-                  <div className={styles.kycGrid}>
-                    {kycRequests.map(req => (
-                      <div key={req.id} className={styles.kycCard}>
-                        <div className={styles.kycDocs}>
-                          <div className={styles.docMini}>
-                            <img src={req.identityUrl} alt="ID" className={styles.clickableDoc} onClick={() => setSelectedImage(req.identityUrl)} />
-                            <a href={req.identityUrl} target="_blank" rel="noopener noreferrer">صورة الهوية <ExternalLink size={12}/></a>
-                          </div>
-                          <div className={styles.docMini}>
-                            <img src={req.utilityBillUrl} alt="Bill" className={styles.clickableDoc} onClick={() => setSelectedImage(req.utilityBillUrl)} />
-                            <a href={req.utilityBillUrl} target="_blank" rel="noopener noreferrer">فاتورة الخدمات <ExternalLink size={12}/></a>
-                          </div>
+                  kycRequests.map(req => (
+                    <div key={req.id} className={styles.radarItem} style={{ background: 'rgba(30, 41, 59, 0.4)' }}>
+                        <div className={styles.merchantInfo}>
+                            <div className="flex gap-4">
+                                <img 
+                                    src={req.identityUrl} 
+                                    className="w-20 h-20 rounded-xl cursor-pointer hover:opacity-80" 
+                                    onClick={() => setSelectedImage(req.identityUrl)}
+                                    alt="ID"
+                                />
+                                <img 
+                                    src={req.utilityBillUrl} 
+                                    className="w-20 h-20 rounded-xl cursor-pointer hover:opacity-80" 
+                                    onClick={() => setSelectedImage(req.utilityBillUrl)}
+                                    alt="Bill"
+                                />
+                            </div>
+                            <div className="mr-4">
+                                <h4 className="text-white">متجر: {req.storeSlug}</h4>
+                                <div className="flex gap-4 mt-2 text-slate-400 text-sm">
+                                    <span className="flex items-center gap-1"><Phone size={14} /> {req.phone}</span>
+                                    <span className="flex items-center gap-1"><Landmark size={14} /> {req.bankAccount}</span>
+                                </div>
+                            </div>
                         </div>
-                        <div className={styles.kycText}>
-                           <h3>متجر: {req.storeSlug}</h3>
-                           <div className={styles.kycFields}>
-                             <p><Phone size={14}/> {req.phone}</p>
-                             <p><Landmark size={14}/> {req.bankAccount}</p>
-                           </div>
-                           <div className={styles.vActions}>
-                              <button className={styles.rejectBtn} disabled={verifyingId === req.id} onClick={() => handleKYCVerify(req, false)}>رفض</button>
-                              <button className={styles.approveBtn} disabled={verifyingId === req.id} onClick={() => handleKYCVerify(req, true)}>تفعيل المتجر</button>
-                           </div>
+                        <div className="flex gap-4">
+                            <button className={styles.rejectBtn} onClick={() => handleKYCVerify(req, false)}>رفض</button>
+                            <button className={styles.approveBtn} onClick={() => handleKYCVerify(req, true)}>تفعيل قانوني</button>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))
                 )}
-              </div>
-            ) : (
-                <div className={styles.kycGrid}>
-                   {/* Subscription payments disabled for now */}
-                </div>
-            )}
+            </div>
           </motion.div>
         )}
-
       </AnimatePresence>
 
-      {/* Image Viewer Modal */}
       {selectedImage && (
         <div className={styles.imageModal} onClick={() => setSelectedImage(null)}>
           <button className={styles.closeModalBtn} onClick={() => setSelectedImage(null)}>
-            <X size={24} />
+            <X size={32} />
           </button>
           <img src={selectedImage} alt="Fullscreen Document" onClick={(e) => e.stopPropagation()} />
         </div>
       )}
-
-      <style jsx>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   );
 }
