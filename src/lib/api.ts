@@ -188,6 +188,36 @@ export interface Category {
   storeSlug: string;
 }
 
+export interface Transaction {
+  id: string;
+  type: 'commission' | 'subscription' | 'payout' | 'adjustment';
+  amount: number;
+  currency: string;
+  storeSlug?: string;
+  merchantId?: string;
+  date: string;
+  status: 'pending' | 'completed' | 'failed';
+  note?: string;
+}
+
+export interface PayoutRequest {
+  id: string;
+  merchantId: string;
+  storeSlug: string;
+  amount: number;
+  currency: string;
+  bankAccount: {
+    bankName: string;
+    accountNumber: string;
+    accountName: string;
+  };
+  status: 'pending' | 'approved' | 'rejected' | 'processed';
+  requestedAt: string;
+  processedAt?: string;
+  receiptUrl?: string; // Image of the transfer
+  adminNote?: string;
+}
+
 const DUMMY_PRODUCTS: Product[] = [
   // --- Smartphones Section ---
   {
@@ -1886,5 +1916,184 @@ export async function getOrderById(orderId: string): Promise<Order | null> {
   } catch (error) {
     console.error("Error fetching order:", error);
     return null;
+  }
+}
+
+// --- FINANCIAL & WALLET API ---
+
+/**
+ * Fetch platform-wide financial stats for the manager.
+ */
+export async function getPlatformFinancialStats() {
+  try {
+    const transCol = collection(db, 'platform_transactions');
+    const snapshot = await getDocs(transCol);
+    const transactions = snapshot.docs.map(doc => doc.data() as Transaction);
+
+    const totalRevenue = transactions
+      .filter(t => t.type === 'commission' && t.status === 'completed')
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    const pendingPayouts = transactions
+      .filter(t => t.type === 'payout' && t.status === 'pending')
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    return {
+      totalRevenue,
+      pendingPayouts,
+      transactionCount: transactions.length
+    };
+  } catch (error) {
+    console.error("Error fetching financial stats:", error);
+    return { totalRevenue: 0, pendingPayouts: 0, transactionCount: 0 };
+  }
+}
+
+/**
+ * Fetch all platform transactions.
+ */
+export async function getPlatformTransactions(): Promise<Transaction[]> {
+  try {
+    const transCol = collection(db, 'platform_transactions');
+    const q = query(transCol, orderBy('date', 'desc'));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => doc.data() as Transaction);
+  } catch (error) {
+    return [];
+  }
+}
+
+/**
+ * Calculate the current balance for a merchant.
+ */
+export async function getMerchantBalance(storeSlug: string): Promise<number> {
+  try {
+    const orders = await getStoreOrders(storeSlug);
+    const settings = await getPlatformSettings();
+    const commissionRate = settings.commissionRate || settings.platformFee || 0;
+
+    // Total sales - total commissions
+    const totalSales = orders
+      .filter(o => o.status === 'delivered')
+      .reduce((sum, o) => sum + o.total, 0);
+    
+    const totalCommissions = (totalSales * commissionRate) / 100;
+    
+    // Also subtract successful payouts
+    const payoutRef = collection(db, 'payout_requests');
+    const q = query(payoutRef, where('storeSlug', '==', storeSlug), where('status', '==', 'processed'));
+    const payoutSnap = await getDocs(q);
+    const totalPayouts = payoutSnap.docs.map(doc => doc.data() as PayoutRequest).reduce((sum, p) => sum + p.amount, 0);
+
+    return totalSales - totalCommissions - totalPayouts;
+  } catch (error) {
+    return 0;
+  }
+}
+
+/**
+ * Create a payout request for a merchant.
+ */
+export async function createPayoutRequest(request: Omit<PayoutRequest, 'id' | 'status' | 'requestedAt'>): Promise<string> {
+  const id = `payout_${Date.now()}`;
+  const newRequest: PayoutRequest = {
+    ...request,
+    id,
+    status: 'pending',
+    requestedAt: new Date().toISOString()
+  };
+
+  await setDoc(doc(db, 'payout_requests', id), newRequest);
+
+  // Add a pending transaction record
+  const transId = `trans_${Date.now()}`;
+  const transaction: Transaction = {
+    id: transId,
+    type: 'payout',
+    amount: request.amount,
+    currency: request.currency,
+    storeSlug: request.storeSlug,
+    merchantId: request.merchantId,
+    date: new Date().toISOString(),
+    status: 'pending',
+    note: `طلب سحب أرباح للمتجر ${request.storeSlug}`
+  };
+  await setDoc(doc(db, 'platform_transactions', transId), transaction);
+
+  return id;
+}
+
+/**
+ * Get all payout requests (Manager).
+ */
+export async function getAllPayoutRequests(status?: string): Promise<PayoutRequest[]> {
+  try {
+    const payoutCol = collection(db, 'payout_requests');
+    const q = status 
+      ? query(payoutCol, where('status', '==', status), orderBy('requestedAt', 'desc'))
+      : query(payoutCol, orderBy('requestedAt', 'desc'));
+    
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => doc.data() as PayoutRequest);
+  } catch (error) {
+    return [];
+  }
+}
+
+/**
+ * Update payout request status (Manager).
+ */
+export async function updatePayoutStatus(id: string, status: PayoutRequest['status'], note?: string, receiptUrl?: string): Promise<void> {
+  const payoutRef = doc(db, 'payout_requests', id);
+  const updates: any = { status };
+  if (note) updates.adminNote = note;
+  if (receiptUrl) updates.receiptUrl = receiptUrl;
+  if (status === 'processed') updates.processedAt = new Date().toISOString();
+
+  await updateDoc(payoutRef, updates);
+
+  // Notify merchant
+  const payoutSnap = await getDoc(payoutRef);
+  if (payoutSnap.exists()) {
+    const data = payoutSnap.data() as PayoutRequest;
+    await sendNotification({
+      userId: data.merchantId,
+      title: status === 'processed' ? 'تم تحويل أرباحك! 💰' : 'تحديث لطلب السحب 🏦',
+      message: status === 'processed' 
+        ? `تمت معالجة طلب السحب الخاص بك بمبلغ ${data.amount} ${data.currency}.` 
+        : `تم تغيير حالة طلب السحب إلى: ${status}. ${note || ''}`,
+      type: 'payment',
+      link: '/admin/wallet'
+    });
+  }
+}
+
+/**
+ * Send a notification to ALL users of a specific role (Broadcast).
+ */
+export async function sendGlobalNotification(role: UserRole, title: string, message: string, link?: string): Promise<void> {
+  // In a real app, this might use a Cloud Function. Here we'll just flag it or loop (carefully).
+  // For simplicity, we'll create a single "Global Message" in a special collection that clients check.
+  const id = `global_${Date.now()}`;
+  await setDoc(doc(db, 'global_announcements', id), {
+    id,
+    targetRole: role,
+    title,
+    message,
+    link,
+    createdAt: new Date().toISOString()
+  });
+}
+
+/**
+ * Fetch global announcements for a specific role.
+ */
+export async function getGlobalAnnouncements(role: UserRole): Promise<any[]> {
+  try {
+    const q = query(collection(db, 'global_announcements'), where('targetRole', '==', role), orderBy('createdAt', 'desc'));
+    const snap = await getDocs(q);
+    return snap.docs.map(doc => doc.data());
+  } catch (error) {
+    return [];
   }
 }

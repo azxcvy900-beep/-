@@ -21,7 +21,9 @@ import {
   Store,
   Bell,
   ShoppingBag,
-  MessageSquare
+  MessageSquare,
+  Wallet,
+  CreditCard
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/components/providers/ThemeProvider';
@@ -40,8 +42,12 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
   const { isLoggedIn, role, username, logout, _hasHydrated } = useSessionStore();
 
   useEffect(() => {
-    setMounted(true);
+    fetchData();
   }, []);
+
+  const fetchData = async () => {
+    setMounted(true);
+  };
 
   // If on login page, don't show the manager layout
   if (pathname.includes('/manager/login')) {
@@ -69,6 +75,8 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
 
   const navItems = [
     { name: 'الإدارة', href: `/${locale}/manager`, icon: ShieldAlert },
+    { name: 'محفظة المنصة', href: `/${locale}/manager/wallet`, icon: Wallet },
+    { name: 'طلبات السحب', href: `/${locale}/manager/payouts`, icon: CreditCard },
     { name: 'إدارة المتاجر', href: `/${locale}/manager/merchants`, icon: Store },
     { name: 'مراقبة الطلبات', href: `/${locale}/manager/orders`, icon: ShoppingBag },
     { name: 'مركز البلاغات', href: `/${locale}/manager/complaints`, icon: Bell },

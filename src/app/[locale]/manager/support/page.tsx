@@ -28,6 +28,8 @@ export default function ManagerSupport() {
   const [loading, setLoading] = useState(true);
   const [reply, setReply] = useState('');
   const [sending, setSending] = useState(false);
+  const [priorityFilter, setPriorityFilter] = useState<'all' | 'low' | 'medium' | 'high'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'open' | 'in_progress' | 'closed'>('all');
 
   useEffect(() => {
     loadAllTickets();
@@ -93,23 +95,51 @@ export default function ManagerSupport() {
   return (
     <div className={styles.supportPage}>
       <header className={styles.header}>
-        <h1>إدارة تذاكر الدعم 🎫</h1>
-        <p>الرد على استفسارات ومشاكل التجار عبر المنصة.</p>
+        <div className={styles.titleInfo}>
+          <h1>إدارة تذاكر الدعم 🎫</h1>
+          <p>الرد على استفسارات ومشاكل التجار عبر المنصة.</p>
+        </div>
+        <div className={styles.filters}>
+          <div className={styles.filterGroup}>
+            <Filter size={16} />
+            <select value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value as any)}>
+              <option value="all">كل الأولويات</option>
+              <option value="high">عاجل جداً</option>
+              <option value="medium">متوسط</option>
+              <option value="low">عادي</option>
+            </select>
+          </div>
+          <div className={styles.filterGroup}>
+            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as any)}>
+              <option value="all">كل الحالات</option>
+              <option value="open">جديدة</option>
+              <option value="in_progress">قيد المعالجة</option>
+              <option value="closed">مغلقة</option>
+            </select>
+          </div>
+        </div>
       </header>
 
       <div className={styles.content}>
         <div className={styles.ticketList}>
-          {tickets.map(ticket => (
+          {tickets
+            .filter(t => (priorityFilter === 'all' || t.priority === priorityFilter) && (statusFilter === 'all' || t.status === statusFilter))
+            .map(ticket => (
             <div 
               key={ticket.id} 
-              className={`${styles.ticketItem} ${selectedTicket?.id === ticket.id ? styles.activeTicket : ''}`}
+              className={`${styles.ticketItem} ${selectedTicket?.id === ticket.id ? styles.activeTicket : ''} ${styles[`priority_${ticket.priority}`]}`}
               onClick={() => handleSelectTicket(ticket)}
             >
               <div className={styles.ticketMain}>
                  <span className={styles.ticketSubject}>{ticket.subject}</span>
-                 <span className={`${styles.statusBadge} ${styles[ticket.status]}`}>
-                   {ticket.status}
-                 </span>
+                 <div className="flex gap-2">
+                    <span className={`${styles.statusBadge} ${styles[ticket.status]}`}>
+                      {ticket.status === 'open' ? 'جديدة' : ticket.status === 'in_progress' ? 'متابعة' : 'مغلقة'}
+                    </span>
+                    <span className={`${styles.priorityBadge} ${styles[ticket.priority]}`}>
+                      {ticket.priority === 'high' ? 'عاجل' : ticket.priority === 'medium' ? 'متوسط' : 'عادي'}
+                    </span>
+                 </div>
               </div>
               <div className={styles.ticketMeta}>
                  <span>المتجر: {ticket.storeSlug}</span>

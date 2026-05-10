@@ -24,8 +24,20 @@ export default function NotificationBell() {
   }, [isLoggedIn, userId]);
 
   const loadNotifications = async () => {
-    const data = await getUserNotifications(userId);
-    setNotifications(data);
+    const role = (merchantId ? 'merchant' : 'admin') as any;
+    const [privateData, globalData] = await Promise.all([
+      getUserNotifications(userId),
+      import('@/lib/api').then(m => m.getGlobalAnnouncements(role))
+    ]);
+    
+    // Combine and sort by date
+    const combined = [...privateData, ...globalData.map(g => ({
+      ...g,
+      type: 'system',
+      isRead: false, // Global announcements are always "new" until read (could use local storage for this)
+    }))].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    
+    setNotifications(combined as AppNotification[]);
   };
 
   const unreadCount = notifications.filter(n => !n.isRead).length;

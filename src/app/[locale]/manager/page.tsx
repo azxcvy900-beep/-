@@ -22,8 +22,11 @@ import {
   ShieldCheck,
   Phone,
   Landmark,
-  X
+  X,
+  Megaphone,
+  Wallet
 } from 'lucide-react';
+import BroadcastModal from '@/components/manager/BroadcastModal';
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -61,6 +64,7 @@ export default function AdministrationDashboard() {
   const [verifyingId, setVerifyingId] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [isBroadcastOpen, setIsBroadcastOpen] = useState(false);
 
   const { data: stores, loading: storesLoading } = useStreamingFetch(() => getAllStores(), [], 'all_stores');
   const { data: orders, loading: ordersLoading } = useStreamingFetch(() => getAllPlatformOrders(), [], 'all_orders');
@@ -181,6 +185,13 @@ export default function AdministrationDashboard() {
             <p>{t('Manager.subtitle')}</p>
         </div>
         <div className={styles.tabs}>
+            <button 
+              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-blue-700 transition-all ml-4"
+              onClick={() => setIsBroadcastOpen(true)}
+            >
+              <Megaphone size={18} />
+              إرسال تعميم
+            </button>
             <button className={activeTab === 'radar' ? styles.tabActive : ''} onClick={() => setActiveTab('radar')}>
                 {t('Manager.tabs.radar')}
             </button>
@@ -189,6 +200,11 @@ export default function AdministrationDashboard() {
                 {(proofs.length + kycRequests.length) > 0 && <span className={styles.tabBadge}>{proofs.length + kycRequests.length}</span>}
             </button>
         </div>
+
+        <BroadcastModal 
+          isOpen={isBroadcastOpen} 
+          onClose={() => setIsBroadcastOpen(false)} 
+        />
       </div>
 
       <motion.div 

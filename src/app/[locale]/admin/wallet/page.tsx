@@ -17,12 +17,23 @@ import {
   Lock
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { getStoreOrders, getStoreInfo, StoreInfo, getStoreReviews } from '@/lib/api';
+import { 
+  getStoreOrders, 
+  getStoreInfo, 
+  StoreInfo, 
+  getStoreReviews,
+  getMerchantBalance,
+  createPayoutRequest,
+  getPlatformSettings,
+  getAllPayoutRequests,
+  PayoutRequest
+} from '@/lib/api';
 import { Order } from '@/lib/store';
 import { useStreamingFetch, useProgressiveLoad } from '@/lib/hooks';
 import { useAuthStore } from '@/lib/auth-store';
 import { StatSkeleton, TableSkeleton } from '@/components/shared/Skeletons/Skeletons';
 import styles from './wallet.module.css';
+import { toast } from 'sonner';
 
 export default function WalletPage() {
   const t = useTranslations('Admin');
@@ -57,10 +68,66 @@ export default function WalletPage() {
 
   const { visibleItems: visibleTransactions } = useProgressiveLoad(transactions, 5, 100);
 
+  const { data: platformSettings } = useStreamingFetch(
+    () => getPlatformSettings(),
+    [],
+    'platform_settings'
+  );
+
+  const [realBalance, setRealBalance] = useState(0);
+  const [payouts, setPayouts] = useState<PayoutRequest[]>([]);
+  const [showPayoutModal, setShowPayoutModal] = useState(false);
+  const [payoutAmount, setPayoutAmount] = useState(0);
+  const [payoutLoading, setPayoutLoading] = useState(false);
+
+  useEffect(() => {
+    if (storeSlug) {
+      getMerchantBalance(storeSlug).then(setRealBalance);
+      getAllPayoutRequests().then(all => {
+        setPayouts(all.filter(p => p.storeSlug === storeSlug));
+      });
+    }
+  }, [storeSlug, orders]);
+
   const activeOrders = (orders || []).filter((o: Order) => o.status !== 'cancelled');
-  const totalBalanceYER = activeOrders.reduce((sum: number, o: Order) => sum + o.total, 0);
-  const confirmedBalanceYER = activeOrders.filter((o: Order) => o.status === 'delivered').reduce((sum: number, o: Order) => sum + o.total, 0);
-  const pendingBalanceYER = totalBalanceYER - confirmedBalanceYER;
+  const totalSales = activeOrders.reduce((sum: number, o: Order) => sum + o.total, 0);
+  const confirmedSales = activeOrders.filter((o: Order) => o.status === 'delivered').reduce((sum: number, o: Order) => sum + o.total, 0);
+  
+  const commissionRate = platformSettings?.commissionRate || platformSettings?.platformFee || 0;
+  const estimatedCommission = (confirmedSales * commissionRate) / 100;
+  const netAvailable = confirmedSales - estimatedCommission;
+
+  const handleRequestPayout = async () => {
+    if (payoutAmount <= 0 || payoutAmount > netAvailable) {
+      toast.error('مبلغ غير صحيح');
+      return;
+    }
+
+    if (!storeInfo?.paymentSettings?.bankDetails) {
+      toast.error('يرجى ضبط بيانات الحساب البنكي في الإعدادات أولاً');
+      return;
+    }
+
+    setPayoutLoading(true);
+    try {
+      await createPayoutRequest({
+        merchantId: storeInfo.merchantId || '',
+        storeSlug: storeSlug || '',
+        amount: payoutAmount,
+        currency: 'YER',
+        bankAccount: storeInfo.paymentSettings.bankDetails
+      });
+      toast.success('تم إرسال طلب السحب بنجاح');
+      setShowPayoutModal(false);
+      // Refresh payouts
+      const all = await getAllPayoutRequests();
+      setPayouts(all.filter(p => p.storeSlug === storeSlug));
+    } catch (error) {
+      toast.error('فشل إرسال الطلب');
+    } finally {
+      setPayoutLoading(false);
+    }
+  };
 
 
 
@@ -93,26 +160,26 @@ export default function WalletPage() {
                 <span>إجمالي المبيعات</span>
                 <TrendingUp size={20} />
               </div>
-              <h2>{totalBalanceYER.toLocaleString()} <small>ر.ي</small></h2>
+              <h2>{totalSales.toLocaleString()} <small>ر.ي</small></h2>
               <p>تراكمي منذ بدء المتجر</p>
             </motion.div>
 
             <motion.div whileHover={{ scale: 1.02 }} className={`${styles.balanceCard} ${styles.available}`}>
               <div className={styles.cardHeader}>
-                <span>الرصيد المتاح (Confirmed)</span>
+                <span>صافي الرصيد المتاح</span>
                 <CheckCircle2 size={20} />
               </div>
-              <h2>{confirmedBalanceYER.toLocaleString()} <small>ر.ي</small></h2>
-              <p>جاهز للتسليم للتاجر</p>
+              <h2>{netAvailable.toLocaleString()} <small>ر.ي</small></h2>
+              <p>بعد خصم عمولة المنصة ({commissionRate}%)</p>
             </motion.div>
 
             <motion.div whileHover={{ scale: 1.02 }} className={`${styles.balanceCard} ${styles.pending}`}>
               <div className={styles.cardHeader}>
-                <span>بانتظار التأكيد (Locked)</span>
-                <Lock size={20} />
+                <span>العمولات المستحقة</span>
+                <DollarSign size={20} />
               </div>
-              <h2>{pendingBalanceYER.toLocaleString()} <small>ر.ي</small></h2>
-              <p>مبالغ قيد شحن الطلبات</p>
+              <h2>{estimatedCommission.toLocaleString()} <small>ر.ي</small></h2>
+              <p>مبالغ تخصم لصالح المنصة</p>
             </motion.div>
           </>
         )}
@@ -186,12 +253,80 @@ export default function WalletPage() {
       <div className={styles.withdrawalSection}>
         <h3><ArrowDownCircle size={20} /> سحب الرصيد المتاح</h3>
         <div className={styles.withdrawalCard}>
-          <p>بإمكانك طلب سحب المبلغ المتاح إلى حسابك البنكي أو الكريمي فور وصوله للرصيد المتاح.</p>
-          <button className={styles.withdrawBtn} disabled={confirmedBalanceYER === 0}>
-            طلب سحب {confirmedBalanceYER.toLocaleString()} ر.ي
+          <p>بإمكانك طلب سحب المبلغ المتاح إلى حسابك البنكي أو الكريمي المسجل في الإعدادات.</p>
+          <button 
+            className={styles.withdrawBtn} 
+            disabled={netAvailable <= 0}
+            onClick={() => {
+              setPayoutAmount(netAvailable);
+              setShowPayoutModal(true);
+            }}
+          >
+            طلب سحب {netAvailable.toLocaleString()} ر.ي
           </button>
         </div>
       </div>
+
+      {payouts.length > 0 && (
+        <div className={styles.payoutHistory}>
+          <h3><History size={20} /> طلبات السحب السابقة</h3>
+          <div className={styles.payoutGrid}>
+            {payouts.map(p => (
+              <div key={p.id} className={styles.payoutCard}>
+                <div className={styles.payoutHeader}>
+                  <span className={styles.payoutAmount}>{p.amount.toLocaleString()} {p.currency}</span>
+                  <span className={`${styles.payoutStatus} ${styles[p.status]}`}>
+                    {p.status === 'pending' ? 'قيد الانتظار' : p.status === 'processed' ? 'تم التحويل' : 'مرفوض'}
+                  </span>
+                </div>
+                <div className={styles.payoutDate}>
+                  {new Date(p.requestedAt).toLocaleDateString('ar-YE')}
+                </div>
+                {p.receiptUrl && (
+                  <a href={p.receiptUrl} target="_blank" rel="noopener noreferrer" className={styles.receiptLink}>
+                    عرض إيصال التحويل
+                  </a>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Payout Modal */}
+      {showPayoutModal && (
+        <div className={styles.modalOverlay}>
+          <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className={styles.modalContent}>
+            <div className={styles.modalHeader}>
+              <h2>تأكيد طلب السحب</h2>
+              <button onClick={() => setShowPayoutModal(false)}>&times;</button>
+            </div>
+            <div className={styles.modalBody}>
+              <div className={styles.payoutSummary}>
+                <label>المبلغ المطلوب سحبه:</label>
+                <input 
+                  type="number" 
+                  value={payoutAmount} 
+                  onChange={(e) => setPayoutAmount(Number(e.target.value))}
+                  max={netAvailable}
+                />
+              </div>
+              <div className={styles.bankInfoPreview}>
+                <p>سيتم التحويل إلى:</p>
+                <strong>{storeInfo?.paymentSettings?.bankDetails?.bankName}</strong>
+                <span>{storeInfo?.paymentSettings?.bankDetails?.accountNumber}</span>
+              </div>
+              <p className={styles.notice}>سيتم مراجعة الطلب من قبل الإدارة ومعالجته خلال 24 ساعة.</p>
+            </div>
+            <div className={styles.modalFooter}>
+              <button className={styles.cancelBtn} onClick={() => setShowPayoutModal(false)}>إلغاء</button>
+              <button className={styles.confirmBtn} disabled={payoutLoading} onClick={handleRequestPayout}>
+                {payoutLoading ? 'جاري الإرسال...' : 'تأكيد الطلب'}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }
