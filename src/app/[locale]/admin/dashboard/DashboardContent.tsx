@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { 
   TrendingUp, 
@@ -23,21 +23,27 @@ import { Link } from '@/i18n/routing';
 import { Order, StoreInfo, getStoreOrders, getStoreInfo } from '@/lib/api';
 import { triggerHaptic } from '@/lib/utils';
 import { useStreamingFetch } from '@/lib/hooks';
+import { useSessionStore } from '@/lib/session-store';
 import styles from './dashboard.module.css';
 
 export default function DashboardContent() {
   const t = useTranslations('Admin');
   const [period, setPeriod] = useState<'day' | 'week' | 'month'>('month');
+  
+  // Get storeSlug from session store
+  const { storeSlug: sessionSlug, _hasHydrated } = useSessionStore();
+  const slug = sessionSlug || 'demo';
 
-  // Fetch data internally to avoid prop-drilling and build errors
-  const { data: orders = [], loading: ordersLoading } = useStreamingFetch(() => getStoreOrders(), [], 'store_orders');
-  const { data: storeInfo, loading: infoLoading } = useStreamingFetch(() => getStoreInfo(), null, 'store_info');
+  // Fetch data using the slug
+  const { data: orders = [], loading: ordersLoading } = useStreamingFetch(() => getStoreOrders(slug), [slug], 'store_orders');
+  const { data: storeInfo, loading: infoLoading } = useStreamingFetch(() => getStoreInfo(slug), null, 'store_info');
 
   const totalRevenue = (orders as Order[]).reduce((sum, o) => sum + o.total, 0);
-  const storeSlug = (storeInfo as StoreInfo)?.slug || 'store';
+  const displaySlug = (storeInfo as StoreInfo)?.slug || slug;
   const username = (storeInfo as StoreInfo)?.name || 'التاجر';
 
-  if (ordersLoading && infoLoading) {
+  // Wait for hydration to avoid mismatch
+  if (!_hasHydrated || (ordersLoading && infoLoading)) {
     return (
       <div className={styles.loading}>
         <Loader2 size={40} className="animate-spin mb-4" />
@@ -58,9 +64,9 @@ export default function DashboardContent() {
             
             <div className={styles.shareBox}>
                <Store size={20} className="text-amber-500" />
-               <span className={styles.storeUrl}>buyers.app/{storeSlug}</span>
+               <span className={styles.storeUrl}>buyers.app/{displaySlug}</span>
                <button className="text-slate-400 hover:text-white transition-colors" onClick={() => {
-                 navigator.clipboard.writeText(`https://buyers.app/${storeSlug}`);
+                 navigator.clipboard.writeText(`https://buyers.app/${displaySlug}`);
                  triggerHaptic('success');
                }}>
                   <ExternalLink size={16} />
