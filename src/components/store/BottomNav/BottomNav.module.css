@@ -1,59 +1,37 @@
 .bottomNav {
   position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 90%;
-  max-width: 400px;
-  height: 68px;
-  background: rgba(255, 255, 255, 0.85);
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: rgba(3, 7, 18, 0.85);
   backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
-  display: none; /* Only show on mobile */
-  justify-content: space-between;
+  display: flex;
+  justify-content: space-around;
   align-items: center;
-  border-radius: 99px;
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  padding: 0 16px 20px; /* Extra bottom padding for safe area */
+  border-top: 1px solid rgba(255, 255, 255, 0.03);
   z-index: 1000;
-  padding: 0 0.5rem;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-}
-
-:global([data-theme='dark']) .bottomNav {
-  background: rgba(30, 41, 59, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.4);
 }
 
 .navItem {
   position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  color: #64748b;
+  gap: 6px;
+  flex: 1;
+  height: 100%;
   text-decoration: none;
-  font-size: 0.85rem;
-  font-weight: 800;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  height: 52px;
-  padding: 0 16px;
-  border-radius: 99px;
-  flex: 0 1 auto;
-  z-index: 2;
+  color: #64748b;
+  transition: all 0.3s;
 }
 
 .active {
-  color: #fff; /* White text for active pill */
-  flex: 1 0 auto;
-}
-
-.activeBackground {
-  position: absolute;
-  inset: 0;
-  background: var(--primary);
-  border-radius: 99px;
-  z-index: -1;
-  box-shadow: 0 4px 15px var(--primary-shadow);
+  color: #fbbf24;
 }
 
 .iconWrapper {
@@ -61,44 +39,47 @@
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.navLabel {
-  display: none;
-  white-space: nowrap;
-}
-
-.active .navLabel {
-  display: block;
-  animation: fadeIn 0.3s forwards;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateX(-5px); }
-  to { opacity: 1; transform: translateX(0); }
+  width: 44px;
+  height: 32px;
+  z-index: 1;
 }
 
 .badge {
   position: absolute;
-  top: -5px;
-  right: -8px;
-  background: #ef4444;
-  color: white;
-  font-size: 0.65rem;
-  padding: 1px 5px;
-  border-radius: 99px;
+  top: -6px;
+  right: 6px;
+  background: #fbbf24;
+  color: #000;
   min-width: 18px;
   height: 18px;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: 900;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 900;
-  border: 2px solid var(--background);
-  box-shadow: 0 2px 5px rgba(239, 68, 68, 0.3);
+  border: 2px solid #030712;
+}
+
+.navLabel {
+  font-size: 11px;
+  font-weight: 800;
+  transition: all 0.3s;
+}
+
+.activeBackground {
+  position: absolute;
+  top: 10px;
+  width: 50px;
+  height: 50px;
+  background: rgba(251, 191, 36, 0.1);
+  border-radius: 18px;
+  z-index: 0;
 }
 
 @media (max-width: 768px) {
   .bottomNav {
-    display: flex;
+    height: 75px;
+    padding-bottom: 25px;
   }
 }
