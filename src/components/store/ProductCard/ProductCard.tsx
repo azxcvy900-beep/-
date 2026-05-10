@@ -21,9 +21,10 @@ interface ProductCardProps {
   category: string;
   currency?: 'YER' | 'SAR' | 'USD';
   viewMode?: 'grid' | 'list';
+  onQuickView?: (id: string) => void;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ id, slug, name, price, originalPrice, image, category, currency = 'YER' }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ id, slug, name, price, originalPrice, image, category, currency = 'YER', onQuickView }) => {
   const t = useTranslations('Product');
   const locale = useLocale();
   const displayCurrency = useCartStore(state => state.currency);
@@ -54,6 +55,19 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, slug, name, price, origin
              <button className={styles.wishlistBtn} onClick={(e) => { e.preventDefault(); triggerHaptic('light'); }}>
                <Heart size={18} />
              </button>
+             {onQuickView && (
+               <button 
+                 className={styles.quickViewBtn} 
+                 onClick={(e) => { 
+                   e.preventDefault(); 
+                   e.stopPropagation(); 
+                   triggerHaptic('light'); 
+                   onQuickView(id); 
+                 }}
+               >
+                 <Plus size={18} style={{ transform: 'rotate(45deg)' }} />
+               </button>
+             )}
           </div>
         </div>
       </Link>
