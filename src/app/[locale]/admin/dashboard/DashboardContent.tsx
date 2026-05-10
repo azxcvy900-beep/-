@@ -15,27 +15,36 @@ import {
   CreditCard,
   MessageSquare,
   ArrowUpRight,
-  ShieldCheck
+  ShieldCheck,
+  Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from '@/i18n/routing';
-import { Order, StoreInfo } from '@/lib/api';
+import { Order, StoreInfo, getStoreOrders, getStoreInfo } from '@/lib/api';
 import { triggerHaptic } from '@/lib/utils';
+import { useStreamingFetch } from '@/lib/hooks';
 import styles from './dashboard.module.css';
 
-interface DashboardContentProps {
-  orders: Order[];
-  storeInfo: StoreInfo | null;
-  username: string | null;
-  storeSlug: string;
-}
-
-export default function DashboardContent({ orders, storeInfo, username, storeSlug }: DashboardContentProps) {
+export default function DashboardContent() {
   const t = useTranslations('Admin');
   const [period, setPeriod] = useState<'day' | 'week' | 'month'>('month');
 
-  const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
-  const deliveredOrders = orders.filter(o => o.status === 'delivered').length;
+  // Fetch data internally to avoid prop-drilling and build errors
+  const { data: orders = [], loading: ordersLoading } = useStreamingFetch(() => getStoreOrders(), [], 'store_orders');
+  const { data: storeInfo, loading: infoLoading } = useStreamingFetch(() => getStoreInfo(), null, 'store_info');
+
+  const totalRevenue = (orders as Order[]).reduce((sum, o) => sum + o.total, 0);
+  const storeSlug = (storeInfo as StoreInfo)?.slug || 'store';
+  const username = (storeInfo as StoreInfo)?.name || 'التاجر';
+
+  if (ordersLoading && infoLoading) {
+    return (
+      <div className={styles.loading}>
+        <Loader2 size={40} className="animate-spin mb-4" />
+        <p>جاري تحضير لوحة التحكم...</p>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.dashboard}>
@@ -43,7 +52,7 @@ export default function DashboardContent({ orders, storeInfo, username, storeSlu
         <div className={styles.heroBanner}>
           <div className={styles.heroContent}>
             <h1 className={styles.heroTitle}>
-              مرحباً بك، <span>{username || 'التاجر'}</span> 👋
+              مرحباً بك، <span>{username}</span> 👋
             </h1>
             <p className={styles.heroSubtitle}>نظرة عامة على أداء متجرك اليوم.</p>
             
@@ -123,7 +132,7 @@ export default function DashboardContent({ orders, storeInfo, username, storeSlu
                             </tr>
                         </thead>
                         <tbody>
-                            {orders.slice(0, 5).map(order => (
+                            {(orders as Order[]).slice(0, 5).map(order => (
                                 <tr key={order.id}>
                                     <td><span className={styles.orderId}>#{order.id.slice(-6).toUpperCase()}</span></td>
                                     <td>{order.address.fullName}</td>
