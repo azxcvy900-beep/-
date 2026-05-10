@@ -35,12 +35,15 @@ export default function DashboardContent() {
   const slug = sessionSlug || 'demo';
 
   // Fetch data using the slug
-  const { data: orders = [], loading: ordersLoading } = useStreamingFetch(() => getStoreOrders(slug), [slug], 'store_orders');
-  const { data: storeInfo, loading: infoLoading } = useStreamingFetch(() => getStoreInfo(slug), [slug], 'store_info');
+  const { data: rawOrders, loading: ordersLoading } = useStreamingFetch(() => getStoreOrders(slug), [slug], 'store_orders');
+  const { data: rawInfo, loading: infoLoading } = useStreamingFetch(() => getStoreInfo(slug), [slug], 'store_info');
 
-  const totalRevenue = (orders as Order[]).reduce((sum, o) => sum + o.total, 0);
-  const displaySlug = (storeInfo as StoreInfo)?.slug || slug;
-  const username = (storeInfo as StoreInfo)?.name || 'التاجر';
+  const orders = (rawOrders as Order[]) || [];
+  const storeInfo = (rawInfo as StoreInfo) || null;
+
+  const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
+  const displaySlug = storeInfo?.slug || slug;
+  const username = storeInfo?.name || 'التاجر';
 
   // Wait for hydration to avoid mismatch
   if (!_hasHydrated || (ordersLoading && infoLoading)) {
@@ -138,7 +141,7 @@ export default function DashboardContent() {
                             </tr>
                         </thead>
                         <tbody>
-                            {(orders as Order[]).slice(0, 5).map(order => (
+                            {orders.slice(0, 5).map(order => (
                                 <tr key={order.id}>
                                     <td><span className={styles.orderId}>#{order.id.slice(-6).toUpperCase()}</span></td>
                                     <td>{order.address.fullName}</td>
