@@ -16,17 +16,10 @@ import {
   LayoutGrid,
   Ticket,
   MessageSquare,
-  Moon,
-  Sun,
-  Users,
   UsersRound,
-  ShieldAlert,
-  ShieldCheck,
-  AlertTriangle,
   Bell
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useTheme } from '@/components/providers/ThemeProvider';
 import { useSessionStore } from '@/lib/session-store';
 import { useAuthStore } from '@/lib/auth-store';
 import { getStoreInfo } from '@/lib/api';
@@ -40,13 +33,15 @@ export default function AdminLayoutContent({ children }: { children: React.React
   const pathname = usePathname();
   const router = useRouter();
   
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Collapsed by default as in image
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [mounted, setMounted] = useState(false);
-  const { isLoggedIn, role, username, storeSlug: sessionSlug, permissions, logout, _hasHydrated } = useSessionStore();
-  const { storeSlug, storeLogo, storeName, setStoreInfo, verificationStatus } = useAuthStore();
+  const { isLoggedIn, role, username, storeSlug: sessionSlug, logout, _hasHydrated } = useSessionStore();
+  const { storeLogo, storeName, setStoreInfo } = useAuthStore();
   
   useEffect(() => {
     setMounted(true);
+    // Auto-close sidebar on mobile
+    if (window.innerWidth < 1024) setIsSidebarOpen(false);
   }, []);
   
   const isLoginPage = pathname.includes('/admin/login');
@@ -60,16 +55,10 @@ export default function AdminLayoutContent({ children }: { children: React.React
   }, [sessionSlug, isLoggedIn, setStoreInfo]);
 
   if (!mounted || !_hasHydrated) return null;
-
   if (isLoginPage) return <>{children}</>;
 
-  const handleLogout = () => {
-    logout();
-    router.push(`/${locale}/admin/login`);
-  };
-
   const navItems = [
-    { name: 'الرئيسية', href: `/admin/dashboard`, icon: LayoutDashboard },
+    { name: 'لوحة التحكم', href: `/admin/dashboard`, icon: LayoutDashboard },
     { name: 'المنتجات', href: `/admin/products`, icon: Package },
     { name: 'الأقسام', href: `/admin/categories`, icon: LayoutGrid },
     { name: 'الطلبات', href: `/admin/orders`, icon: ShoppingBag },
@@ -81,83 +70,61 @@ export default function AdminLayoutContent({ children }: { children: React.React
     <div className={styles.adminLayout}>
       <OrderNotification storeSlug={sessionSlug || 'demo'} />
       
-      {/* Premium Compact Sidebar (Icons Only like the image) */}
-      <aside className={styles.miniSidebar}>
-        <div className={styles.miniLogo}>
-           <Store size={24} color="#fbbf24" />
+      {/* Professional Modern Sidebar */}
+      <aside className={`${styles.sidebar} ${!isSidebarOpen ? styles.sidebarClosed : ''}`}>
+        <div className={styles.sidebarHeader}>
+           <Store size={28} color="#fbbf24" />
+           <span className={styles.brandName}>بايرز آدمن</span>
         </div>
-        <nav className={styles.miniNav}>
-          {navItems.map((item) => (
-            <Link 
-              key={item.href} 
-              href={item.href}
-              className={`${styles.miniNavItem} ${pathname.includes(item.href) ? styles.miniActive : ''}`}
-              title={item.name}
-            >
-              <item.icon size={22} />
-            </Link>
-          ))}
+        
+        <nav className={styles.nav}>
+          {navItems.map((item) => {
+            const isActive = pathname.includes(item.href);
+            return (
+              <Link 
+                key={item.href} 
+                href={item.href}
+                className={`${styles.navItem} ${isActive ? styles.navActive : ''}`}
+              >
+                <item.icon size={20} />
+                <span>{item.name}</span>
+              </Link>
+            );
+          })}
         </nav>
-        <div className={styles.miniFooter}>
-           <button onClick={handleLogout} className={styles.miniLogout} title="تسجيل الخروج">
-             <LogOut size={22} />
+
+        <div className={styles.sidebarFooter}>
+           <button onClick={() => { logout(); router.push(`/${locale}/admin/login`); }} className={styles.logoutBtn}>
+             <LogOut size={20} />
+             <span>تسجيل الخروج</span>
            </button>
         </div>
       </aside>
 
-      <div className={styles.mainContent}>
-        {/* Restructured Top Bar (User on Left, Logo on Right as in image) */}
-        <header className={styles.premiumTopBar}>
-          <div className={styles.userSection}>
-            <div className={styles.avatarWrapper}>
-              <img 
-                src={storeLogo || 'https://ui-avatars.com/api/?name=Admin&background=fbbf24&color=000'} 
-                alt="Profile" 
-                className={styles.userAvatar}
-              />
-              <div className={styles.onlineStatus} />
-            </div>
-            <div className={styles.userNameInfo}>
-              <p className={styles.welcomeText}>مرحباً بك،</p>
-              <p className={styles.userDisplayName}>{username || 'أحمد محمد'}</p>
-            </div>
-            <div className={styles.topActions}>
-               <NotificationBell />
-            </div>
-          </div>
-
-          <nav className={styles.topNavTabs}>
-            {navItems.slice(0, 4).map(item => (
-               <Link 
-                key={item.href} 
-                href={item.href} 
-                className={`${styles.topNavLink} ${pathname.includes(item.href) ? styles.topNavActive : ''}`}
-               >
-                 {item.name}
-               </Link>
-            ))}
-          </nav>
-
-          <div className={styles.logoSection}>
-            <Link href="/" className={styles.brandLogo}>
-              <span>بايرز</span>
-              <Store size={24} color="#fbbf24" />
-            </Link>
+      <div className={styles.mainWrapper}>
+        <header className={styles.topBar}>
+          <button className={styles.menuBtn} onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+            {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+          
+          <div className={styles.topBarRight}>
+             <NotificationBell />
+             <div className={styles.userProfile}>
+                <div className={styles.userInfo}>
+                  <p className={styles.userName}>{username || 'التاجر'}</p>
+                  <p className={styles.userRole}>{role === 'admin' ? 'مدير المنصة' : 'تاجر'}</p>
+                </div>
+                <img 
+                  src={storeLogo || 'https://ui-avatars.com/api/?name=Admin&background=fbbf24&color=000'} 
+                  className={styles.avatar}
+                  alt="avatar"
+                />
+             </div>
           </div>
         </header>
 
-        <main className={styles.pageBody}>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={pathname}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-            >
-              {children}
-            </motion.div>
-          </AnimatePresence>
+        <main className={styles.pageContent}>
+          {children}
         </main>
       </div>
     </div>
