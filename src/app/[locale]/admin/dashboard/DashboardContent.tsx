@@ -36,7 +36,7 @@ export default function DashboardContent() {
 
   // Fetch data using the slug
   const { data: orders = [], loading: ordersLoading } = useStreamingFetch(() => getStoreOrders(slug), [slug], 'store_orders');
-  const { data: storeInfo, loading: infoLoading } = useStreamingFetch(() => getStoreInfo(slug), null, 'store_info');
+  const { data: storeInfo, loading: infoLoading } = useStreamingFetch(() => getStoreInfo(slug), [slug], 'store_info');
 
   const totalRevenue = (orders as Order[]).reduce((sum, o) => sum + o.total, 0);
   const displaySlug = (storeInfo as StoreInfo)?.slug || slug;
