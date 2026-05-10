@@ -468,7 +468,12 @@ export async function getStoreInfo(slug: string): Promise<StoreInfo | null> {
     const storeDoc = doc(db, 'stores', slug);
     const storeSnap = await getDoc(storeDoc);
     if (storeSnap.exists()) {
-      const result = { slug: storeSnap.id, ...storeSnap.data() } as StoreInfo;
+      const result = { 
+        slug: storeSnap.id, 
+        ...storeSnap.data(),
+        planType: 'business', // FORCED: Full access for testing
+        subscriptionStatus: 'active', // FORCED: Full access for testing
+      } as StoreInfo;
       dataCache.set(cacheKey, result, 300);
       return result;
     }
@@ -495,7 +500,12 @@ export async function getStoreByMerchant(uid: string): Promise<StoreInfo | null>
     
     if (!querySnapshot.empty) {
       const doc = querySnapshot.docs[0];
-      const result = { slug: doc.id, ...doc.data() } as StoreInfo;
+      const result = { 
+        slug: doc.id, 
+        ...doc.data(),
+        planType: 'business', // FORCED: Full access for testing
+        subscriptionStatus: 'active', // FORCED: Full access for testing
+      } as StoreInfo;
       dataCache.set(cacheKey, result, 600); // Cache for 10 mins
       return result;
     }

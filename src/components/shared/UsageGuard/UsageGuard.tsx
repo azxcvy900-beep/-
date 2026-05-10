@@ -17,9 +17,11 @@ interface UsageGuardProps {
 
 export default function UsageGuard({ children, isLocked, orderCount, plan, expiryDate }: UsageGuardProps) {
   const locale = useLocale();
-  const isExpired = expiryDate && plan !== 'free' && new Date(expiryDate) < new Date();
+  // FORCED: Disable all locking for testing phase
+  const isExpired = false;
+  const forceUnlock = true;
 
-  if ((isLocked && plan === 'free') || isExpired) {
+  if (!forceUnlock && ((isLocked && plan === 'free') || isExpired)) {
     return (
       <div className={styles.lockContainer}>
         <div className={styles.blurredContent}>
@@ -54,17 +56,6 @@ export default function UsageGuard({ children, isLocked, orderCount, plan, expir
 
   return (
     <>
-      {plan === 'free' && orderCount >= 9 && orderCount < 15 && (
-        <motion.div 
-          initial={{ height: 0, opacity: 0 }}
-          animate={{ height: 'auto', opacity: 1 }}
-          className={styles.warningBanner}
-        >
-          <AlertCircle size={18} />
-          <span>تنبيه: لقد استهلكت {orderCount}/10 من طلباتك المجانية. قارب حسابك على الانغلاق!</span>
-          <Link href="/admin/billing">اشترك الآن</Link>
-        </motion.div>
-      )}
       {children}
     </>
   );

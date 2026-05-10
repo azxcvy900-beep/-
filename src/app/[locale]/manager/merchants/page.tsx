@@ -126,16 +126,9 @@ export default function MerchantManagement() {
                   </div>
                 </td>
                 <td>
-                  <select 
-                    className={`${styles.planSelect} ${styles[store.planType || 'free']}`}
-                    value={store.planType || 'free'}
-                    onChange={(e) => handlePlanChange(store.slug, e.target.value as any)}
-                    disabled={updatingId === store.slug}
-                  >
-                    <option value="free">المجانية</option>
-                    <option value="pro">برو 💎</option>
-                    <option value="business">بزنس 👑</option>
-                  </select>
+                  <span className={`${styles.planSelect} ${styles.business}`}>
+                    وصول كامل (بزنس) 👑
+                  </span>
                 </td>
                 <td>
                   <div className={styles.phoneCol}>

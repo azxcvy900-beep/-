@@ -196,8 +196,8 @@ export default function AdministrationDashboard() {
                 {t('Manager.tabs.radar')}
             </button>
             <button className={activeTab === 'approvals' ? styles.tabActive : ''} onClick={() => setActiveTab('approvals')}>
-                طلبات الموافقة
-                {(proofs.length + kycRequests.length) > 0 && <span className={styles.tabBadge}>{proofs.length + kycRequests.length}</span>}
+                طلبات الموافقة (KYC)
+                {kycRequests.length > 0 && <span className={styles.tabBadge}>{kycRequests.length}</span>}
             </button>
         </div>
 
@@ -319,22 +319,7 @@ export default function AdministrationDashboard() {
             exit={{ opacity: 0, x: -20 }}
             className={styles.verificationPortal}
           >
-            <div className={styles.vSwitcher}>
-              <button 
-                className={subTab === 'kyc' ? styles.subActive : ''} 
-                onClick={() => setSubTab('kyc')}
-              >
-                تحقق الهوية (KYC)
-                {kycRequests.length > 0 && <span>{kycRequests.length}</span>}
-              </button>
-              <button 
-                className={subTab === 'payments' ? styles.subActive : ''} 
-                onClick={() => setSubTab('payments')}
-              >
-                تفعيلات الدفع
-                {proofs.length > 0 && <span>{proofs.length}</span>}
-              </button>
-            </div>
+            {/* vSwitcher hidden as payments are disabled for now */}
 
             {subTab === 'kyc' ? (
               <div className={styles.kycQueue}>
@@ -371,39 +356,8 @@ export default function AdministrationDashboard() {
                 )}
               </div>
             ) : (
-                <div className={styles.proofsGrid}>
-                    {proofs.map(proof => (
-                        <div key={proof.id} className={styles.proofCard}>
-                            <div className={styles.proofImageWrapper}>
-                                <img src={proof.receiptUrl} alt="Receipt" className={styles.clickableDoc} onClick={() => setSelectedImage(proof.receiptUrl)} />
-                                <div className={styles.imageOverlay} onClick={() => setSelectedImage(proof.receiptUrl)}>
-                                    <ExternalLink size={20} color="white" />
-                                </div>
-                            </div>
-                            <div className={styles.proofDetails}>
-                                <h3>{proof.storeSlug}</h3>
-                                <div className={styles.planBadge}>{proof.plan.toUpperCase()}</div>
-                                <p>{t('Tracking.date')}: {new Date(proof.submittedAt).toLocaleString('ar-YE')}</p>
-                                
-                                <div className={styles.vActions}>
-                                    <button 
-                                        className={styles.rejectBtn}
-                                        onClick={() => handleVerify(proof, false)}
-                                        disabled={verifyingId === proof.id}
-                                    >
-                                        <XCircle size={18} /> {t('Manager.verificationPortal.reject')}
-                                    </button>
-                                    <button 
-                                        className={styles.approveBtn}
-                                        onClick={() => handleVerify(proof, true)}
-                                        disabled={verifyingId === proof.id}
-                                    >
-                                        <CheckCircle2 size={18} /> {verifyingId === proof.id ? '...' : t('Manager.verificationPortal.approve')}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
+                <div className={styles.kycGrid}>
+                   {/* Subscription payments disabled for now */}
                 </div>
             )}
           </motion.div>
