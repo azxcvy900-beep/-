@@ -4,17 +4,17 @@
   align-items: center;
   position: relative;
   z-index: 1000;
-  background: rgba(3, 7, 18, 0.7);
-  backdrop-filter: blur(25px);
-  -webkit-backdrop-filter: blur(25px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--header-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid var(--card-border);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .stickyHeader {
   height: 80px;
-  background: rgba(3, 7, 18, 0.9);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  background: var(--header-bg);
+  box-shadow: var(--shadow);
 }
 
 .landingHeader {
@@ -45,7 +45,7 @@
 .logoText {
   font-size: 28px;
   font-weight: 950;
-  background: linear-gradient(135deg, #fff 0%, #fbbf24 100%);
+  background: var(--golden-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   letter-spacing: -1px;
@@ -55,7 +55,7 @@
   height: 48px;
   width: auto;
   border-radius: 12px;
-  border: 2px solid #fbbf24;
+  border: 2px solid var(--primary);
 }
 
 .actions {
@@ -68,7 +68,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #94a3b8;
+  color: var(--secondary);
   font-weight: 700;
   font-size: 15px;
   text-decoration: none;
@@ -78,20 +78,20 @@
 }
 
 .navLink:hover, .accountLink:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.05);
+  color: var(--foreground);
+  background: var(--muted);
 }
 
 .cartLink {
-  background: #fbbf24;
-  color: #000;
+  background: var(--primary);
+  color: var(--primary-foreground);
   padding: 12px 24px;
   border-radius: 16px;
   font-weight: 900;
   display: flex;
   align-items: center;
   gap: 12px;
-  box-shadow: 0 10px 20px -5px rgba(251, 191, 36, 0.3);
+  box-shadow: var(--shadow-glow);
   text-decoration: none;
 }
 
@@ -105,8 +105,8 @@
   position: absolute;
   top: -10px;
   right: -10px;
-  background: #000;
-  color: #fff;
+  background: var(--foreground);
+  color: var(--background);
   min-width: 18px;
   height: 18px;
   border-radius: 50%;
@@ -115,7 +115,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #fbbf24;
+  border: 2px solid var(--primary);
 }
 
 .landingActions {
@@ -125,9 +125,9 @@
 }
 
 .adminLink {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #fff;
+  background: var(--muted);
+  border: 1px solid var(--card-border);
+  color: var(--foreground);
   padding: 12px 24px;
   border-radius: 16px;
   font-weight: 800;
@@ -139,9 +139,9 @@
 }
 
 .adminLink:hover {
-  background: #fff;
-  color: #000;
-  border-color: #fff;
+  background: var(--foreground);
+  color: var(--background);
+  border-color: var(--foreground);
 }
 
 .miniActions {
@@ -153,9 +153,9 @@
 .themeToggle, .localeLink {
   width: 44px;
   height: 44px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #94a3b8;
+  background: var(--muted);
+  border: 1px solid var(--card-border);
+  color: var(--secondary);
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -168,8 +168,8 @@
 }
 
 .themeToggle:hover, .localeLink:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.1);
+  color: var(--foreground);
+  background: var(--card-border);
 }
 
 @media (max-width: 1024px) {

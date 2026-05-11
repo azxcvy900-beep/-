@@ -17,24 +17,25 @@
 
 .pill {
   padding: 10px 24px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 99px;
-  color: #94a3b8;
+  color: var(--secondary);
   font-size: 14px;
   font-weight: 700;
   white-space: nowrap;
   transition: all 0.2s;
+  box-shadow: var(--shadow-sm);
 }
 
 .pill:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
+  background: var(--muted);
+  color: var(--foreground);
 }
 
 .active {
-  background: #fbbf24 !important;
-  color: #000 !important;
-  border-color: #fbbf24 !important;
-  box-shadow: 0 4px 15px rgba(251, 191, 36, 0.2);
+  background: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+  border-color: var(--primary) !important;
+  box-shadow: var(--shadow-glow);
 }

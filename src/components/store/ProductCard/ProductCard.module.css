@@ -1,22 +1,24 @@
 .card {
-  background: #0f172a;
+  background: var(--card-bg);
   border-radius: 20px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--card-border);
   display: flex;
   flex-direction: column;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-sm);
 }
 
 .card:hover {
-  border-color: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  border-color: var(--primary);
+  box-shadow: var(--shadow);
+  transform: translateY(-5px);
 }
 
 .imageWrapper {
   position: relative;
   aspect-ratio: 1;
-  background: #1e293b;
+  background: var(--muted);
   overflow: hidden;
 }
 
@@ -24,6 +26,11 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.card:hover .image {
+  transform: scale(1.05);
 }
 
 .overlay {
@@ -37,23 +44,23 @@
 }
 
 .wishlistBtn, .quickViewBtn {
-  background: rgba(15, 23, 42, 0.6);
+  background: var(--glass-bg);
   backdrop-filter: blur(10px);
-  color: #fff;
+  color: var(--foreground);
   width: 36px;
   height: 36px;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--glass-border);
   transition: all 0.2s;
 }
 
 .wishlistBtn:hover, .quickViewBtn:hover {
-  background: #fbbf24;
-  color: #000;
-  border-color: #fbbf24;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
 }
 
 .content {
@@ -63,22 +70,17 @@
   gap: 8px;
 }
 
-.meta {
-  display: flex;
-  align-items: center;
-}
-
 .category {
   font-size: 11px;
   font-weight: 700;
-  color: #fbbf24;
+  color: var(--primary);
   letter-spacing: 0.5px;
 }
 
 .title {
   font-size: 15px;
   font-weight: 700;
-  color: #f8fafc;
+  color: var(--foreground);
   line-height: 1.4;
   height: 42px;
   overflow: hidden;
@@ -97,19 +99,19 @@
 .price {
   font-size: 18px;
   font-weight: 900;
-  color: #fff;
+  color: var(--foreground);
 }
 
 .oldPrice {
   font-size: 13px;
-  color: #64748b;
+  color: var(--secondary);
   text-decoration: line-through;
   margin-right: 8px;
 }
 
 .addBtn {
-  background: #fbbf24;
-  color: #000;
+  background: var(--primary);
+  color: var(--primary-foreground);
   width: 40px;
   height: 40px;
   border-radius: 14px;
@@ -121,6 +123,7 @@
 
 .addBtn:hover {
   transform: scale(1.1);
+  box-shadow: var(--shadow-glow);
 }
 
 .added {

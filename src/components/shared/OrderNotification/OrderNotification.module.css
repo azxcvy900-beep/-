@@ -5,11 +5,11 @@
   transform: translateX(-50%);
   width: 90%;
   max-width: 450px;
-  background: white;
+  background: var(--card-bg);
   border-radius: 20px;
   padding: 1.5rem;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.15);
-  border: 1px solid rgba(128, 128, 128, 0.1);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--card-border);
   display: flex;
   gap: 1.25rem;
   z-index: 9999;
@@ -20,7 +20,7 @@
   width: 54px;
   height: 54px;
   background: var(--primary);
-  color: white;
+  color: var(--primary-foreground);
   border-radius: 16px;
   display: flex;
   align-items: center;
@@ -43,31 +43,32 @@
   font-weight: 800;
   font-size: 1.1rem;
   margin: 0 0 4px 0;
-  color: var(--text-primary);
+  color: var(--foreground);
 }
 
 .text {
   font-size: 0.9rem;
   line-height: 1.4;
   margin: 0 0 8px 0;
-  color: var(--text-secondary);
+  color: var(--secondary);
 }
 
 .orderId {
   font-family: monospace;
   font-weight: 700;
-  background: #f1f5f9;
+  background: var(--muted);
   padding: 2px 8px;
   border-radius: 4px;
   display: inline-block;
   font-size: 0.8rem;
+  color: var(--primary);
 }
 
 .closeBtn {
   position: absolute;
   top: 1rem;
   left: 1rem;
-  color: var(--text-secondary);
+  color: var(--secondary);
   cursor: pointer;
   padding: 4px;
   border-radius: 50%;
@@ -75,7 +76,8 @@
 }
 
 .closeBtn:hover {
-  background: #f1f5f9;
+  background: var(--muted);
+  color: var(--foreground);
 }
 
 .progressBar {
