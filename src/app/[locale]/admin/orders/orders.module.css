@@ -25,6 +25,50 @@
   gap: 1.5rem;
 }
 
+.tabsContainer {
+  display: flex;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 8px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  margin-bottom: 24px;
+  overflow-x: auto;
+}
+
+.tabBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px 24px;
+  border-radius: 16px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.tabActive {
+  background: #fbbf24;
+  color: #000;
+}
+
+.tabBadge {
+  background: rgba(0, 0, 0, 0.1);
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-size: 11px;
+}
+
+.tabActive .tabBadge {
+  background: rgba(0, 0, 0, 0.2);
+}
+
 .ordersCount {
   font-size: 0.95rem;
   color: #64748b;

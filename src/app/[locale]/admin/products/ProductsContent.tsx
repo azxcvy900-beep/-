@@ -11,7 +11,11 @@ import {
   X,
   Package,
   Image as ImageIcon,
-  Loader2
+  Loader2,
+  ChevronLeft,
+  LayoutGrid,
+  ArrowRight,
+  Upload
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -21,6 +25,10 @@ import {
   deleteProduct, 
   uploadProductImage, 
   getStoreCategories,
+  addCategory,
+  updateCategory,
+  deleteCategory,
+  uploadCategoryImage,
   Product, 
   Category
 } from '@/lib/api';
@@ -37,7 +45,10 @@ export default function ProductsContent() {
   const locale = useLocale();
   const { storeSlug } = useAuthStore();
   
+  const [currentView, setCurrentView] = useState<'categories' | 'products'>('categories');
+  const [selectedCategoryName, setSelectedCategoryName] = useState<string | null>(null);
   const [localProducts, setLocalProducts] = useState<Product[] | null>(null);
+  const [localCategories, setLocalCategories] = useState<Category[] | null>(null);
   
   const { data: initialProducts, loading: productsLoading } = useStreamingFetch(
     () => getStoreProducts(storeSlug || 'demo'), 
@@ -45,7 +56,7 @@ export default function ProductsContent() {
     `products_${storeSlug || 'demo'}`
   );
 
-  const { data: storeCategories } = useStreamingFetch(
+  const { data: initialCategories, loading: categoriesLoading } = useStreamingFetch(
     () => getStoreCategories(storeSlug || 'demo'), 
     [storeSlug],
     `categories_${storeSlug || 'demo'}`
@@ -54,17 +65,23 @@ export default function ProductsContent() {
   useEffect(() => {
     if (initialProducts) setLocalProducts(initialProducts);
   }, [initialProducts]);
+
+  useEffect(() => {
+    if (initialCategories) setLocalCategories(initialCategories);
+  }, [initialCategories]);
   
   const [searchQuery, setSearchQuery] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [optionInput, setOptionInput] = useState<{ [key: number]: string }>({});
 
-  const [formData, setFormData] = useState({
+  const [productFormData, setProductFormData] = useState({
     name: '',
     price: '',
     originalPrice: '',
@@ -77,29 +94,30 @@ export default function ProductsContent() {
     options: [] as any[]
   });
 
+  const [categoryName, setCategoryName] = useState('');
+
   const filteredProducts = React.useMemo(() => {
-    return (localProducts || []).filter(p => 
+    let list = localProducts || [];
+    if (selectedCategoryName) {
+      list = list.filter(p => p.category === selectedCategoryName);
+    }
+    return list.filter(p => 
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.category.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [localProducts, searchQuery]);
+  }, [localProducts, searchQuery, selectedCategoryName]);
 
-  const { visibleItems: visibleProducts } = useProgressiveLoad(filteredProducts, 5, 100);
+  const { visibleItems: visibleProducts } = useProgressiveLoad(filteredProducts, 10, 100);
+  const { visibleItems: visibleCategories } = useProgressiveLoad(localCategories || [], 20, 100);
 
-  useEffect(() => {
-    if (storeCategories && storeCategories.length > 0 && !formData.category) {
-      setFormData(prev => ({ ...prev, category: storeCategories[0].name }));
-    }
-  }, [storeCategories, formData.category]);
-
-  const handleOpenModal = (product: Product | null = null) => {
+  const handleOpenProductModal = (product: Product | null = null) => {
     triggerHaptic('light');
     setSelectedFile(null);
     setImagePreview(product?.image || null);
 
     if (product) {
       setEditingProduct(product);
-      setFormData({
+      setProductFormData({
         name: product.name,
         price: product.price.toString(),
         originalPrice: product.originalPrice?.toString() || '',
@@ -113,11 +131,11 @@ export default function ProductsContent() {
       });
     } else {
       setEditingProduct(null);
-      setFormData({
+      setProductFormData({
         name: '',
         price: '',
         originalPrice: '',
-        category: storeCategories && storeCategories.length > 0 ? storeCategories[0].name : '',
+        category: selectedCategoryName || (localCategories && localCategories.length > 0 ? localCategories[0].name : ''),
         image: '',
         description: '',
         storeSlug: storeSlug || 'demo',
@@ -126,14 +144,91 @@ export default function ProductsContent() {
         options: []
       });
     }
-    setIsModalOpen(true);
+    setIsProductModalOpen(true);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setEditingProduct(null);
+  const handleOpenCategoryModal = (category: Category | null = null) => {
+    triggerHaptic('light');
+    if (category) {
+      setEditingCategory(category);
+      setCategoryName(category.name);
+      setImagePreview(category.image || null);
+    } else {
+      setEditingCategory(null);
+      setCategoryName('');
+      setImagePreview(null);
+    }
     setSelectedFile(null);
-    setImagePreview(null);
+    setIsCategoryModalOpen(true);
+  };
+
+  const handleProductSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    triggerHaptic('medium');
+    setIsSubmitting(true);
+    try {
+      let finalImageUrl = productFormData.image;
+      if (selectedFile) {
+        const compressed = await compressImage(selectedFile, 1024, 0.7);
+        finalImageUrl = await uploadProductImage(compressed, productFormData.storeSlug);
+      }
+      const stockNum = parseInt(productFormData.stockCount) || 0;
+      const productData: any = {
+        ...productFormData,
+        image: finalImageUrl,
+        price: parseFloat(productFormData.price),
+        stockCount: stockNum,
+        inStock: stockNum > 0,
+        currency: productFormData.currency
+      };
+      if (productFormData.originalPrice) {
+        productData.originalPrice = parseFloat(productFormData.originalPrice);
+      } else {
+        productData.originalPrice = null;
+      }
+      if (editingProduct) {
+        await updateProduct(editingProduct.id, productData as any);
+      } else {
+        await addProduct(productData as any);
+      }
+      setIsProductModalOpen(false);
+      const fresh = await getStoreProducts(storeSlug || 'demo');
+      setLocalProducts(fresh);
+    } catch (error) {
+      console.error("Submit error:", error);
+      alert("حدث خطأ أثناء حفظ المنتج.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCategorySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!categoryName) return;
+    setIsSubmitting(true);
+    try {
+      let iconUrl = editingCategory?.image || '';
+      if (selectedFile) {
+        iconUrl = await uploadCategoryImage(selectedFile, storeSlug || 'demo');
+      }
+      const categoryData = {
+        name: categoryName,
+        image: iconUrl,
+        storeSlug: storeSlug || 'demo'
+      };
+      if (editingCategory) {
+        await updateCategory(storeSlug || 'demo', editingCategory.id, categoryData);
+      } else {
+        await addCategory(categoryData);
+      }
+      const fresh = await getStoreCategories(storeSlug || 'demo');
+      setLocalCategories(fresh);
+      setIsCategoryModalOpen(false);
+    } catch (error) {
+      console.error("Error saving category:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -148,108 +243,7 @@ export default function ProductsContent() {
     }
   };
 
-  const handleAddOption = () => {
-    triggerHaptic('light');
-    setFormData(prev => ({
-      ...prev,
-      options: [...prev.options, { name: '', values: [] }]
-    }));
-  };
-
-  const handleRemoveOption = (index: number) => {
-    triggerHaptic('medium');
-    setFormData(prev => ({
-      ...prev,
-      options: prev.options.filter((_, i) => i !== index)
-    }));
-  };
-
-  const handleAddValue = (index: number, value: string) => {
-    if (!value.trim()) return;
-    triggerHaptic('light');
-    const newOptions = [...formData.options];
-    if (!newOptions[index].values.includes(value.trim())) {
-      newOptions[index].values.push(value.trim());
-      setFormData({ ...formData, options: newOptions });
-      setOptionInput({ ...optionInput, [index]: '' });
-    }
-  };
-
-  const handleRemoveValue = (optIndex: number, valIndex: number) => {
-    triggerHaptic('light');
-    const newOptions = [...formData.options];
-    newOptions[optIndex].values = newOptions[optIndex].values.filter((_: any, i: number) => i !== valIndex);
-    setFormData({ ...formData, options: newOptions });
-  };
-
-  const handleBulkDelete = async () => {
-    if (confirm(`هل أنت متأكد من حذف ${selectedProducts.length} منتجات؟`)) {
-      triggerHaptic('heavy');
-      const idsToDelete = [...selectedProducts];
-      setSelectedProducts([]);
-      setLocalProducts(prev => prev ? prev.filter(p => !idsToDelete.includes(p.id)) : null);
-      
-      try {
-        await Promise.all(idsToDelete.map(id => deleteProduct(id)));
-      } catch (error) {
-        console.error("Bulk delete error:", error);
-      }
-    }
-  };
-
-  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.checked) {
-      setSelectedProducts(filteredProducts.map(p => p.id));
-    } else {
-      setSelectedProducts([]);
-    }
-  };
-
-  const handleSelectProduct = (id: string) => {
-    setSelectedProducts(prev => 
-      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
-    );
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    triggerHaptic('medium');
-    setIsSubmitting(true);
-    try {
-      let finalImageUrl = formData.image;
-      if (selectedFile) {
-        const compressed = await compressImage(selectedFile, 1024, 0.7);
-        finalImageUrl = await uploadProductImage(compressed, formData.storeSlug);
-      }
-      const stockNum = parseInt(formData.stockCount) || 0;
-      const productData: any = {
-        ...formData,
-        image: finalImageUrl,
-        price: parseFloat(formData.price),
-        stockCount: stockNum,
-        inStock: stockNum > 0,
-        currency: formData.currency
-      };
-      if (formData.originalPrice) {
-        productData.originalPrice = parseFloat(formData.originalPrice);
-      } else {
-        productData.originalPrice = null;
-      }
-      if (editingProduct) {
-        await updateProduct(editingProduct.id, productData as any);
-      } else {
-        await addProduct(productData as any);
-      }
-      handleCloseModal();
-    } catch (error) {
-      console.error("Submit error:", error);
-      alert("حدث خطأ أثناء حفظ المنتج.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleDelete = async (id: string) => {
+  const handleDeleteProduct = async (id: string) => {
     if (confirm("هل أنت متأكد من حذف هذا المنتج؟")) {
       triggerHaptic('heavy');
       setLocalProducts(prev => prev ? prev.filter(p => p.id !== id) : null);
@@ -257,468 +251,232 @@ export default function ProductsContent() {
         await deleteProduct(id);
       } catch (error) {
         alert("حدث خطأ أثناء الحذف.");
-        const fresh = await getStoreProducts(storeSlug || 'demo');
-        setLocalProducts(fresh);
       }
     }
   };
 
-  const handlePrintInventory = (categoryName: string | null = null) => {
-    triggerHaptic('light');
-    const printProducts = categoryName 
-      ? (localProducts || []).filter((p: Product) => p.category === categoryName)
-      : (localProducts || []);
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
-    const html = `
-      <html>
-        <head>
-          <title>تقرير المخزون - ${categoryName || 'الكل'}</title>
-          <style>
-            body { font-family: 'Arial', sans-serif; direction: rtl; padding: 20px; }
-            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            th, td { border: 1px solid #ddd; padding: 12px; text-align: right; }
-            th { background-color: #f8fafc; }
-            .header { text-align: center; margin-bottom: 30px; }
-            .low-stock { color: #ef4444; font-weight: bold; }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h1>تقرير جرد المخزون - ${new Date().toLocaleDateString('ar-YE')}</h1>
-            <p>القسم: ${categoryName || 'كافة الأقسام'}</p>
-          </div>
-          <table>
-            <thead>
-              <tr>
-                <th>اسم المنتج</th>
-                <th>القسم</th>
-                <th>السعر</th>
-                <th>الكمية المتوفرة</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${printProducts.map((p: Product) => `
-                <tr>
-                  <td>${p.name}</td>
-                  <td>${p.category}</td>
-                  <td>${p.price.toLocaleString()} ر.ي</td>
-                  <td class="${p.stockCount < 5 ? 'low-stock' : ''}">${p.stockCount}</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        </body>
-      </html>
-    `;
-    printWindow.document.write(html);
-    printWindow.document.close();
-    printWindow.print();
+  const handleDeleteCategory = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirm("هل أنت متأكد من حذف هذا القسم؟")) {
+      triggerHaptic('heavy');
+      setLocalCategories(prev => prev ? prev.filter(c => c.id !== id) : null);
+      try {
+        await deleteCategory(storeSlug || 'demo', id);
+      } catch (error) {
+        alert("حدث خطأ أثناء الحذف.");
+      }
+    }
   };
 
-  const handleExportCSV = () => {
-    triggerHaptic('light');
-    const headers = ['ID', 'Name', 'Category', 'Price', 'Stock', 'In Stock'];
-    const rows = (localProducts || []).map((p: Product) => [
-      p.id, p.name, p.category, p.price, p.stockCount, p.inStock ? 'Yes' : 'No'
-    ]);
-    const csvContent = "data:text/csv;charset=utf-8," 
-      + headers.join(",") + "\n"
-      + rows.map(e => e.join(",")).join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `products_export_${Date.now()}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  return (
-    <div className={styles.productsPage}>
+  const renderCategoriesView = () => (
+    <div className={styles.categoriesView}>
       <div className={styles.header}>
-        <h1 className={styles.title}>{t('products.title')}</h1>
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <button className={styles.exportBtn} onClick={handleExportCSV}>
-            <span>تصدير CSV</span>
-          </button>
-          <button className={styles.addBtn} onClick={() => handleOpenModal()}>
-            <Plus size={20} />
-            <span>{t('products.addNew')}</span>
-          </button>
+        <div>
+          <h1 className={styles.title}>أقسام المتجر</h1>
+          <p className={styles.subtitle}>اختر قسماً لعرض منتجاته أو إدارتها</p>
         </div>
+        <button className={styles.addBtn} onClick={() => handleOpenCategoryModal()}>
+          <Plus size={20} />
+          <span>إضافة قسم جديد</span>
+        </button>
+      </div>
+
+      <div className={styles.categoriesGrid}>
+        <AnimatePresence>
+          {visibleCategories.map((cat, index) => (
+            <motion.div 
+              key={cat.id} 
+              className={styles.categoryCard}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05 }}
+              onClick={() => {
+                setSelectedCategoryName(cat.name);
+                setCurrentView('products');
+                triggerHaptic('light');
+              }}
+            >
+              <div className={styles.categoryIcon}>
+                {cat.image ? <img src={cat.image} alt={cat.name} /> : <LayoutGrid size={40} />}
+              </div>
+              <h3 className={styles.categoryName}>{cat.name}</h3>
+              <p className={styles.productCount}>
+                {(localProducts || []).filter(p => p.category === cat.name).length} منتج
+              </p>
+              <div className={styles.categoryActions}>
+                 <button onClick={(e) => { e.stopPropagation(); handleOpenCategoryModal(cat); }} className={styles.catActionBtn}><Edit size={16} /></button>
+                 <button onClick={(e) => handleDeleteCategory(cat.id, e)} className={`${styles.catActionBtn} ${styles.deleteCatBtn}`}><Trash2 size={16} /></button>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+        
+        {visibleCategories.length === 0 && !categoriesLoading && (
+          <div className={styles.emptyCategories}>
+             <LayoutGrid size={64} style={{ opacity: 0.1, marginBottom: '1rem' }} />
+             <p>لا توجد أقسام بعد. ابدأ بإضافة أول قسم لمتجرك.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const renderProductsView = () => (
+    <div className={styles.productsView}>
+      <div className={styles.header}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <button className={styles.backBtn} onClick={() => setCurrentView('categories')}>
+            <ArrowRight size={20} />
+          </button>
+          <div>
+            <h1 className={styles.title}>{selectedCategoryName}</h1>
+            <p className={styles.subtitle}>إدارة منتجات هذا القسم</p>
+          </div>
+        </div>
+        <button className={styles.addBtn} onClick={() => handleOpenProductModal()}>
+          <Plus size={20} />
+          <span>إضافة منتج لهذا القسم</span>
+        </button>
       </div>
 
       <div className={styles.tableSection}>
-        <div className={styles.filterBar}>
-          <div className={styles.searchWrapper}>
-            <Search size={18} className={styles.searchIcon} />
-            <input 
-              type="text" 
-              placeholder="ابحث عن منتج..." 
-              className={styles.input} 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          
-          <div className={styles.printActions}>
-             <button className={styles.printBtn} onClick={() => handlePrintInventory()}>
-                طباعة كافة الكميات
-             </button>
-             <select 
-               className={styles.select}
-               onChange={(e) => e.target.value && handlePrintInventory(e.target.value)}
-               defaultValue=""
-             >
-                <option value="" disabled>طباعة حسب القسم...</option>
-                {(storeCategories || []).map((cat: Category) => (
-                  <option key={cat.id} value={cat.name}>{cat.name}</option>
-                ))}
-              </select>
-          </div>
-        </div>
+         <div className={styles.filterBar}>
+            <div className={styles.searchWrapper}>
+              <Search size={18} className={styles.searchIcon} />
+              <input 
+                type="text" 
+                placeholder="ابحث عن منتج..." 
+                className={styles.input} 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+         </div>
 
-      <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', padding: '10rem' }}><Loader2 className="animate-spin" size={48} color="#3b82f6" /></div>}>
-        <div className={styles.tableWrapper}>
-          <table className={styles.productTable}>
-            <thead>
-              <tr>
-                <th style={{ width: '40px' }}>
-                  <input 
-                    type="checkbox" 
-                    className={styles.checkbox} 
-                    checked={selectedProducts.length > 0 && selectedProducts.length === filteredProducts.length}
-                    onChange={handleSelectAll}
-                  />
-                </th>
-                <th>{t('products.name')}</th>
-                <th>{t('products.category')}</th>
-                <th>{t('products.price')}</th>
-                <th>المخزون</th>
-                <th>الإجراءات</th>
-              </tr>
-            </thead>
-             <tbody>
-              {productsLoading && visibleProducts.length === 0 ? (
-                <TableSkeleton rows={5} />
-              ) : visibleProducts.length > 0 ? (
-                visibleProducts.map((p: Product) => (
-                  <motion.tr 
-                    key={p.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.2 }}
-                    className={selectedProducts.includes(p.id) ? styles.selectedRow : ''}
-                  >
-                    <td>
-                      <input 
-                        type="checkbox" 
-                        className={styles.checkbox} 
-                        checked={selectedProducts.includes(p.id)}
-                        onChange={() => handleSelectProduct(p.id)}
-                      />
-                    </td>
-                    <td>
-                      <div className={styles.productInfo}>
-                        <div style={{ position: 'relative' }}>
-                          <img src={p.image} className={styles.productImage} alt={p.name} />
-                          {p.originalPrice && p.originalPrice > p.price && (
-                            <span style={{ position: 'absolute', top: '-5px', right: '-5px', background: '#ef4444', color: 'white', fontSize: '0.6rem', padding: '2px 4px', borderRadius: '4px', fontWeight: 'bold' }}>SALE</span>
-                          )}
-                        </div>
-                        <span className={styles.productName}>{p.name}</span>
-                      </div>
-                    </td>
-                    <td>{p.category}</td>
-                    <td>
-                      <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{ fontWeight: 700 }}>
-                          {p.price.toLocaleString()} {p.currency === 'SAR' ? 'ر.س' : p.currency === 'USD' ? '$' : 'ر.ي'}
-                        </span>
-                        {p.originalPrice && (
-                          <span style={{ fontSize: '0.8rem', color: '#9ca3af', textDecoration: 'line-through' }}>
-                            {p.originalPrice.toLocaleString()} {p.currency === 'SAR' ? 'ر.س' : p.currency === 'USD' ? '$' : 'ر.ي'}
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td>
-                      {p.stockCount <= 0 ? (
-                        <span style={{ color: '#ef4444', fontWeight: 600, fontSize: '0.85rem', background: 'rgba(239, 68, 68, 0.1)', padding: '4px 8px', borderRadius: '6px' }}>نفد</span>
-                      ) : (
-                        <span style={{ color: '#10b981', fontWeight: 600, fontSize: '0.85rem', background: 'rgba(16, 185, 129, 0.1)', padding: '4px 8px', borderRadius: '6px' }}>{p.stockCount} متوفر</span>
-                      )}
-                    </td>
-                    <td>
-                      <div className={styles.actions}>
-                        <button className={`${styles.actionBtn} ${styles.editBtn}`} onClick={() => handleOpenModal(p)}>
-                          <Edit size={16} />
-                        </button>
-                        <button className={`${styles.actionBtn} ${styles.deleteBtn}`} onClick={() => handleDelete(p.id)}>
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </motion.tr>
-                ))
-              ) : (
-                <tr><td colSpan={5} style={{ textAlign: 'center', padding: '3rem' }}>لا توجد منتجات بعد.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </Suspense>
-      </div>
-
-      <AnimatePresence>
-        {isModalOpen && (
-          <div className={styles.modalOverlay}>
-            <motion.div 
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className={styles.modal}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-                <h3 className={styles.modalTitle}>
-                  {editingProduct ? t('products.edit') : t('products.addNew')}
-                </h3>
-                <button onClick={handleCloseModal} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-                  <X size={24} />
-                </button>
-              </div>
-
-              <form onSubmit={handleSubmit}>
-                <div className={styles.formGrid}>
-                  <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
-                    <label>{t('products.name')}</label>
-                    <input 
-                      className={styles.input}
-                      value={formData.name}
-                      onChange={(e) => setFormData({...formData, name: e.target.value})}
-                      required
-                    />
-                  </div>
-                  
-                   <div className={styles.inputGroup}>
-                    <label>السعر الحالي</label>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <input 
-                        type="number"
-                        className={styles.input}
-                        style={{ flex: 1 }}
-                        value={formData.price}
-                        onChange={(e) => setFormData({...formData, price: e.target.value})}
-                        required
-                      />
-                      <select 
-                        className={styles.input}
-                        style={{ width: '80px' }}
-                        value={formData.currency}
-                        onChange={(e) => setFormData({...formData, currency: e.target.value as any})}
-                      >
-                        <option value="YER">ر.ي</option>
-                        <option value="SAR">ر.س</option>
-                        <option value="USD">$</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className={styles.inputGroup}>
-                    <label>السعر السابق (اختياري)</label>
-                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                      <input 
-                        type="number"
-                        className={styles.input}
-                        style={{ flex: 1 }}
-                        placeholder="لإظهار خصم..."
-                        value={formData.originalPrice}
-                        onChange={(e) => setFormData({...formData, originalPrice: e.target.value})}
-                      />
-                      <span style={{ fontSize: '0.85rem', color: '#64748b', minWidth: '40px' }}>
-                        {formData.currency === 'SAR' ? 'ر.س' : formData.currency === 'USD' ? '$' : 'ر.ي'}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className={styles.inputGroup}>
-                    <label>{t('products.category')}</label>
-                    <select 
-                      className={styles.input}
-                      value={formData.category}
-                      onChange={(e) => setFormData({...formData, category: e.target.value})}
-                      required
-                    >
-                      {storeCategories && storeCategories.length > 0 ? (
-                        storeCategories.map((cat: Category) => (
-                          <option key={cat.id} value={cat.name}>{cat.name}</option>
-                        ))
-                      ) : (
-                        <option value="">لا توجد أقسام - يرجى إضافة قسم أولاً</option>
-                      )}
-                    </select>
-                  </div>
-
-                  <div className={styles.inputGroup}>
-                    <label>الكمية المتوفرة</label>
-                    <input 
-                      type="number"
-                      className={styles.input}
-                      value={formData.stockCount}
-                      onChange={(e) => setFormData({...formData, stockCount: e.target.value})}
-                      required
-                    />
-                  </div>
-
-                  <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
-                    <label>صورة المنتج</label>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center', padding: '1rem', border: '1px dashed rgba(128,128,128,0.3)', borderRadius: '12px' }}>
-                      {imagePreview ? (
-                        <div style={{ position: 'relative', width: '120px', height: '120px' }}>
-                          <img 
-                            src={imagePreview} 
-                            style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '12px' }} 
-                            alt="Preview" 
-                          />
-                          <button 
-                            type="button"
-                            onClick={() => {setSelectedFile(null); setImagePreview(null); setFormData({...formData, image: ''});}}
-                            style={{ position: 'absolute', top: '-10px', right: '-10px', background: '#ef4444', color: 'white', borderRadius: '50%', width: '24px', height: '24px', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyItems: 'center' }}
-                          >
-                            <X size={14} />
-                          </button>
-                        </div>
-                      ) : (
-                        <div style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
-                          <ImageIcon size={48} style={{ opacity: 0.3 }} />
-                          <p style={{ fontSize: '0.8rem', marginTop: '0.5rem' }}>اختر صورة للمنتج</p>
-                        </div>
-                      )}
-                      <input 
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileChange}
-                        style={{ display: 'none' }}
-                        id="image-upload"
-                      />
-                      <label 
-                        htmlFor="image-upload" 
-                        style={{ 
-                          padding: '0.5rem 1.5rem', 
-                          background: 'rgba(var(--primary-rgb), 0.1)', 
-                          borderRadius: '8px', 
-                          fontWeight: 700, 
-                          cursor: 'pointer',
-                          color: '#3b82f6'
-                        }}
-                      >
-                        {imagePreview ? 'تغيير الصورة' : 'اختر ملف'}
-                      </label>
-                    </div>
-                  </div>
-
-                  <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
-                    <label>الوصف</label>
-                    <textarea 
-                      className={styles.textarea}
-                      value={formData.description}
-                      onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    />
-                  </div>
-
-                  <div className={styles.variantsSection}>
-                    <div className={styles.variantHeader}>
-                      <h4 className={styles.variantTitle}>خيارات المنتج (المقاس، اللون، إلخ)</h4>
-                      <button type="button" className={styles.addOptionBtn} onClick={handleAddOption}>
-                        <Plus size={16} /> إضافة خيار
-                      </button>
-                    </div>
-                    
-                    {formData.options.map((opt, optIndex) => (
-                      <div key={optIndex} className={styles.optionCard}>
-                        <button type="button" className={styles.removeOptionBtn} onClick={() => handleRemoveOption(optIndex)}>
-                          <Trash2 size={16} />
-                        </button>
-                        <div className={styles.inputGroup}>
-                          <label>اسم الخيار (مثلاً: المقاس)</label>
-                          <input 
-                            className={styles.input}
-                            placeholder="مثلاً: المقاس، اللون..."
-                            value={opt.name}
-                            onChange={(e) => {
-                              const newOpts = [...formData.options];
-                              newOpts[optIndex].name = e.target.value;
-                              setFormData({ ...formData, options: newOpts });
-                            }}
-                          />
-                        </div>
-                        <div className={styles.inputGroup}>
-                          <label>القيم (اضغط Enter للإضافة)</label>
-                          <div className={styles.valuesList}>
-                            {opt.values.map((val: string, valIndex: number) => (
-                              <span key={valIndex} className={styles.valueTag}>
-                                {val}
-                                <X 
-                                  size={14} 
-                                  className={styles.removeValue} 
-                                  onClick={() => handleRemoveValue(optIndex, valIndex)} 
-                                />
-                              </span>
-                            ))}
-                            <input 
-                              className={styles.valueInput}
-                              placeholder="أضف قيمة..."
-                              value={optionInput[optIndex] || ''}
-                              onChange={(e) => setOptionInput({ ...optionInput, [optIndex]: e.target.value })}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  e.preventDefault();
-                                  handleAddValue(optIndex, optionInput[optIndex] || '');
-                                }
-                              }}
-                            />
+         <div className={styles.tableWrapper}>
+            <table className={styles.productTable}>
+               <thead>
+                  <tr>
+                    <th>المنتج</th>
+                    <th>السعر</th>
+                    <th>المخزون</th>
+                    <th>الإجراءات</th>
+                  </tr>
+               </thead>
+               <tbody>
+                  {visibleProducts.map(p => (
+                    <tr key={p.id}>
+                       <td>
+                          <div className={styles.productInfo}>
+                             <img src={p.image} className={styles.productImage} />
+                             <span className={styles.productName}>{p.name}</span>
                           </div>
-                        </div>
-                      </div>
-                    ))}
-                    {formData.options.length === 0 && (
-                      <p style={{ textAlign: 'center', fontSize: '0.85rem', color: '#94a3b8' }}>لا توجد خيارات لهذا المنتج حالياً.</p>
-                    )}
-                  </div>
-                </div>
+                       </td>
+                       <td>{p.price.toLocaleString()} {p.currency}</td>
+                       <td>
+                          <span className={p.stockCount > 0 ? styles.inStock : styles.outOfStock}>
+                            {p.stockCount} متوفر
+                          </span>
+                       </td>
+                       <td>
+                          <div className={styles.actions}>
+                             <button className={styles.editBtn} onClick={() => handleOpenProductModal(p)}><Edit size={16} /></button>
+                             <button className={styles.deleteBtn} onClick={() => handleDeleteProduct(p.id)}><Trash2 size={16} /></button>
+                          </div>
+                       </td>
+                    </tr>
+                  ))}
+                  {visibleProducts.length === 0 && (
+                    <tr><td colSpan={4} style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8' }}>لا توجد منتجات في هذا القسم.</td></tr>
+                  )}
+               </tbody>
+            </table>
+         </div>
+      </div>
+    </div>
+  );
 
-                <div className={styles.modalActions}>
-                  <button type="button" className={styles.cancelBtn} onClick={handleCloseModal}>
-                    {t('products.cancel')}
-                  </button>
-                  <button type="submit" className={styles.saveBtn} disabled={isSubmitting}>
-                    {isSubmitting ? 'جاري الحفظ...' : t('products.save')}
-                  </button>
+  return (
+    <div className={styles.productsPage}>
+      {currentView === 'categories' ? renderCategoriesView() : renderProductsView()}
+
+      {/* Category Modal */}
+      <AnimatePresence>
+        {isCategoryModalOpen && (
+          <div className={styles.modalOverlay}>
+             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className={styles.modal}>
+                <div className={styles.modalHeader}>
+                   <h3>{editingCategory ? 'تعديل القسم' : 'إضافة قسم جديد'}</h3>
+                   <button onClick={() => setIsCategoryModalOpen(false)}><X size={20} /></button>
                 </div>
-              </form>
-            </motion.div>
+                <form onSubmit={handleCategorySubmit} className={styles.modalBody}>
+                   <div className={styles.inputGroup}>
+                      <label>اسم القسم</label>
+                      <input className={styles.input} value={categoryName} onChange={e => setCategoryName(e.target.value)} required />
+                   </div>
+                   <div className={styles.inputGroup}>
+                      <label>صورة القسم</label>
+                      <div className={styles.uploadArea}>
+                         {imagePreview ? <img src={imagePreview} className={styles.preview} /> : <Upload size={32} />}
+                         <input type="file" onChange={handleFileChange} style={{ display: 'none' }} id="cat-upload" />
+                         <label htmlFor="cat-upload" className={styles.uploadLabel}>اختر صورة</label>
+                      </div>
+                   </div>
+                   <div className={styles.modalFooter}>
+                      <button type="button" onClick={() => setIsCategoryModalOpen(false)} className={styles.cancelBtn}>إلغاء</button>
+                      <button type="submit" className={styles.saveBtn} disabled={isSubmitting}>حفظ</button>
+                   </div>
+                </form>
+             </motion.div>
           </div>
         )}
       </AnimatePresence>
 
+      {/* Product Modal */}
       <AnimatePresence>
-        {selectedProducts.length > 0 && (
-          <motion.div 
-            initial={{ y: 100, opacity: 0, x: '-50%' }}
-            animate={{ y: 0, opacity: 1, x: '-50%' }}
-            exit={{ y: 100, opacity: 0, x: '-50%' }}
-            className={styles.bulkActionsBar}
-          >
-            <div className={styles.bulkInfo}>
-              تم تحديد {selectedProducts.length} منتجات
-            </div>
-            <div className={styles.bulkButtons}>
-              <button className={styles.bulkDeleteBtn} onClick={handleBulkDelete}>
-                حذف المحدد
-              </button>
-            </div>
-          </motion.div>
+        {isProductModalOpen && (
+          <div className={styles.modalOverlay}>
+             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className={styles.modal}>
+                <div className={styles.modalHeader}>
+                   <h3>{editingProduct ? 'تعديل المنتج' : 'إضافة منتج جديد'}</h3>
+                   <button onClick={() => setIsProductModalOpen(false)}><X size={20} /></button>
+                </div>
+                <form onSubmit={handleProductSubmit} className={styles.modalBody}>
+                   <div className={styles.inputGroup}>
+                      <label>اسم المنتج</label>
+                      <input className={styles.input} value={productFormData.name} onChange={e => setProductFormData({...productFormData, name: e.target.value})} required />
+                   </div>
+                   <div style={{ display: 'flex', gap: '1rem' }}>
+                      <div className={styles.inputGroup} style={{ flex: 1 }}>
+                        <label>السعر</label>
+                        <input type="number" className={styles.input} value={productFormData.price} onChange={e => setProductFormData({...productFormData, price: e.target.value})} required />
+                      </div>
+                      <div className={styles.inputGroup} style={{ flex: 1 }}>
+                        <label>الكمية</label>
+                        <input type="number" className={styles.input} value={productFormData.stockCount} onChange={e => setProductFormData({...productFormData, stockCount: e.target.value})} required />
+                      </div>
+                   </div>
+                   <div className={styles.inputGroup}>
+                      <label>القسم</label>
+                      <select className={styles.input} value={productFormData.category} onChange={e => setProductFormData({...productFormData, category: e.target.value})} required>
+                         {(localCategories || []).map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                      </select>
+                   </div>
+                   <div className={styles.inputGroup}>
+                      <label>صورة المنتج</label>
+                      <div className={styles.uploadArea}>
+                         {imagePreview ? <img src={imagePreview} className={styles.preview} /> : <ImageIcon size={32} />}
+                         <input type="file" onChange={handleFileChange} style={{ display: 'none' }} id="prod-upload" />
+                         <label htmlFor="prod-upload" className={styles.uploadLabel}>اختر صورة</label>
+                      </div>
+                   </div>
+                   <div className={styles.modalFooter}>
+                      <button type="button" onClick={() => setIsProductModalOpen(false)} className={styles.cancelBtn}>إلغاء</button>
+                      <button type="submit" className={styles.saveBtn} disabled={isSubmitting}>حفظ</button>
+                   </div>
+                </form>
+             </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>

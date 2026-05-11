@@ -59,8 +59,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
 
   const navItems = [
     { name: 'لوحة التحكم', href: `/admin/dashboard`, icon: LayoutDashboard },
-    { name: 'المنتجات', href: `/admin/products`, icon: Package },
-    { name: 'الأقسام', href: `/admin/categories`, icon: LayoutGrid },
+    { name: 'المنتجات والأقسام', href: `/admin/products`, icon: Package },
     { name: 'الطلبات', href: `/admin/orders`, icon: ShoppingBag },
     { name: 'العملاء', href: `/admin/customers`, icon: UsersRound },
     { name: 'الإعدادات', href: `/admin/settings`, icon: Settings },
