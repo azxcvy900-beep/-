@@ -1,16 +1,16 @@
 .adminLayout {
   display: flex;
   min-height: 100vh;
-  background: #020617;
-  color: #f8fafc;
+  background: var(--background);
+  color: var(--foreground);
   font-family: 'Inter', 'Cairo', sans-serif;
 }
 
 /* Sidebar */
 .sidebar {
   width: 280px;
-  background: #0f172a;
-  border-left: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--card-bg);
+  border-left: 1px solid var(--card-border);
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -37,7 +37,7 @@
 .brandName {
   font-size: 20px;
   font-weight: 900;
-  color: #fff;
+  color: var(--foreground);
 }
 
 .nav {
@@ -94,9 +94,9 @@
 
 .topBar {
   height: 80px;
-  background: rgba(15, 23, 42, 0.5);
+  background: var(--header-bg);
   backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--card-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -129,7 +129,7 @@
 .userName {
   font-size: 14px;
   font-weight: 700;
-  color: #fff;
+  color: var(--foreground);
   margin: 0;
 }
 
