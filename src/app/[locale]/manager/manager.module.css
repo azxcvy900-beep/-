@@ -1,8 +1,8 @@
 .opsRoom {
   padding: 40px;
-  background: #030712;
+  background: var(--background);
   min-height: 100vh;
-  color: #f8fafc;
+  color: var(--foreground);
   font-family: 'Outfit', 'Inter', sans-serif;
   background-image: 
     radial-gradient(circle at 0% 0%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
@@ -14,12 +14,12 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 48px;
-  background: rgba(15, 23, 42, 0.6);
+  background: var(--header-bg);
   backdrop-filter: blur(20px);
   padding: 32px;
   border-radius: 32px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow);
 }
 
 .titleInfo h1 {
@@ -28,10 +28,7 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: white;
+  color: var(--foreground);
 }
 
 .pulseIcon {
@@ -40,7 +37,7 @@
 }
 
 .titleInfo p {
-  color: #64748b;
+  color: var(--secondary);
   margin-top: 8px;
   font-size: 15px;
 }
@@ -53,24 +50,25 @@
 }
 
 .statCard {
-  background: rgba(30, 41, 59, 0.4);
+  background: var(--card-bg);
   backdrop-filter: blur(10px);
   padding: 32px;
   border-radius: 28px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--card-border);
   display: flex;
   align-items: center;
   gap: 24px;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 
 .statCard:hover {
   transform: translateY(-10px);
-  background: rgba(30, 41, 59, 0.6);
-  border-color: rgba(251, 191, 36, 0.2);
-  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+  background: var(--muted);
+  border-color: var(--primary);
+  box-shadow: var(--shadow-lg);
 }
 
 .statIcon {
@@ -84,7 +82,7 @@
 }
 
 .statContent p {
-  color: #94a3b8;
+  color: var(--secondary);
   font-size: 14px;
   font-weight: 600;
   margin-bottom: 4px;
@@ -93,7 +91,7 @@
 .statContent h3 {
   font-size: 28px;
   font-weight: 900;
-  color: #fff;
+  color: var(--foreground);
 }
 
 .statContent span {
@@ -114,10 +112,10 @@
 .tabs {
   display: flex;
   gap: 12px;
-  background: rgba(15, 23, 42, 0.8);
+  background: var(--muted);
   padding: 8px;
   border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--card-border);
 }
 
 .tabs button {
@@ -125,7 +123,7 @@
   border-radius: 14px;
   font-weight: 700;
   font-size: 14px;
-  color: #64748b;
+  color: var(--secondary);
   transition: all 0.3s;
   background: transparent;
   border: none;
@@ -133,9 +131,9 @@
 }
 
 .tabActive {
-  background: #fbbf24 !important;
-  color: #000 !important;
-  box-shadow: 0 10px 20px -5px rgba(251, 191, 36, 0.3);
+  background: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+  box-shadow: var(--shadow-glow);
 }
 
 .mainGrid {
@@ -145,10 +143,11 @@
 }
 
 .radarList {
-  background: rgba(15, 23, 42, 0.4);
+  background: var(--card-bg);
   border-radius: 32px;
   padding: 32px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow-sm);
 }
 
 .radarItem {
@@ -156,17 +155,18 @@
   justify-content: space-between;
   align-items: center;
   padding: 24px;
-  background: rgba(30, 41, 59, 0.3);
+  background: var(--muted);
   border-radius: 24px;
   margin-bottom: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--card-border);
   transition: all 0.3s;
 }
 
 .radarItem:hover {
-  background: rgba(30, 41, 59, 0.5);
+  background: var(--card-bg);
   transform: scale(1.01);
-  border-color: rgba(255, 255, 255, 0.1);
+  border-color: var(--primary);
+  box-shadow: var(--shadow);
 }
 
 .merchantInfo {
@@ -180,7 +180,7 @@
   height: 56px;
   border-radius: 16px;
   object-fit: cover;
-  border: 2px solid rgba(251, 191, 36, 0.2);
+  border: 2px solid var(--primary);
 }
 
 .merchantInfo h4 {
@@ -190,7 +190,7 @@
 
 .merchantInfo span {
   font-size: 13px;
-  color: #64748b;
+  color: var(--secondary);
 }
 
 .merchantStats {
@@ -200,7 +200,7 @@
 
 .mStat small {
   display: block;
-  color: #64748b;
+  color: var(--secondary);
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
@@ -217,7 +217,7 @@
 .alert { color: #fbbf24; }
 
 .mapWidget {
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  background: var(--card-bg);
   border-radius: 32px;
   height: 400px;
   position: relative;
@@ -225,7 +225,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow-sm);
 }
 
 .globeBg {
@@ -234,10 +235,11 @@
 }
 
 .verificationPortal {
-  background: rgba(15, 23, 42, 0.4);
+  background: var(--card-bg);
   border-radius: 32px;
   padding: 40px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow-sm);
 }
 
 .vSwitcher {
@@ -249,17 +251,17 @@
 .vSwitcher button {
   padding: 14px 28px;
   border-radius: 16px;
-  background: rgba(30, 41, 59, 0.5);
-  color: #64748b;
+  background: var(--muted);
+  color: var(--secondary);
   font-weight: 700;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--card-border);
   cursor: pointer;
 }
 
 .subActive {
-  background: rgba(251, 191, 36, 0.1) !important;
-  color: #fbbf24 !important;
-  border-color: rgba(251, 191, 36, 0.3) !important;
+  background: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+  border-color: var(--primary) !important;
 }
 
 .imageModal {

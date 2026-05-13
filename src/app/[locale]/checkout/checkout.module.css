@@ -529,6 +529,79 @@
   border-radius: 6px;
 }
 
+/* Online Payment Styles */
+.creditCardForm {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  overflow: hidden;
+}
+
+.cardPreview {
+  width: 100%;
+  max-width: 340px;
+  margin: 0 auto 1rem;
+  perspective: 1000px;
+}
+
+.cardPreviewInner {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border-radius: 16px;
+  padding: 1.5rem;
+  color: white;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  position: relative;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.cardChip {
+  width: 45px;
+  height: 35px;
+  background: linear-gradient(135deg, #d4af37, #ffd700);
+  border-radius: 6px;
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  opacity: 0.8;
+}
+
+.cardLogo {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  font-size: 1.5rem;
+}
+
+.cardNumberPreview {
+  font-family: monospace;
+  font-size: 1.4rem;
+  letter-spacing: 2px;
+  margin-bottom: 1rem;
+  opacity: 0.9;
+}
+
+.cardNamePreview {
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.7;
+}
+
+.securityBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #10b981;
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
 @media (max-width: 1024px) {
   .content {
     grid-template-columns: 1fr;

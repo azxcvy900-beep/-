@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import { useCustomerSessionStore } from '@/lib/customer-session-store';
 import styles from './checkout.module.css';
 
-type PaymentMethod = 'cod' | 'transfer';
+type PaymentMethod = 'cod' | 'transfer' | 'online';
 
 export default function CheckoutContent() {
   const t = useTranslations('Checkout');
@@ -259,10 +259,16 @@ export default function CheckoutContent() {
       return;
     }
     setIsSubmitting(true);
+    
+    // Simulate payment gateway delay if online
+    if (paymentMethod === 'online') {
+       await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+
     const subtotal = getTotalPrice();
     const discount = calculateDiscount();
     const finalTotal = lockedPrice !== null ? lockedPrice : Math.max(0, subtotal - discount + shippingFee);
-    const autoConfirmMethod = paymentMethod === 'cod' || (paymentMethod === 'transfer' && receipt);
+    const autoConfirmMethod = paymentMethod === 'cod' || (paymentMethod === 'transfer' && receipt) || paymentMethod === 'online';
     const newOrder: Order = {
       id: `ORD-${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
       items: [...items],
@@ -483,9 +489,54 @@ export default function CheckoutContent() {
                   {paymentMethod === 'transfer' && <CheckCircle2 className={styles.checkIcon} size={20} />}
                 </div>
               )}
+
+              <div 
+                className={`${styles.methodOption} ${paymentMethod === 'online' ? styles.methodSelected : ''}`}
+                onClick={() => setPaymentMethod('online')}
+              >
+                <div className={styles.methodHeader}>
+                  <CreditCard size={24} />
+                  <span>دفع إلكتروني (بطاقة)</span>
+                </div>
+                <p>ادفع بأمان باستخدام بطاقتك الائتمانية أو الخصم المباشر.</p>
+                {paymentMethod === 'online' && <CheckCircle2 className={styles.checkIcon} size={20} />}
+              </div>
             </div>
 
             <AnimatePresence>
+              {paymentMethod === 'online' && (
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className={styles.creditCardForm}
+                >
+                  <div className={styles.cardPreview}>
+                     <div className={styles.cardPreviewInner}>
+                       <div className={styles.cardChip}></div>
+                       <div className={styles.cardLogo}>💳</div>
+                       <div className={styles.cardNumberPreview}>**** **** **** ****</div>
+                       <div className={styles.cardNamePreview}>اسم صاحب البطاقة</div>
+                     </div>
+                  </div>
+                  <div className={styles.inputGroup}>
+                    <label>رقم البطاقة</label>
+                    <input type="text" placeholder="0000 0000 0000 0000" maxLength={19} />
+                  </div>
+                  <div className={styles.formGrid}>
+                    <div className={styles.inputGroup}>
+                      <label>تاريخ الانتهاء</label>
+                      <input type="text" placeholder="MM/YY" maxLength={5} />
+                    </div>
+                    <div className={styles.inputGroup}>
+                      <label>رمز الأمان (CVV)</label>
+                      <input type="text" placeholder="123" maxLength={4} />
+                    </div>
+                  </div>
+                  <p className={styles.securityBadge}>
+                     <CheckCircle2 size={14} /> مشفر ومؤمن بالكامل
+                  </p>
+                </motion.div>
+              )}
               {paymentMethod === 'transfer' && (
                 <motion.div 
                   initial={{ opacity: 0, height: 0 }}

@@ -28,6 +28,7 @@ import { Order } from './store';
 export type { Order };
 import { dataCache } from './cache';
 import { compressImage, fileToBase64, hashPassword } from './utils';
+import { notifyCustomerOrderCreated, notifyMerchantNewOrder, notifyCustomerOrderStatus } from './whatsapp';
 
 export interface ProductOption {
   name: string;
@@ -537,20 +538,38 @@ async function bulletproofUpload(file: File | Blob, storeSlug: string, folder: s
   let processedFile = file;
 
   try {
-    // 1. Compress image heavily to guarantee it stays below Firestore's 1MB document limit
     if (fileToCompress) {
-      // Very small size for Base64 (Product and categories)
-      const size = folder === 'categories' ? 300 : 500;
-      processedFile = await compressImage(fileToCompress, size, 0.6);
+      // Standard compression for reasonable storage usage
+      const size = folder === 'categories' ? 600 : 1000;
+      processedFile = await compressImage(fileToCompress, size, 0.8);
     }
 
-    // 2. IMMEDIATE FALLBACK TO BASE64
-    // Temporary bypass for Firebase Storage until platform launch, since user encountered region errors.
+    // 1. ATTEMPT FIREBASE STORAGE FIRST
+    try {
+      console.log(`Attempting to upload to Firebase Storage: ${folder}/${fileName}`);
+      const storageRefPath = storeSlug === 'platform' 
+        ? `platform/${folder}/${fileName}`
+        : `stores/${storeSlug}/${folder}/${fileName}`;
+        
+      const storageReference = ref(storage, storageRefPath);
+      await uploadBytes(storageReference, processedFile);
+      const downloadUrl = await getDownloadURL(storageReference);
+      return downloadUrl;
+    } catch (storageError) {
+      console.error("Firebase Storage failed, falling back to Base64:", storageError);
+      // If Storage fails, we fall through to the Base64 fallback below
+    }
+
+    // 2. FALLBACK TO BASE64
+    // Compress heavily again if falling back to Base64 to respect Firestore limits
+    if (fileToCompress) {
+      processedFile = await compressImage(fileToCompress, 400, 0.5);
+    }
     console.log(`Bypassing Storage for ${folder}, directly converting to Base64...`);
     return await fileToBase64(processedFile);
     
   } catch (error) {
-    console.error("Critical Failure: Base64 conversion failed", error);
+    console.error("Critical Failure: File processing failed", error);
     throw error;
   }
 }
@@ -829,7 +848,27 @@ export function subscribeToStoreOrders(storeSlug: string, callback: (orders: Ord
 
 export async function updateOrderStatus(orderId: string, status: Order['status']): Promise<void> {
   const orderRef = doc(db, 'orders', orderId);
+  const orderSnap = await getDoc(orderRef);
+
   await updateDoc(orderRef, { status });
+
+  if (orderSnap.exists()) {
+    const orderData = orderSnap.data() as Order;
+    orderData.status = status;
+    
+    if (orderData.storeSlug) {
+      const storeRef = doc(db, 'stores', orderData.storeSlug);
+      const storeSnap = await getDoc(storeRef);
+      if (storeSnap.exists()) {
+        const storeInfo = storeSnap.data() as StoreInfo;
+        try {
+          await notifyCustomerOrderStatus(orderData, storeInfo);
+        } catch (err) {
+          console.error("Failed to send WhatsApp status update:", err);
+        }
+      }
+    }
+  }
 }
 
 export async function updateStoreInfo(slug: string, updates: Partial<StoreInfo>): Promise<void> {
@@ -969,6 +1008,11 @@ export async function submitOrder(order: Order, storeSlug: string): Promise<void
       if (order.customerUid) {
         await updateLoyaltyPoints(order.customerUid, Math.floor(order.total / 100));
       }
+
+      // Automated WhatsApp API triggers
+      await notifyCustomerOrderCreated(order, storeData);
+      await notifyMerchantNewOrder(order, storeData);
+
     } catch (err) {
       console.error("Post-order actions failed:", err);
     }

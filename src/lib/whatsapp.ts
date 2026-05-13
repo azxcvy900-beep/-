@@ -57,3 +57,74 @@ function getStatusText(status: string): string {
     default: return status;
   }
 }
+
+/**
+ * AUTOMATED WHATSAPP API (Sandbox Mode)
+ * This function simulates sending an automated WhatsApp message via a provider like UltraMsg or Twilio.
+ * In a real production environment, you would use fetch() to call the provider's API.
+ */
+export async function sendAutomatedWhatsApp(
+  to: string, 
+  message: string, 
+  type: 'customer' | 'merchant' = 'customer'
+): Promise<boolean> {
+  const formattedPhone = to.replace(/\D/g, '');
+  
+  // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 800));
+
+  console.log('----------------------------------------');
+  console.log(`[WHATSAPP API - SANDBOX MODE]`);
+  console.log(`To: +${formattedPhone} (${type.toUpperCase()})`);
+  console.log(`Message:\n${message}`);
+  console.log('----------------------------------------');
+
+  // In production:
+  /*
+  const response = await fetch('https://api.ultramsg.com/instanceXXX/messages/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `token=YOUR_TOKEN&to=${formattedPhone}&body=${encodeURIComponent(message)}`
+  });
+  return response.ok;
+  */
+
+  return true;
+}
+
+export async function notifyCustomerOrderCreated(order: Order, storeInfo: StoreInfo) {
+  const phone = order.address.phone;
+  const itemsList = order.items.map(item => `- ${item.name} (x${item.quantity})`).join('\n');
+  
+  const message = `*تأكيد استلام الطلب - ${storeInfo.name}* 🛍️\n\n` +
+    `مرحباً ${order.address.fullName}،\n` +
+    `تم استلام طلبك بنجاح وجاري العمل عليه.\n\n` +
+    `*رقم الطلب:* #${order.id.slice(-6)}\n` +
+    `*الإجمالي:* ${order.total.toLocaleString()} ${order.currency || 'YER'}\n\n` +
+    `سنقوم بإعلامك فور تغيير حالة الطلب. شكراً لتسوقك معنا! ✅`;
+
+  await sendAutomatedWhatsApp(phone, message, 'customer');
+}
+
+export async function notifyMerchantNewOrder(order: Order, storeInfo: StoreInfo) {
+  const phone = storeInfo.phone;
+  const message = `*طلب جديد!* 🔔\n\n` +
+    `تم استلام طلب جديد في متجرك (${storeInfo.name}).\n\n` +
+    `*رقم الطلب:* #${order.id.slice(-6)}\n` +
+    `*العميل:* ${order.address.fullName}\n` +
+    `*القيمة:* ${order.total.toLocaleString()} ${order.currency || 'YER'}\n\n` +
+    `يرجى مراجعة لوحة التحكم للتفاصيل.`;
+
+  await sendAutomatedWhatsApp(phone, message, 'merchant');
+}
+
+export async function notifyCustomerOrderStatus(order: Order, storeInfo: StoreInfo) {
+  const phone = order.address.phone;
+  const message = `*تحديث حالة الطلب - ${storeInfo.name}* 📦\n\n` +
+    `مرحباً ${order.address.fullName}،\n` +
+    `نود إعلامك أن حالة طلبك رقم #${order.id.slice(-6)} قد تغيرت إلى:\n` +
+    `*${getStatusText(order.status)}*\n\n` +
+    `يمكنك تتبع طلبك عبر رابط المتجر. شكراً لك!`;
+
+  await sendAutomatedWhatsApp(phone, message, 'customer');
+}
