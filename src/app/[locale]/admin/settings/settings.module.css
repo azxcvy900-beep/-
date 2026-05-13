@@ -271,74 +271,199 @@
   }
 }
 
+.previewContainerWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 5rem 1rem;
+  background: #f1f5f9;
+  border-radius: 24px;
+  margin: 1.5rem 0;
+  min-height: 700px;
+  position: relative;
+  overflow: visible;
+}
+
+.fullScreenBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.fullScreenBtn:hover {
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
 .previewIframeContainer {
   background: #0f172a;
   box-shadow: 
     0 50px 100px -20px rgba(0,0,0,0.3),
-    0 30px 60px -30px rgba(0,0,0,0.4),
-    inset 0 0 20px rgba(255,255,255,0.05);
+    0 30px 60px -30px rgba(0,0,0,0.4);
   position: relative;
   transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-  overflow: visible; /* Allow notch/stand to be outside if needed, but notch is inside */
+  overflow: visible; 
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .mobileFrame {
-  width: 280px;
-  height: 560px;
-  border-radius: 40px;
-  border: 10px solid #1e293b;
+  width: 290px;
+  height: 580px;
+  border-radius: 42px;
+  border: 12px solid #1e293b;
   position: relative;
+  overflow: hidden;
+  background: #1e293b;
 }
 
 .mobileFrame::after {
   content: '';
   position: absolute;
-  left: -13px;
+  left: -15px;
   top: 100px;
   width: 3px;
   height: 40px;
   background: #0f172a;
   border-radius: 2px 0 0 2px;
-  box-shadow: 0 50px 0 #0f172a; /* Volume buttons */
+  box-shadow: 0 50px 0 #0f172a;
 }
 
 .tabletFrame {
-  width: 520px;
-  height: 680px;
-  border-radius: 24px;
-  border: 14px solid #1e293b;
+  width: 580px;
+  height: 760px;
+  border-radius: 32px;
+  border: 16px solid #1e293b;
+  position: relative;
+  overflow: hidden;
 }
 
 .desktopFrame {
   width: 100%;
-  max-width: 800px;
-  height: 480px;
-  border-radius: 12px;
-  border: 10px solid #1e293b;
-  border-bottom-width: 30px;
+  max-width: 860px;
+  height: 520px;
+  border-radius: 16px;
+  border: 12px solid #1e293b;
+  border-bottom-width: 36px;
+  position: relative;
+  overflow: hidden;
 }
 
 .wideFrame {
   width: 100%;
-  max-width: 1000px;
-  height: 520px;
-  border-radius: 10px;
-  border: 8px solid #1e293b;
-  border-bottom-width: 24px;
+  max-width: 1100px;
+  height: 600px;
+  border-radius: 12px;
+  border: 10px solid #1e293b;
+  border-bottom-width: 30px;
+  position: relative;
+  overflow: hidden;
+}
+
+.mobileFrame::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 25px;
+  background: #1e293b;
+  border-bottom-left-radius: 18px;
+  border-bottom-right-radius: 18px;
+  z-index: 10;
+}
+
+.phoneNotch {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 4px;
+  background: #334155;
+  border-radius: 2px;
+  z-index: 11;
+}
+
+.tabletHomeButton {
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 30px;
+  border: 2px solid #334155;
+  border-radius: 50%;
+  z-index: 10;
+}
+
+.monitorStand {
+  position: absolute;
+  bottom: -36px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 40px;
+  background: #1e293b;
+  clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
+  z-index: -1;
 }
 
 .iframeScaleWrapper {
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: white;
+  transform-origin: top left;
   overflow-y: auto;
   overflow-x: hidden;
-  position: relative;
-  background: white;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE/Edge */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  width: 100%; /* Default, overridden by device-specific logic below */
+  height: 100%;
+}
+
+.iframeScaleWrapper iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* Scaling Logic based on logical device widths */
+.mobileFrame .iframeScaleWrapper {
+  width: 375px; 
+  height: 812px;
+  transform: scale(calc(266 / 375));
+}
+
+.tabletFrame .iframeScaleWrapper {
+  width: 768px; 
+  height: 1024px;
+  transform: scale(calc(548 / 768));
+}
+
+.desktopFrame .iframeScaleWrapper {
+  width: 1280px; 
+  height: 720px;
+  transform: scale(calc(836 / 1280));
+}
+
+.wideFrame .iframeScaleWrapper {
+  width: 1920px; 
+  height: 1080px;
+  transform: scale(calc(1080 / 1920));
 }
 
 .iframeScaleWrapper::-webkit-scrollbar {
