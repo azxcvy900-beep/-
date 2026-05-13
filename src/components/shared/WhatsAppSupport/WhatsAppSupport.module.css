@@ -1,6 +1,6 @@
 .container {
   position: fixed;
-  bottom: 85px; /* Above BottomNav to avoid overlap */
+  bottom: 120px; /* Higher above BottomNav */
   right: 2rem;
   z-index: 1000;
   pointer-events: none;
@@ -14,8 +14,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 54px; /* Slightly smaller */
-  height: 54px; /* Slightly smaller */
+  width: 56px; 
+  height: 56px; 
   background: #25d366;
   color: white;
   border-radius: 50%;
@@ -42,7 +42,7 @@
 
 .tooltip {
   position: absolute;
-  bottom: 80px;
+  bottom: 75px;
   right: 0;
   background: rgba(255, 255, 255, 0.95);
   padding: 0.75rem 1.25rem;

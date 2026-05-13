@@ -182,14 +182,6 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
               </motion.button>
             </div>
           </div>
-          <div className={styles.mobileSearchWrapper}>
-             <SearchBar 
-               value={searchQuery} 
-               onChange={setSearchQuery} 
-               placeholder={t('searchPlaceholder')} 
-               onFocus={() => setIsSearchOpen(true)}
-             />
-          </div>
         </header>
 
         <SearchOverlay 

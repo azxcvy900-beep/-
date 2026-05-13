@@ -325,7 +325,7 @@
   border: 12px solid #1e293b;
   position: relative;
   overflow: hidden;
-  background: #1e293b;
+  background: white; /* Fix black gaps */
 }
 
 .mobileFrame::after {
@@ -347,6 +347,7 @@
   border: 16px solid #1e293b;
   position: relative;
   overflow: hidden;
+  background: white;
 }
 
 .desktopFrame {
@@ -358,6 +359,7 @@
   border-bottom-width: 36px;
   position: relative;
   overflow: hidden;
+  background: white;
 }
 
 .wideFrame {
@@ -369,6 +371,7 @@
   border-bottom-width: 30px;
   position: relative;
   overflow: hidden;
+  background: white;
 }
 
 .mobileFrame::before {
@@ -426,7 +429,7 @@
   top: 0;
   left: 0;
   background: white;
-  transform-origin: top left;
+  transform-origin: center;
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: none;
@@ -441,29 +444,33 @@
   border: none;
 }
 
-/* Scaling Logic based on logical device widths */
+/* Centering and Scaling Logic */
 .mobileFrame .iframeScaleWrapper {
   width: 375px; 
   height: 812px;
-  transform: scale(calc(266 / 375));
+  left: 50%;
+  transform: translateX(-50%) scale(calc(266 / 375));
 }
 
 .tabletFrame .iframeScaleWrapper {
   width: 768px; 
   height: 1024px;
-  transform: scale(calc(548 / 768));
+  left: 50%;
+  transform: translateX(-50%) scale(calc(548 / 768));
 }
 
 .desktopFrame .iframeScaleWrapper {
   width: 1280px; 
   height: 720px;
-  transform: scale(calc(836 / 1280));
+  left: 50%;
+  transform: translateX(-50%) scale(calc(836 / 1280));
 }
 
 .wideFrame .iframeScaleWrapper {
   width: 1920px; 
   height: 1080px;
-  transform: scale(calc(1080 / 1920));
+  left: 50%;
+  transform: translateX(-50%) scale(calc(1080 / 1920));
 }
 
 .iframeScaleWrapper::-webkit-scrollbar {
