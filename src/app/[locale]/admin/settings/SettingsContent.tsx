@@ -644,6 +644,7 @@ export default function SettingsContent() {
                     <button 
                       type="button" 
                       className={styles.addAccountBtn}
+                      style={{ backgroundColor: storeData?.primaryColor || '#3b82f6' }}
                       onClick={() => {
                         const newAccount = { id: Date.now().toString(), bankName: '', accountNumber: '', accountName: '' };
                         setStoreData(prev => {
