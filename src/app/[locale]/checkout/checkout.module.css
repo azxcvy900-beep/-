@@ -617,3 +617,49 @@
     font-size: 1.75rem;
   }
 }
+
+.accountsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.bankCardSelected {
+  border-color: var(--primary) !important;
+  background: #eff6ff !important;
+  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.1);
+}
+
+.selectedCheck {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  color: var(--primary);
+  background: white;
+  border-radius: 50%;
+  padding: 2px;
+}
+
+.copyBtn {
+  padding: 0.25rem 0.75rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #3b82f6;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.copyBtn:hover {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+@media (min-width: 768px) {
+  .accountsGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

@@ -54,6 +54,7 @@ export default function CheckoutContent() {
   const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAddingNew, setIsAddingNew] = useState(false);
+  const [selectedBankId, setSelectedBankId] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
     fullName: '',
@@ -284,7 +285,8 @@ export default function CheckoutContent() {
       lockedExRate: lockedRate || (receipt ? getCurrentSARRate() : undefined),
       isPriceLocked: !!receipt,
       customerUid: isCustomerLoggedIn ? (customerUid || undefined) : undefined,
-      storeSlug: useCartStore.getState().storeSlug || 'demo'
+      storeSlug: useCartStore.getState().storeSlug || 'demo',
+      selectedBankAccount: paymentMethod === 'transfer' ? (selectedBankId ? storeInfo?.paymentSettings?.bankAccounts?.find((a: any) => a.id === selectedBankId) : storeInfo?.paymentSettings?.bankDetails) : undefined
     };
     try {
       const { submitOrder } = await import('@/lib/api');
@@ -543,19 +545,56 @@ export default function CheckoutContent() {
                   animate={{ opacity: 1, height: 'auto' }}
                   className={styles.transferInfo}
                 >
-                  <div className={styles.bankCard}>
-                    <div className={styles.bankHeader}>
-                      <div className={styles.bankName}>
-                        <Landmark size={18} />
-                        <span>{storeInfo?.paymentSettings?.bankDetails?.bankName || 'شركة الكريمي'}</span>
+                  <div className={styles.accountsGrid}>
+                    {/* List Multiple Accounts if available */}
+                    {storeInfo?.paymentSettings?.bankAccounts && storeInfo.paymentSettings.bankAccounts.length > 0 ? (
+                      storeInfo.paymentSettings.bankAccounts.map((account: any) => (
+                        <div 
+                          key={account.id} 
+                          className={`${styles.bankCard} ${selectedBankId === account.id ? styles.bankCardSelected : ''}`}
+                          onClick={() => setSelectedBankId(account.id)}
+                        >
+                          <div className={styles.bankHeader}>
+                            <div className={styles.bankName}>
+                              <Landmark size={18} />
+                              <span>{account.bankName}</span>
+                            </div>
+                            <button 
+                              type="button" 
+                              className={styles.copyBtn} 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCopy(account.accountNumber);
+                              }}
+                            >نسخ</button>
+                          </div>
+                          <div className={styles.accountNumber}>{account.accountNumber}</div>
+                          <div className={styles.accountName}>{account.accountName}</div>
+                          {selectedBankId === account.id && (
+                            <div className={styles.selectedCheck}>
+                              <CheckCircle2 size={16} />
+                            </div>
+                          )}
+                        </div>
+                      ))
+                    ) : (
+                      /* Fallback to single bankDetails if no array */
+                      <div className={`${styles.bankCard} ${styles.bankCardSelected}`}>
+                        <div className={styles.bankHeader}>
+                          <div className={styles.bankName}>
+                            <Landmark size={18} />
+                            <span>{storeInfo?.paymentSettings?.bankDetails?.bankName || 'شركة الكريمي'}</span>
+                          </div>
+                          <button 
+                            type="button" 
+                            className={styles.copyBtn} 
+                            onClick={() => handleCopy(storeInfo?.paymentSettings?.bankDetails?.accountNumber || '123456789')}
+                          >نسخ</button>
+                        </div>
+                        <div className={styles.accountNumber}>{storeInfo?.paymentSettings?.bankDetails?.accountNumber || '123456789'}</div>
+                        <div className={styles.accountName}>{storeInfo?.paymentSettings?.bankDetails?.accountName || 'مؤسسة بايرز للتجارة'}</div>
                       </div>
-                      <button type="button" className={styles.copyBtn} onClick={() => {
-                        navigator.clipboard.writeText(storeInfo?.paymentSettings?.bankDetails?.accountNumber || '123456789');
-                        toast.success(t('copied'));
-                      }}>نسخ</button>
-                    </div>
-                    <div className={styles.accountNumber}>{storeInfo?.paymentSettings?.bankDetails?.accountNumber || '123456789'}</div>
-                    <div className={styles.accountName}>{storeInfo?.paymentSettings?.bankDetails?.accountName || 'مؤسسة بايرز للتجارة'}</div>
+                    )}
                   </div>
 
                   <div className={styles.uploadSection}>

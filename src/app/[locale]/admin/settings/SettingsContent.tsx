@@ -639,66 +639,124 @@ export default function SettingsContent() {
 
               {storeData?.paymentSettings?.enableTransfer && (
                 <div className={`${styles.bankDetailsBox} ${styles.fullWidth}`} style={{ marginTop: '1rem', padding: '1.5rem', background: '#eff6ff', borderRadius: '16px', border: '1px solid #dbeafe' }}>
-                  <h4 style={{ margin: '0 0 1rem 0', color: '#1e40af', fontWeight: 900 }}>بيانات التحويل البنكي الافتراضية</h4>
-                  <div className={styles.formGrid}>
-                    <div className={styles.inputGroup}>
-                      <label>اسم البنك / المحفظة</label>
-                      <input 
-                        className={styles.input}
-                        placeholder="مثال: الكريمي، النجم، ون كاش"
-                        value={storeData?.paymentSettings?.bankDetails?.bankName || ''}
-                        onChange={(e) => setStoreData(prev => {
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                    <h4 style={{ margin: 0, color: '#1e40af', fontWeight: 900 }}>الحسابات البنكية والمحافظ (Yemen Local)</h4>
+                    <button 
+                      type="button" 
+                      className={styles.addAccountBtn}
+                      onClick={() => {
+                        const newAccount = { id: Date.now().toString(), bankName: '', accountNumber: '', accountName: '' };
+                        setStoreData(prev => {
                           if (!prev) return null;
                           const ps = prev.paymentSettings || { enableCOD: true, enableTransfer: true };
                           return {
                             ...prev,
                             paymentSettings: {
                               ...ps,
-                              bankDetails: { ...(ps.bankDetails || { accountNumber: '', accountName: '' }), bankName: e.target.value }
+                              bankAccounts: [...(ps.bankAccounts || []), newAccount]
                             }
                           };
-                        })}
-                      />
-                    </div>
-                    <div className={styles.inputGroup}>
-                      <label>رقم الحساب / الجوال</label>
-                      <input 
-                        className={styles.input}
-                        placeholder="أدخل رقم الحساب بدقة"
-                        value={storeData?.paymentSettings?.bankDetails?.accountNumber || ''}
-                        onChange={(e) => setStoreData(prev => {
-                          if (!prev) return null;
-                          const ps = prev.paymentSettings || { enableCOD: true, enableTransfer: true };
-                          return {
-                            ...prev,
-                            paymentSettings: {
-                              ...ps,
-                              bankDetails: { ...(ps.bankDetails || { bankName: '', accountName: '' }), accountNumber: e.target.value }
-                            }
-                          };
-                        })}
-                      />
-                    </div>
-                    <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
-                      <label>اسم صاحب الحساب</label>
-                      <input 
-                        className={styles.input}
-                        placeholder="الاسم الكامل كما هو في البنك"
-                        value={storeData?.paymentSettings?.bankDetails?.accountName || ''}
-                        onChange={(e) => setStoreData(prev => {
-                          if (!prev) return null;
-                          const ps = prev.paymentSettings || { enableCOD: true, enableTransfer: true };
-                          return {
-                            ...prev,
-                            paymentSettings: {
-                              ...ps,
-                              bankDetails: { ...(ps.bankDetails || { bankName: '', accountNumber: '' }), accountName: e.target.value }
-                            }
-                          };
-                        })}
-                      />
-                    </div>
+                        });
+                      }}
+                    >
+                      <Plus size={16} /> إضافة حساب/محفظة
+                    </button>
                   </div>
+
+                  <div className={styles.accountsList}>
+                    {(storeData?.paymentSettings?.bankAccounts || []).length === 0 && (
+                      <p style={{ textAlign: 'center', color: '#64748b', fontSize: '0.9rem', padding: '1rem' }}>
+                        لم يتم إضافة أي حسابات بعد. سيتم استخدام الحساب الافتراضي إذا كان متاحاً.
+                      </p>
+                    )}
+                    
+                    {storeData?.paymentSettings?.bankAccounts?.map((account, index) => (
+                      <div key={account.id} className={styles.accountCard} style={{ background: 'white', padding: '1rem', borderRadius: '12px', marginBottom: '1rem', border: '1px solid #dbeafe', position: 'relative' }}>
+                        <button 
+                          type="button" 
+                          className={styles.removeAccountBtn}
+                          onClick={() => {
+                            setStoreData(prev => {
+                              if (!prev) return null;
+                              const ps = prev.paymentSettings || { enableCOD: true, enableTransfer: true };
+                              return {
+                                ...prev,
+                                paymentSettings: {
+                                  ...ps,
+                                  bankAccounts: ps.bankAccounts?.filter(a => a.id !== account.id)
+                                }
+                              };
+                            });
+                          }}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                        
+                        <div className={styles.formGrid}>
+                          <div className={styles.inputGroup}>
+                            <label>اسم البنك / المحفظة</label>
+                            <input 
+                              className={styles.input}
+                              placeholder="الكريمي، ون كاش، النجم..."
+                              value={account.bankName}
+                              onChange={(e) => {
+                                setStoreData(prev => {
+                                  if (!prev) return null;
+                                  const ps = prev.paymentSettings || { enableCOD: true, enableTransfer: true };
+                                  const updatedAccounts = [...(ps.bankAccounts || [])];
+                                  updatedAccounts[index] = { ...updatedAccounts[index], bankName: e.target.value };
+                                  return { ...prev, paymentSettings: { ...ps, bankAccounts: updatedAccounts } };
+                                });
+                              }}
+                            />
+                          </div>
+                          <div className={styles.inputGroup}>
+                            <label>رقم الحساب / الجوال</label>
+                            <input 
+                              className={styles.input}
+                              placeholder="77XXXXXXX"
+                              value={account.accountNumber}
+                              onChange={(e) => {
+                                setStoreData(prev => {
+                                  if (!prev) return null;
+                                  const ps = prev.paymentSettings || { enableCOD: true, enableTransfer: true };
+                                  const updatedAccounts = [...(ps.bankAccounts || [])];
+                                  updatedAccounts[index] = { ...updatedAccounts[index], accountNumber: e.target.value };
+                                  return { ...prev, paymentSettings: { ...ps, bankAccounts: updatedAccounts } };
+                                });
+                              }}
+                            />
+                          </div>
+                          <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
+                            <label>اسم صاحب الحساب</label>
+                            <input 
+                              className={styles.input}
+                              value={account.accountName}
+                              onChange={(e) => {
+                                setStoreData(prev => {
+                                  if (!prev) return null;
+                                  const ps = prev.paymentSettings || { enableCOD: true, enableTransfer: true };
+                                  const updatedAccounts = [...(ps.bankAccounts || [])];
+                                  updatedAccounts[index] = { ...updatedAccounts[index], accountName: e.target.value };
+                                  return { ...prev, paymentSettings: { ...ps, bankAccounts: updatedAccounts } };
+                                });
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Fallback for old single bankDetails if array is empty */}
+                  {(!storeData?.paymentSettings?.bankAccounts || storeData.paymentSettings.bankAccounts.length === 0) && storeData?.paymentSettings?.bankDetails && (
+                    <div style={{ marginTop: '1rem', padding: '1rem', background: '#fffbeb', border: '1px solid #fef3c7', borderRadius: '12px' }}>
+                      <p style={{ fontSize: '0.85rem', color: '#92400e', marginBottom: '0.5rem' }}>ملاحظة: يوجد لديك حساب افتراضي مسجل مسبقاً. يفضل إضافته للقائمة أعلاه لدعم تعدد الحسابات.</p>
+                      <div style={{ fontSize: '0.85rem' }}>
+                        <strong>{storeData.paymentSettings.bankDetails.bankName}:</strong> {storeData.paymentSettings.bankDetails.accountNumber} ({storeData.paymentSettings.bankDetails.accountName})
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

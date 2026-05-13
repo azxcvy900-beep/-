@@ -96,6 +96,12 @@ export interface StoreInfo {
       accountNumber: string;
       accountName: string;
     };
+    bankAccounts?: {
+      id: string;
+      bankName: string;
+      accountNumber: string;
+      accountName: string;
+    }[];
   };
   status?: 'active' | 'banned' | 'frozen';
 }
