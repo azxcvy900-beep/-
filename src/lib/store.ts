@@ -38,6 +38,12 @@ export interface Order {
   date: string;
   customerUid?: string;
   storeSlug: string;
+  selectedBankAccount?: {
+    id?: string;
+    bankName: string;
+    accountNumber: string;
+    accountName: string;
+  };
 }
 
 interface CartStore {
