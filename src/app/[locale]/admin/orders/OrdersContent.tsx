@@ -20,6 +20,7 @@ import {
   X,
   Loader2,
   Banknote,
+  Landmark,
   Smartphone
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -192,7 +193,7 @@ export default function OrdersContent() {
            className={`${styles.tabBtn} ${activeGroup === 'bank' ? styles.tabActive : ''}`}
            onClick={() => setActiveGroup('bank')}
          >
-           <Smartphone size={18} />
+           <Landmark size={18} />
            <span>التحويل البنكي</span>
            <span className={styles.tabBadge}>{(localOrders || []).filter(o => o.paymentMethod === 'bank' || o.paymentMethod === 'transfer').length}</span>
          </button>

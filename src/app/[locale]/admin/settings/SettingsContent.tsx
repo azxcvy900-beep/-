@@ -711,10 +711,10 @@ export default function SettingsContent() {
                             />
                           </div>
                           <div className={styles.inputGroup}>
-                            <label>رقم الحساب / الجوال</label>
+                            <label>رقم الحساب</label>
                             <input 
                               className={styles.input}
-                              placeholder="77XXXXXXX"
+                              placeholder="أدخل رقم الحساب..."
                               value={account.accountNumber}
                               onChange={(e) => {
                                 setStoreData(prev => {
