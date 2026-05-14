@@ -124,8 +124,8 @@ const Footer = () => {
             <div className={styles.linksCol}>
               <h3>{t('privacyPolicies')}</h3>
               <ul>
-                <li><Link href="#">{t('terms')}</Link></li>
-                <li><Link href="#">{t('privacy')}</Link></li>
+                <li><Link href={`/${locale}/legal/terms-of-service`}>{t('terms')}</Link></li>
+                <li><Link href={`/${locale}/legal/privacy-policy`}>{t('privacy')}</Link></li>
                 <li><Link href="#">{t('refundPolicy')}</Link></li>
               </ul>
             </div>

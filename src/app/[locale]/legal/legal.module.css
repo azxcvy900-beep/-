@@ -1,0 +1,129 @@
+.legalContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 80px 24px;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 64px;
+  min-height: 100vh;
+}
+
+.sidebar {
+  position: sticky;
+  top: 100px;
+  height: fit-content;
+}
+
+.sidebar h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 24px;
+  color: var(--foreground);
+}
+
+.navLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.navLink {
+  color: var(--muted-foreground);
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border-right: 2px solid transparent;
+}
+
+.navLink:hover {
+  color: var(--primary);
+  background: var(--secondary);
+}
+
+.navLink.active {
+  color: var(--primary);
+  font-weight: 600;
+  border-right-color: var(--primary);
+  background: var(--primary-light, rgba(0, 0, 0, 0.05));
+}
+
+.content {
+  background: var(--background);
+}
+
+.header {
+  margin-bottom: 48px;
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 16px;
+  letter-spacing: -0.02em;
+}
+
+.lastUpdated {
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+}
+
+.section {
+  margin-bottom: 48px;
+  scroll-margin-top: 120px;
+}
+
+.section h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: var(--foreground);
+}
+
+.section p {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: var(--muted-foreground);
+  margin-bottom: 16px;
+}
+
+.section ul {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 24px;
+}
+
+.section li {
+  position: relative;
+  padding-right: 24px;
+  margin-bottom: 12px;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+}
+
+.section li::before {
+  content: "•";
+  position: absolute;
+  right: 0;
+  color: var(--primary);
+  font-weight: bold;
+}
+
+@media (max-width: 968px) {
+  .legalContainer {
+    grid-template-columns: 1fr;
+    padding: 60px 20px;
+    gap: 40px;
+  }
+
+  .sidebar {
+    position: static;
+    display: none; /* Hide sidebar on mobile for now or make it a dropdown */
+  }
+
+  .header h1 {
+    font-size: 2rem;
+  }
+}
