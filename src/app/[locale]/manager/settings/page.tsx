@@ -134,6 +134,9 @@ export default function ManagerSettings() {
         <button className={`${styles.tab} ${activeTab === 'hero' ? styles.activeTab : ''}`} onClick={() => setActiveTab('hero')}>
           <ImageIcon size={18} /> واجهة المنصة (Hero)
         </button>
+        <button className={`${styles.tab} ${activeTab === 'legal' ? styles.activeTab : ''}`} onClick={() => setActiveTab('legal')}>
+          <ShieldCheck size={18} /> السياسات القانونية
+        </button>
       </div>
 
       <div className={styles.settingsContent}>
@@ -455,6 +458,36 @@ export default function ManagerSettings() {
               >
                 + إضافة عنصر جديد
               </button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* --- LEGAL POLICIES TAB --- */}
+        {activeTab === 'legal' && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={styles.card}>
+            <h3>تعديل السياسات القانونية للمنصة</h3>
+            <p className={styles.subtitle}>هذه النصوص ستظهر لجميع المستخدمين في صفحات "سياسة الخصوصية" و "شروط الاستخدام".</p>
+            
+            <div className={styles.formGroup} style={{ marginTop: '1.5rem' }}>
+              <label>سياسة الخصوصية العالمية</label>
+              <textarea 
+                className={styles.largeTextarea}
+                rows={12} 
+                placeholder="اكتب سياسة الخصوصية هنا..."
+                value={settings.privacyPolicy || ''} 
+                onChange={(e) => setSettings({...settings, privacyPolicy: e.target.value})} 
+              />
+            </div>
+
+            <div className={styles.formGroup} style={{ marginTop: '2rem' }}>
+              <label>شروط وأحكام الاستخدام العالمية</label>
+              <textarea 
+                className={styles.largeTextarea}
+                rows={12} 
+                placeholder="اكتب شروط الاستخدام هنا..."
+                value={settings.termsOfService || ''} 
+                onChange={(e) => setSettings({...settings, termsOfService: e.target.value})} 
+              />
             </div>
           </motion.div>
         )}

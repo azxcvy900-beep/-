@@ -548,6 +548,15 @@ export default function StoreHome({ params }: { params: Promise<{ slug: string }
             </>
           )}
         </AnimatePresence>
+
+        {/* Store Footer */}
+        <footer className={styles.storeFooter}>
+          <div className={styles.footerLinks}>
+            <Link href={`/store/${resolvedParams.slug}/legal/privacy-policy`}>سياسة الخصوصية</Link>
+            <Link href={`/store/${resolvedParams.slug}/legal/terms-of-service`}>شروط الخدمة</Link>
+          </div>
+          <p className={styles.copyright}>© {new Date().getFullYear()} {storeInfo?.name}. بدعم من منصة بايرز.</p>
+        </footer>
       </div>
 
       <CartDrawer 

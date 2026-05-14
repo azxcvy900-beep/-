@@ -102,8 +102,12 @@ export interface StoreInfo {
       accountNumber: string;
       accountName: string;
     }[];
+    privacyPolicy?: string;
+    termsOfService?: string;
   };
   status?: 'active' | 'banned' | 'frozen';
+  privacyPolicy?: string;
+  termsOfService?: string;
 }
 
 export interface KYCRequest {
@@ -1157,6 +1161,8 @@ export interface PlatformSettings {
     proPlanProducts: number;
   };
   bankAccounts?: PlatformBankAccount[];
+  privacyPolicy?: string;
+  termsOfService?: string;
 }
 
 export async function getPlatformSettings(): Promise<PlatformSettings> {

@@ -811,6 +811,33 @@ export default function SettingsContent() {
                 />
               </div>
             </div>
+          <div className={styles.section}>
+            <h3 className={styles.sectionTitle}>سياسات المتجر (الخصوصية والاستبدال)</h3>
+            <p className={styles.previewHint} style={{ marginBottom: '1.5rem' }}>يمكنك إضافة سياسات خاصة بمتجرك (مثل سياسة الاستبدال) لتظهر لعملائك. هذه السياسات تعتبر إضافية لسياسات المنصة العامة.</p>
+            
+            <div className={styles.formGrid}>
+              <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
+                <label>سياسة خصوصية المتجر / شروط الاستبدال</label>
+                <textarea 
+                  className={styles.textarea}
+                  rows={8}
+                  placeholder="مثال: لا يتم استبدال المنتجات المفتوحة إلا في حال وجود عيب مصنعي..."
+                  value={storeData?.privacyPolicy || ''}
+                  onChange={(e) => setStoreData(prev => prev ? {...prev, privacyPolicy: e.target.value} : null)}
+                />
+              </div>
+
+              <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
+                <label>شروط الخدمة الإضافية للمتجر</label>
+                <textarea 
+                  className={styles.textarea}
+                  rows={8}
+                  placeholder="أي شروط إضافية تود إضافتها لمتجرك الخاص..."
+                  value={storeData?.termsOfService || ''}
+                  onChange={(e) => setStoreData(prev => prev ? {...prev, termsOfService: e.target.value} : null)}
+                />
+              </div>
+            </div>
           </div>
         </form>
       </Suspense>
