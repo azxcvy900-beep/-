@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { getStoreInfo, StoreInfo, getPlatformSettings, PlatformSettings } from '@/lib/api';
-import styles from '../../../legal/legal.module.css';
+import styles from '../../../../legal/legal.module.css';
 
 export default function StoreTermsOfService() {
   const params = useParams();

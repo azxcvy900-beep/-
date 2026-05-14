@@ -30,7 +30,9 @@ import {
   getStoreInfo, 
   updateStoreInfo, 
   uploadStoreLogo, 
-  StoreInfo
+  StoreInfo, 
+  getPlatformSettings, 
+  PlatformSettings 
 } from '@/lib/api';
 import { useAuthStore } from '@/lib/auth-store';
 import { useSessionStore } from '@/lib/session-store';
@@ -811,6 +813,7 @@ export default function SettingsContent() {
                 />
               </div>
             </div>
+          </div>
           <div className={styles.section}>
             <h3 className={styles.sectionTitle}>سياسات المتجر (الخصوصية والاستبدال)</h3>
             <p className={styles.previewHint} style={{ marginBottom: '1.5rem' }}>يمكنك إضافة سياسات خاصة بمتجرك (مثل سياسة الاستبدال) لتظهر لعملائك. هذه السياسات تعتبر إضافية لسياسات المنصة العامة.</p>
