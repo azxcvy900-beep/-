@@ -299,7 +299,19 @@ export default function ManagerSettings() {
             </div>
             <div className={styles.formGroup}>
               <label>الوصف التعريفي (Meta Description)</label>
-              <textarea style={{ width: '100%', padding: '1rem', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)' }} rows={3} value={settings.seo?.description || ''} onChange={(e) => setSettings({...settings, seo: {...(settings.seo || { title:'', description:'', keywords:'' }), description: e.target.value}})} />
+              <textarea 
+                style={{ 
+                  width: '100%', 
+                  padding: '1rem', 
+                  borderRadius: '12px', 
+                  border: '1px solid var(--mgr-border)',
+                  background: 'var(--mgr-bg)',
+                  color: 'var(--mgr-text)'
+                }} 
+                rows={3} 
+                value={settings.seo?.description || ''} 
+                onChange={(e) => setSettings({...settings, seo: {...(settings.seo || { title:'', description:'', keywords:'' }), description: e.target.value}})} 
+              />
             </div>
             <div className={styles.formGroup}>
               <label>الكلمات المفتاحية (Keywords)</label>

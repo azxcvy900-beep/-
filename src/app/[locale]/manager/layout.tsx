@@ -137,10 +137,6 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
         </nav>
 
         <div className={styles.sidebarFooter}>
-          <button onClick={toggleTheme} className={styles.themeToggle}>
-            {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
-            <span>{theme === 'light' ? 'الوضع الليلي' : 'الوضع النهاري'}</span>
-          </button>
           <button onClick={handleLogout} className={styles.logoutBtn}>
             <LogOut size={20} />
             <span>تسجيل الخروج</span>
@@ -213,7 +209,7 @@ function RedirectToLogin({ locale }: { locale: string }) {
       minHeight: '100vh',
       color: '#94a3b8',
       fontSize: '1.1rem',
-      background: '#030712'
+      background: 'var(--background)'
     }}>
       جاري التحويل لصفحة الدخول...
     </div>

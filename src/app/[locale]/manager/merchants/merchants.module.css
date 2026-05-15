@@ -1,7 +1,7 @@
 .merchantsPage {
   padding: 2rem;
   min-height: 100vh;
-  background: var(--background);
+  background: var(--mgr-bg);
 }
 
 @media (max-width: 768px) {
@@ -20,12 +20,12 @@
 .pageHeader h1 {
   font-size: 1.8rem;
   font-weight: 800;
-  color: #1e293b;
+  color: var(--mgr-text);
   margin-bottom: 0.5rem;
 }
 
 .pageHeader p {
-  color: #64748b;
+  color: var(--mgr-text-muted);
   font-size: 1rem;
 }
 
@@ -36,9 +36,9 @@
 .searchBox {
   position: relative;
   max-width: 400px;
-  background: white;
+  background: var(--mgr-card-bg);
   border-radius: 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--mgr-border);
   display: flex;
   align-items: center;
   padding: 0 1rem;
@@ -46,8 +46,8 @@
 }
 
 .searchBox:focus-within {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+  border-color: var(--mgr-primary);
+  box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.1);
 }
 
 .searchBox input {
@@ -56,18 +56,20 @@
   width: 100%;
   outline: none;
   font-size: 0.95rem;
+  background: transparent;
+  color: var(--mgr-text);
 }
 
 .searchBox svg {
-  color: #94a3b8;
+  color: var(--mgr-text-muted);
 }
 
 .tableWrapper {
-  background: white;
+  background: var(--mgr-card-bg);
   border-radius: 16px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--mgr-border);
   overflow-x: auto;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-sm);
 }
 
 .table {
@@ -77,19 +79,19 @@
 }
 
 .table th {
-  background: #f1f5f9;
+  background: var(--mgr-bg);
   padding: 1.2rem 1.5rem;
   font-size: 0.85rem;
   font-weight: 700;
-  color: #475569;
+  color: var(--mgr-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.025em;
 }
 
 .table td {
   padding: 1.2rem 1.5rem;
-  border-bottom: 1px solid #f1f5f9;
-  color: #1e293b;
+  border-bottom: 1px solid var(--mgr-border);
+  color: var(--mgr-text);
   font-size: 0.95rem;
   vertical-align: middle;
 }
@@ -105,8 +107,8 @@
   height: 40px;
   border-radius: 10px;
   object-fit: cover;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: var(--mgr-bg);
+  border: 1px solid var(--mgr-border);
 }
 
 .storeMainInfo {
@@ -116,14 +118,14 @@
 
 .storeName {
   font-weight: 600;
-  color: #0f172a;
+  color: var(--mgr-text);
 }
 
 .slugCode {
   font-family: monospace;
   font-size: 0.8rem;
-  color: #64748b;
-  background: #f1f5f9;
+  color: var(--mgr-text-muted);
+  background: var(--mgr-bg);
   padding: 0.1rem 0.4rem;
   border-radius: 4px;
 }
@@ -132,7 +134,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #64748b;
+  color: var(--mgr-text-muted);
 }
 
 .statusBadge {
@@ -191,20 +193,20 @@
   width: 36px;
   height: 36px;
   border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--mgr-border);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #64748b;
+  color: var(--mgr-text-muted);
   transition: all 0.2s;
-  background: white;
+  background: var(--mgr-card-bg);
   cursor: pointer;
 }
 
 .actionIcon:hover {
-  background: #f8fafc;
-  color: #0f172a;
-  border-color: #cbd5e1;
+  background: var(--mgr-bg);
+  color: var(--mgr-text);
+  border-color: var(--mgr-border);
 }
 
 .activate:hover {
@@ -235,5 +237,5 @@
   justify-content: center;
   align-items: center;
   height: 200px;
-  color: #64748b;
+  color: var(--mgr-text-muted);
 }

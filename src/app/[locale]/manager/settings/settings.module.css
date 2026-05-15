@@ -3,6 +3,7 @@
   max-width: 1200px;
   margin: 0 auto;
   position: relative;
+  background: var(--mgr-bg);
 }
 
 @media (max-width: 768px) {
@@ -21,12 +22,12 @@
 .title {
   font-size: 2rem;
   font-weight: 800;
-  color: var(--text-main);
+  color: var(--mgr-text);
   margin-bottom: 0.5rem;
 }
 
 .subtitle {
-  color: var(--text-muted);
+  color: var(--mgr-text-muted);
   font-size: 1rem;
 }
 
@@ -89,7 +90,7 @@
   padding: 0.75rem 1.25rem;
   border: none;
   background: transparent;
-  color: var(--text-muted);
+  color: var(--mgr-text-muted);
   font-weight: 600;
   cursor: pointer;
   border-radius: 10px;
@@ -97,24 +98,24 @@
 }
 
 .activeTab {
-  background: white;
-  color: var(--primary);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  background: var(--mgr-card-bg);
+  color: var(--mgr-primary);
+  box-shadow: var(--shadow);
 }
 
 .card {
-  background: white;
+  background: var(--mgr-card-bg);
   padding: 2rem;
   border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--mgr-border);
 }
 
 .card h3 {
   margin-bottom: 2rem;
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--text-main);
+  color: var(--mgr-text);
 }
 
 .formGroup {
@@ -125,21 +126,23 @@
   display: block;
   margin-bottom: 0.75rem;
   font-weight: 600;
-  color: var(--text-main);
+  color: var(--mgr-text);
 }
 
 .formGroup input, .formGroup select {
   width: 100%;
   padding: 0.9rem 1.25rem;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--mgr-border);
   border-radius: 12px;
   font-size: 1rem;
   transition: border-color 0.2s;
+  background: var(--mgr-bg);
+  color: var(--mgr-text);
 }
 
 .helper {
   font-size: 0.85rem;
-  color: var(--text-muted);
+  color: var(--mgr-text-muted);
   margin-top: 0.5rem;
 }
 
@@ -154,7 +157,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem;
-  background: rgba(0, 0, 0, 0.02);
+  background: var(--mgr-bg);
   border-radius: 16px;
   margin-bottom: 1.5rem;
 }
@@ -166,7 +169,7 @@
 
 .toggleInfo span {
   font-size: 0.9rem;
-  color: var(--text-muted);
+  color: var(--mgr-text-muted);
 }
 
 .toggle {
@@ -224,20 +227,20 @@
 
 /* Dark mode overrides (to be integrated via layout classes if needed) */
 :global(.dark) .card {
-  background: #1e293b;
-  border-color: rgba(255, 255, 255, 0.05);
+  background: var(--card-bg);
+  border-color: var(--card-border);
 }
 :global(.dark) .tab:not(.activeTab) {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--secondary);
 }
 :global(.dark) .activeTab {
-  background: #334155;
-  color: white;
+  background: var(--muted);
+  color: var(--primary);
 }
 :global(.dark) .formGroup input, :global(.dark) .formGroup select {
-  background: #0f172a;
-  border-color: rgba(255, 255, 255, 0.1);
-  color: white;
+  background: var(--background);
+  border-color: var(--card-border);
+  color: var(--foreground);
 }
 
 .bankList {
@@ -248,9 +251,9 @@
 
 .bankItem {
   padding: 1.5rem;
-  background: #f8fafc;
+  background: var(--mgr-bg);
   border-radius: 16px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--mgr-border);
 }
 
 .addBtn {
@@ -294,9 +297,9 @@
   display: flex;
   gap: 1.5rem;
   padding: 1.5rem;
-  background: #f8fafc;
+  background: var(--mgr-bg);
   border-radius: 16px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--mgr-border);
   align-items: center;
 }
 
@@ -386,13 +389,13 @@
   width: 100%;
   padding: 1.25rem;
   border-radius: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--mgr-border);
   font-family: inherit;
   font-size: 1rem;
   line-height: 1.6;
   resize: vertical;
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--mgr-bg);
+  color: var(--mgr-text);
   transition: border-color 0.2s ease;
 }
 

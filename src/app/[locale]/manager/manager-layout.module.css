@@ -1,34 +1,34 @@
 .managerContainer {
   display: flex;
   min-height: 100vh;
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--mgr-bg);
+  color: var(--mgr-text);
 }
 
-/* Theme Variables (Force Dark/Gold for Manager) */
+/* Theme Variables (Forced Light Theme for Manager) */
 .dark, .light {
-  --mgr-bg: #030712;
-  --mgr-sidebar-bg: #0f172a;
-  --mgr-card-bg: rgba(30, 41, 59, 0.4);
-  --mgr-text: #f8fafc;
-  --mgr-text-muted: #94a3b8;
-  --mgr-border: rgba(255, 255, 255, 0.05);
+  --mgr-bg: #f8fafc;
+  --mgr-sidebar-bg: #ffffff;
+  --mgr-card-bg: #ffffff;
+  --mgr-text: #020617;
+  --mgr-text-muted: #64748b;
+  --mgr-border: rgba(15, 23, 42, 0.08);
   --mgr-active-link: rgba(251, 191, 36, 0.1);
   --mgr-primary: #fbbf24;
   --mgr-accent: #fbbf24;
   --mgr-pulse: #fbbf24;
-  --mgr-glass: rgba(15, 23, 42, 0.8);
+  --mgr-glass: rgba(255, 255, 255, 0.7);
 }
 
 .sidebar {
   width: 280px;
-  background: #0f172a;
-  border-left: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--mgr-sidebar-bg);
+  border-left: 1px solid var(--mgr-border);
   display: flex;
   flex-direction: column;
   transition: all 0.3s ease;
   z-index: 50;
-  box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--shadow);
 }
 
 .sidebarClosed {
@@ -39,7 +39,7 @@
 
 .sidebarHeader {
   padding: 40px 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--mgr-border);
 }
 
 .logo {
@@ -49,17 +49,17 @@
   text-decoration: none;
   font-weight: 900;
   font-size: 24px;
-  color: #fff;
+  color: var(--mgr-text);
   letter-spacing: -0.5px;
 }
 
 .logoIcon {
-  color: #fbbf24;
-  filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.4));
+  color: var(--primary);
+  filter: drop-shadow(0 0 8px rgba(var(--primary-rgb), 0.4));
 }
 
 .logo span span {
-  color: #fbbf24;
+  color: var(--primary);
   font-size: 14px;
   text-transform: uppercase;
 }
@@ -78,7 +78,7 @@
   gap: 16px;
   padding: 16px 20px;
   border-radius: 18px;
-  color: #94a3b8;
+  color: var(--mgr-text-muted);
   text-decoration: none;
   font-weight: 700;
   font-size: 15px;
@@ -86,20 +86,20 @@
 }
 
 .navItem:hover {
-  background: rgba(255, 255, 255, 0.03);
-  color: #fff;
+  background: var(--mgr-bg);
+  color: var(--mgr-text);
   transform: translateX(-4px);
 }
 
 .active {
-  background: #fbbf24 !important;
-  color: #000 !important;
-  box-shadow: 0 10px 20px -5px rgba(251, 191, 36, 0.3);
+  background: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+  box-shadow: var(--shadow-glow);
 }
 
 .sidebarFooter {
   padding: 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid var(--mgr-border);
 }
 
 .themeToggle, .logoutBtn {
@@ -110,7 +110,7 @@
   width: 100%;
   border: none;
   background: transparent;
-  color: #94a3b8;
+  color: var(--mgr-text-muted);
   font-size: 14px;
   font-weight: 700;
   border-radius: 14px;
@@ -118,12 +118,12 @@
   transition: all 0.2s;
 }
 
-.themeToggle:hover { background: rgba(255, 255, 255, 0.03); color: #fff; }
+.themeToggle:hover { background: var(--mgr-bg); color: var(--mgr-text); }
 .logoutBtn:hover { background: rgba(244, 63, 94, 0.1); color: #f43f5e; }
 
 .main {
   flex: 1;
-  background: #030712;
+  background: var(--mgr-bg);
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -132,9 +132,9 @@
 
 .topBar {
   height: 90px;
-  background: rgba(15, 23, 42, 0.6);
+  background: var(--mgr-glass);
   backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--mgr-border);
   padding: 0 40px;
   display: flex;
   justify-content: space-between;
