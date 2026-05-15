@@ -42,12 +42,18 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
   const { isLoggedIn, role, username, logout, _hasHydrated } = useSessionStore();
 
   useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+    const handleResize = () => {
+      if (window.innerWidth <= 1024) {
+        setIsSidebarOpen(false);
+      } else {
+        setIsSidebarOpen(true);
+      }
+    };
+    handleResize(); // Init
     setMounted(true);
-  };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // If on login page, don't show the manager layout
   if (pathname.includes('/manager/login')) {
@@ -88,6 +94,19 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
 
   return (
     <div className={`${styles.managerContainer} ${theme === 'dark' ? styles.dark : styles.light}`}>
+      {/* Sidebar Mobile Overlay */}
+      <AnimatePresence>
+        {isSidebarOpen && window.innerWidth <= 1024 && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsSidebarOpen(false)}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[45]"
+          />
+        )}
+      </AnimatePresence>
+
       {/* Sidebar */}
       <aside className={`${styles.sidebar} ${!isSidebarOpen ? styles.sidebarClosed : ''}`}>
         <div className={styles.sidebarHeader}>
@@ -95,6 +114,9 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
             <ShieldAlert size={28} className={styles.logoIcon} />
             <span>بايرز <span>بروتوكول</span></span>
           </Link>
+          <button className="lg:hidden absolute top-10 left-6 text-slate-400" onClick={() => setIsSidebarOpen(false)}>
+            <X size={24} />
+          </button>
         </div>
         
         <nav className={styles.nav}>
@@ -105,6 +127,7 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
                 key={item.href} 
                 href={item.href}
                 className={`${styles.navItem} ${isActive ? styles.active : ''}`}
+                onClick={() => { if (window.innerWidth <= 1024) setIsSidebarOpen(false); }}
               >
                 <item.icon size={20} />
                 <span>{item.name}</span>

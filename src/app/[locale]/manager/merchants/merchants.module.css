@@ -1,7 +1,13 @@
 .merchantsPage {
   padding: 2rem;
   min-height: 100vh;
-  background: #f8fafc;
+  background: var(--background);
+}
+
+@media (max-width: 768px) {
+  .merchantsPage {
+    padding: 1rem;
+  }
 }
 
 .pageHeader {
@@ -60,7 +66,7 @@
   background: white;
   border-radius: 16px;
   border: 1px solid #e2e8f0;
-  overflow: hidden;
+  overflow-x: auto;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
@@ -150,8 +156,8 @@
 }
 
 .statusBadge.banned {
-  background: #fef2f2;
-  color: #991b1b;
+  background: #7f1d1d;
+  color: #fff;
 }
 
 .planSelect {

@@ -492,6 +492,19 @@ export default function ManagerSettings() {
           </motion.div>
         )}
       </div>
+      
+      {/* Floating Save Button for UX */}
+      <div className={styles.floatingActions}>
+        <button 
+          className={styles.saveBtn} 
+          onClick={handleSave}
+          disabled={loading}
+          title="حفظ كافة التغييرات"
+        >
+          {loading ? <RefreshCw className={styles.spin} /> : <Save size={20} />}
+          <span className="hidden md:inline">حفظ التغييرات</span>
+        </button>
+      </div>
     </div>
   );
 }

@@ -1,8 +1,8 @@
 .managerContainer {
   display: flex;
   min-height: 100vh;
-  background: #020617;
-  color: #f8fafc;
+  background: var(--background);
+  color: var(--foreground);
 }
 
 /* Theme Variables (Force Dark/Gold for Manager) */
@@ -230,4 +230,41 @@
 .content::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 10px;
+}
+
+@media (max-width: 1024px) {
+  .sidebar {
+    position: fixed;
+    height: 100vh;
+    left: 0;
+    top: 0;
+  }
+  
+  .sidebarClosed {
+    transform: translateX(-100%);
+    width: 280px; /* Keep width but hide via transform for animation */
+  }
+
+  .topBar {
+    padding: 0 20px;
+    height: 70px;
+  }
+
+  .titleArea {
+    display: none; /* Hide subtitle area on small screens to save space */
+  }
+}
+
+@media (max-width: 640px) {
+  .topBarRight {
+    gap: 12px;
+  }
+  
+  .statusIndicator {
+    display: none; /* Hide status text on very small screens */
+  }
+  
+  .adminInfo {
+    display: none;
+  }
 }

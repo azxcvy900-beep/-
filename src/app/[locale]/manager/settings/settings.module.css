@@ -2,6 +2,13 @@
   padding: 2rem;
   max-width: 1200px;
   margin: 0 auto;
+  position: relative;
+}
+
+@media (max-width: 768px) {
+  .settingsPage {
+    padding: 1rem;
+  }
 }
 
 .header {
@@ -21,6 +28,23 @@
 .subtitle {
   color: var(--text-muted);
   font-size: 1rem;
+}
+
+.floatingActions {
+  position: fixed;
+  bottom: 40px;
+  right: 40px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+@media (max-width: 1024px) {
+  .floatingActions {
+    bottom: 100px; /* Above mobile bottom nav if any */
+    right: 20px;
+  }
 }
 
 .saveBtn {

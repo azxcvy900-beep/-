@@ -22,6 +22,15 @@
   box-shadow: var(--shadow);
 }
 
+@media (max-width: 1024px) {
+  .pulseHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 24px;
+    padding: 24px;
+  }
+}
+
 .titleInfo h1 {
   font-size: 32px;
   font-weight: 900;
@@ -52,7 +61,7 @@
 .statCard {
   background: var(--card-bg);
   backdrop-filter: blur(10px);
-  padding: 32px;
+  padding: 40px;
   border-radius: 28px;
   border: 1px solid var(--card-border);
   display: flex;
@@ -142,6 +151,12 @@
   gap: 32px;
 }
 
+@media (max-width: 1200px) {
+  .mainGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .radarList {
   background: var(--card-bg);
   border-radius: 32px;
@@ -210,6 +225,19 @@
 .mStat p {
   font-weight: 800;
   font-size: 16px;
+}
+
+@media (max-width: 640px) {
+  .radarItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+  
+  .merchantStats {
+    width: 100%;
+    justify-content: space-between;
+  }
 }
 
 .good { color: #10b981; }
